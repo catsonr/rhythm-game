@@ -1,6 +1,8 @@
 #include "register_types.h"
 
+// all classes in src
 #include "gdexample.h"
+#include "Minimal.h"
 
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
@@ -12,7 +14,9 @@ void initialize_example_module(ModuleInitializationLevel p_level)
 {
     if(p_level != MODULE_INITIALIZATION_LEVEL_SCENE) return;
     
+    // register classes
     GDREGISTER_RUNTIME_CLASS(GDExample);
+    GDREGISTER_RUNTIME_CLASS(Minimal);
 }
 
 void uninitialize_example_module(ModuleInitializationLevel p_level)

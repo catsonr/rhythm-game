@@ -9,4 +9,7 @@ i followed (https://docs.godotengine.org/en/4.4/tutorials/scripting/gdextension/
     This file contains a configuration section that controls the entry function of the module. You should also set the minimum compatible Godot version with compatibility_minimum, which prevents older version of Godot from trying to load your extension. The reloadable flag enables automatic reloading of your extension by the editor every time you recompile it, without needing to restart the editor. This only works if you compile your extension in debug mode (default).
 "
 
-compile with command 'scons', defined by 'Sconstruct' file
+compile with command 'scons', defined by 'Sconstruct' file, which will output create 'demo/'
+
+so after compiling you should have a demo/bin/ directory containing a .framework/.so directory
+copy that directory AND gdexample.gdextension into my-cool-project/bin/
