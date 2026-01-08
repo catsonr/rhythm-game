@@ -1,0 +1,244 @@
+{
+	"globsDependent" : 
+	[
+		{
+			"expression" : "/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/*.cpp",
+			"paths" : 
+			[
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/classes/editor_plugin_registration.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/classes/low_level.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/classes/wrapped.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/core/class_db.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/core/error_macros.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/core/memory.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/core/method_bind.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/core/object.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/core/print_string.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/godot.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/aabb.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/basis.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/callable_custom.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/callable_method_pointer.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/char_string.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/color.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/packed_arrays.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/plane.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/projection.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/quaternion.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/rect2.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/rect2i.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/transform2d.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/transform3d.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/variant.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/variant_internal.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/vector2.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/vector2i.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/vector3.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/vector3i.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/vector4.cpp",
+				"/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp/src/variant/vector4i.cpp"
+			],
+			"recurse" : true
+		}
+	],
+	"inputs" : 
+	[
+		{
+			"path" : "CMakeLists.txt"
+		},
+		{
+			"path" : "cmake/godotcpp.cmake"
+		},
+		{
+			"path" : "cmake/GodotCPPModule.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/FindPython3.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/FindPython/Support.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"path" : "cmake/common_compiler_flags.cmake"
+		},
+		{
+			"path" : "cmake/android.cmake"
+		},
+		{
+			"path" : "cmake/ios.cmake"
+		},
+		{
+			"path" : "cmake/linux.cmake"
+		},
+		{
+			"path" : "cmake/macos.cmake"
+		},
+		{
+			"path" : "cmake/web.cmake"
+		},
+		{
+			"path" : "cmake/windows.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/ProcessorCount.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "/Users/carson/Desktop/wrkspc/gdextension-test/build/CMakeFiles/4.1.2/CMakeSystem.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/CMakeSystemSpecificInitialize.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/Platform/Darwin-Initialize.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "/Users/carson/Desktop/wrkspc/gdextension-test/build/CMakeFiles/4.1.2/CMakeCXXCompiler.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/CMakeSystemSpecificInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/CMakeGenericSystem.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/CMakeInitializeConfigs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/Platform/Darwin.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/Platform/UnixPaths.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/CMakeCXXInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/CMakeLanguageInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/Compiler/AppleClang-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/Compiler/Clang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/Compiler/GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/Platform/Apple-AppleClang-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/Platform/Apple-Clang-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/Platform/Apple-Clang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/CMakeCommonLanguageInclude.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/Internal/CMakeCXXLinkerInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/Internal/CMakeCommonLinkerInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/Linker/AppleClang-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/Linker/AppleClang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/Platform/Linker/Apple-AppleClang-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/opt/homebrew/share/cmake/Modules/Platform/Linker/Apple-AppleClang.cmake"
+		},
+		{
+			"path" : "cmake/emsdkHack.cmake"
+		}
+	],
+	"kind" : "cmakeFiles",
+	"paths" : 
+	{
+		"build" : "/Users/carson/Desktop/wrkspc/gdextension-test/build",
+		"source" : "/Users/carson/Desktop/wrkspc/gdextension-test/godot-cpp"
+	},
+	"version" : 
+	{
+		"major" : 1,
+		"minor" : 1
+	}
+}
