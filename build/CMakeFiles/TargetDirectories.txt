@@ -1,4 +1,0 @@
-/Users/carson/Desktop/wrkspc/gdextension-test/build/CMakeFiles/generate_bindings.dir
-/Users/carson/Desktop/wrkspc/gdextension-test/build/CMakeFiles/godot-cpp.dir
-/Users/carson/Desktop/wrkspc/gdextension-test/build/CMakeFiles/edit_cache.dir
-/Users/carson/Desktop/wrkspc/gdextension-test/build/CMakeFiles/rebuild_cache.dir
