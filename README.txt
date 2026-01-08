@@ -13,3 +13,6 @@ compile with command 'scons', defined by 'Sconstruct' file, which will output cr
 
 so after compiling you should have a demo/bin/ directory containing a .framework/.so directory
 copy that directory AND gdexample.gdextension into my-cool-project/bin/
+
+this can be automatically done with
+sh build.sh path/to/project/
