@@ -1,5 +1,6 @@
 *.os
 *.dblite
+.DS_Store
 
 build/
 demo/
