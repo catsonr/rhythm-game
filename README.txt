@@ -15,4 +15,10 @@ so after compiling you should have a demo/bin/ directory containing a .framework
 copy that directory AND gdexample.gdextension into my-cool-project/bin/
 
 this can be automatically done with
-sh build.sh path/to/project/
+sh build.sh path/to/project
+
+
+# ASSUMPTIONS
+ - AudioEngine is assumed to be an autoloaded singleton, and also that it exists
+ - Run is assumed to have a child Sprite2D named 'BG'
+ - there exists a file "res://audio/midnight.mp3"

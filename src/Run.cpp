@@ -1,4 +1,6 @@
 #include "Run.h"
+#include "AudioEngine.h"
+
 #include <godot_cpp/core/class_db.hpp>
 
 void rhythm::Run::_bind_methods()
@@ -35,6 +37,8 @@ void rhythm::Run::_ready()
     }
     
     BG_shadermaterial = godot::Ref<godot::ShaderMaterial>(shadermaterial);
+    
+    AudioEngine::get_singleton()->load_sound("res://audio/midnight.mp3");
 }
 
 void rhythm::Run::_process(double delta)

@@ -1,8 +1,7 @@
 #include "register_types.h"
 
 // all classes in src
-#include "Minimal.h"
-
+#include "AudioEngine.h"
 #include "Run.h"
 
 #include <gdextension_interface.h>
@@ -16,9 +15,8 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     if(p_level != MODULE_INITIALIZATION_LEVEL_SCENE) return;
     
     // register classes
+    GDREGISTER_RUNTIME_CLASS(rhythm::AudioEngine);
     GDREGISTER_RUNTIME_CLASS(rhythm::Run);
-
-    GDREGISTER_RUNTIME_CLASS(Minimal);
 }
 
 void uninitialize_example_module(ModuleInitializationLevel p_level)
