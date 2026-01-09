@@ -21,4 +21,3 @@ sh build.sh path/to/project
 # ASSUMPTIONS
  - AudioEngine is assumed to be an autoloaded singleton, and also that it exists
  - Run is assumed to have a child Sprite2D named 'BG'
- - there exists a file "res://audio/midnight.mp3"

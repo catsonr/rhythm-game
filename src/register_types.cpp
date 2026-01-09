@@ -4,6 +4,9 @@
 #include "AudioEngine.h"
 #include "Run.h"
 
+// all resources in src
+#include "Track.h"
+
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
@@ -14,9 +17,12 @@ void initialize_example_module(ModuleInitializationLevel p_level)
 {
     if(p_level != MODULE_INITIALIZATION_LEVEL_SCENE) return;
     
-    // register classes
+    // register nodes
     GDREGISTER_RUNTIME_CLASS(rhythm::AudioEngine);
     GDREGISTER_RUNTIME_CLASS(rhythm::Run);
+    
+    // register resources
+    GDREGISTER_RUNTIME_CLASS(rhythm::Track);
 }
 
 void uninitialize_example_module(ModuleInitializationLevel p_level)
