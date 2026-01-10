@@ -5,6 +5,7 @@
 #include "Run.h"
 
 // all resources in src
+#include "Audio.h"
 #include "Track.h"
 
 #include <gdextension_interface.h>
@@ -22,6 +23,7 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     GDREGISTER_RUNTIME_CLASS(rhythm::Run);
     
     // register resources
+    GDREGISTER_RUNTIME_CLASS(rhythm::Audio);
     GDREGISTER_RUNTIME_CLASS(rhythm::Track);
 }
 

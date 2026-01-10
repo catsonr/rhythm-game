@@ -31,6 +31,7 @@ protected:
 
 public:
     AudioEngine();
+    ~AudioEngine();
     
     void _ready() override;
     void _process(double delta) override;
@@ -38,8 +39,10 @@ public:
     
     static AudioEngine* get_singleton();
     
+    bool play_audio(const godot::Ref<rhythm::Audio>& audio);
+    
     bool load_sound(const godot::String& p_path);
-    bool load_track(const godot::Ref<rhythm::Track>& track);
+    bool load_audio(const godot::Ref<rhythm::Audio>& audio);
     
     void set_volume(float p_volume);
     float get_volume() const;

@@ -24,6 +24,13 @@ rhythm::AudioEngine::AudioEngine()
     else godot::print_error("[AudioEngine::AudioEngine] another AudioEngine has been instantiated!");
 }
 
+rhythm::AudioEngine::~AudioEngine()
+{
+    // clean up miniaudio
+    for(ma_sound sound : sounds) ma_sound_uninit(&sound);
+    // ma_engine_uninit(&engine); // this crashes godot!
+}
+
 void rhythm::AudioEngine::_ready()
 {
     if( ma_engine_init(NULL, &engine) != MA_SUCCESS )
@@ -32,7 +39,7 @@ void rhythm::AudioEngine::_ready()
         return;
     }
     
-    if(current_track.is_valid()) load_track(current_track);
+    if(current_track.is_valid()) load_audio(current_track);
 }
 
 void rhythm::AudioEngine::_process(double delta)
@@ -45,6 +52,10 @@ void rhythm::AudioEngine::_input(const godot::Ref<godot::InputEvent>& event)
     static godot::Input* input = godot::Input::get_singleton();
     static godot::PackedInt64Array beats;
 
+    if(input->is_physical_key_pressed(godot::KEY_SPACE))
+    {
+        play_audio(current_track);
+    }
     if(input->is_physical_key_pressed(godot::KEY_M))
     {
         ma_uint64 current_frame;
@@ -64,6 +75,11 @@ void rhythm::AudioEngine::_input(const godot::Ref<godot::InputEvent>& event)
 rhythm::AudioEngine* rhythm::AudioEngine::get_singleton()
 {
     return singleton;
+}
+
+bool rhythm::AudioEngine::play_audio(const godot::Ref<rhythm::Audio>& audio)
+{
+    return ma_sound_start(audio->sound) == MA_SUCCESS;
 }
 
 /**
@@ -89,27 +105,24 @@ bool rhythm::AudioEngine::load_sound(const godot::String& p_path)
         godot::print_error("[AudioEngine::load_sound] unable to load ", abs_path, "!");
         return false;
     }
-    
-    ma_sound_start(&sound);
-    godot::print_line("now playing: ", p_path);
-    
+
     return true;
 }
 
 /**
  * loads (initializes) a Track
  */
-bool rhythm::AudioEngine::load_track(const godot::Ref<rhythm::Track>& track)
+bool rhythm::AudioEngine::load_audio(const godot::Ref<rhythm::Audio>& audio)
 {
-    if( load_sound(track->get_file_path()) )
+    if( load_sound(audio->get_file_path()) )
     {
-        track->sound = &sounds.back();
-        track->AudioEngine_sounds_index = sounds.size() - 1;
+        audio->sound = &sounds.back();
+        audio->AudioEngine_sounds_index = sounds.size() - 1;
         
         return true;
     }
     
-    godot::print_error("[AudioEngine::load_track] unable to load track!");
+    godot::print_error("[AudioEngine::load_audio] unable to load audio!");
     return false;
 }
 
