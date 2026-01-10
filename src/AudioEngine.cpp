@@ -2,6 +2,8 @@
 
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/resource_saver.hpp>
 
 void rhythm::AudioEngine::_bind_methods()
 {
@@ -14,7 +16,7 @@ void rhythm::AudioEngine::_bind_methods()
     ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "current_track", godot::PROPERTY_HINT_RESOURCE_TYPE, "Track"), "set_current_track", "get_current_track");
 }
 
-// a bit hacky, but seems to work
+// a bit hacky, but seems to work (gemini's idea)
 rhythm::AudioEngine* rhythm::AudioEngine::singleton = nullptr;
 rhythm::AudioEngine::AudioEngine()
 {
@@ -30,12 +32,33 @@ void rhythm::AudioEngine::_ready()
         return;
     }
     
-    if(current_track.is_valid()) load_sound(current_track->get_file_path());
+    if(current_track.is_valid()) load_track(current_track);
 }
 
 void rhythm::AudioEngine::_process(double delta)
 {
+    //godot::print_line(current_track->get_beats().size());
+}
 
+void rhythm::AudioEngine::_input(const godot::Ref<godot::InputEvent>& event)
+{
+    static godot::Input* input = godot::Input::get_singleton();
+    static godot::PackedInt64Array beats;
+
+    if(input->is_physical_key_pressed(godot::KEY_M))
+    {
+        ma_uint64 current_frame;
+        ma_sound_get_cursor_in_pcm_frames(current_track->sound, &current_frame);
+        
+        beats.append(static_cast<int64_t>(current_frame));
+        godot::print_line("beat ", beats.size(), " @ ", current_frame);
+    }
+    if(input->is_physical_key_pressed(godot::KEY_ENTER))
+    {
+        current_track->set_beats(beats);
+        godot::ResourceSaver::get_singleton()->save(current_track);
+        godot::print_line("sent ", beats.size(), " beats to current track");
+    }
 }
 
 rhythm::AudioEngine* rhythm::AudioEngine::get_singleton()
@@ -49,7 +72,7 @@ rhythm::AudioEngine* rhythm::AudioEngine::get_singleton()
  * 
  * returns true on success and false otherwise
  */
-bool rhythm::AudioEngine::load_sound(godot::String p_path)
+bool rhythm::AudioEngine::load_sound(const godot::String& p_path)
 {
     sounds.emplace_back();
     ma_sound& sound = sounds.back();
@@ -73,6 +96,23 @@ bool rhythm::AudioEngine::load_sound(godot::String p_path)
     return true;
 }
 
+/**
+ * loads (initializes) a Track
+ */
+bool rhythm::AudioEngine::load_track(const godot::Ref<rhythm::Track>& track)
+{
+    if( load_sound(track->get_file_path()) )
+    {
+        track->sound = &sounds.back();
+        track->AudioEngine_sounds_index = sounds.size() - 1;
+        
+        return true;
+    }
+    
+    godot::print_error("[AudioEngine::load_track] unable to load track!");
+    return false;
+}
+
 void rhythm::AudioEngine::set_volume(float p_volume)
 {
     volume = p_volume;
@@ -88,7 +128,7 @@ float rhythm::AudioEngine::get_volume() const
     return volume;
 }
 
-void rhythm::AudioEngine::set_current_track(godot::Ref<rhythm::Track> p_track)
+void rhythm::AudioEngine::set_current_track(const godot::Ref<rhythm::Track>& p_track)
 {
     current_track = p_track;
 }

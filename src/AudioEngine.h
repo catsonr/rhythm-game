@@ -3,7 +3,11 @@
 #include "miniaudio.h"
 
 #include <vector>
+
 #include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/classes/input.hpp>
+#include <godot_cpp/classes/input_event.hpp>
+#include <godot_cpp/classes/input_event_key.hpp>
 
 #include "Track.h"
 
@@ -30,15 +34,17 @@ public:
     
     void _ready() override;
     void _process(double delta) override;
+    void _input(const godot::Ref<godot::InputEvent>& event) override;
     
     static AudioEngine* get_singleton();
     
-    bool load_sound(godot::String p_path);
+    bool load_sound(const godot::String& p_path);
+    bool load_track(const godot::Ref<rhythm::Track>& track);
     
     void set_volume(float p_volume);
     float get_volume() const;
     
-    void set_current_track(godot::Ref<rhythm::Track> p_track);
+    void set_current_track(const godot::Ref<rhythm::Track>& p_track);
     godot::Ref<rhythm::Track> get_current_track() const;
 }; // AudioEngine
 
