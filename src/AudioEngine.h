@@ -30,11 +30,19 @@ public:
     const int64_t INITIAL_CURRENT_TRACK_LOCAL_PAUSE_FRAME { -1 };
     // the time at which the current track began playback, in global time
     int64_t CURRENT_TRACK_START_FRAME { INITIAL_CURRENT_TRACK_LOCAL_PAUSE_FRAME };
-    // the local time at which the current track was paused
+    // the frame at wich the current track was paused, in LOCAL time (i.e., where in the track it was paused)
     int64_t CURRENT_TRACK_LOCAL_PAUSE_FRAME { INITIAL_CURRENT_TRACK_LOCAL_PAUSE_FRAME };
-    // the number of frames to WAIT until click is played. positive values are later, negative values are earlier
-    // this value will need to be calibrated per user ...
-    int CLICK_PLAYBACK_OFFSET { -4200 };
+    
+    /**
+     * LATENCY is how long, in PCM frames, it takes for a sound in miniaudio to be heard by the user
+     *
+     * NOTE: this is an UNSIGNED integer! whereas most other frame variables are signed. this is because
+     * you cannot hear a sound *before* it is played, and there will ALWAYS be some non-zero latency for any
+     * one given setup
+     * 
+     * LATENCY is a global offset from the 'true' current frame
+     */
+    uint64_t LATENCY { 0 };
 
     bool playing_track { false };
 
@@ -77,9 +85,9 @@ public:
     void set_click(const godot::Ref<rhythm::Audio>& p_click);
     godot::Ref<rhythm::Audio> get_click() const;
     
-    // CLICK_PLAYBACK_OFFSET
-    void set_CLICK_PLAYBACK_OFFSET(const int p_CLICK_PLAYBACK_OFFSET);
-    int get_CLICK_PLAYBACK_OFFSET() const;
+    // LATENCY
+    void set_LATENCY(const uint64_t p_LATENCY);
+    uint64_t get_LATENCY() const;
     
 }; // AudioEngine
 
