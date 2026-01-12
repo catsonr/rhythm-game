@@ -48,6 +48,12 @@ void rhythm::AudioEngine::_ready()
 void rhythm::AudioEngine::_process(double delta)
 {
     if(!playing_track) return;
+    else if(get_current_track_progress_in_frames() == get_current_track_length_in_frames())
+    {
+        godot::print_line("[AudioEngine::_process] current track ended!");
+        pause_current_track();
+        return;
+    }
 
     static int next_beat_index = 0;
     static const godot::PackedInt64Array& beats = current_track->get_beats(); // list of beats in local track time
@@ -152,7 +158,12 @@ bool rhythm::AudioEngine::load_audio(const godot::Ref<rhythm::Audio>& audio)
  */
 int64_t rhythm::AudioEngine::play_current_track(int64_t delay)
 {
-    if(playing_track)
+    if(get_current_track_progress_in_frames() == get_current_track_length_in_frames())
+    {
+        godot::print_line("[AudioEngine::play_current_track] track at end! restarting still unimplemented ... ignoring ...");
+        return -1;
+    }
+    else if(playing_track)
     {
         godot::print_line("[AudioEngine::play_current_track] already playing, ignorning ...");
         return -1;
@@ -221,6 +232,19 @@ int64_t rhythm::AudioEngine::get_current_track_progress_in_frames() const
     int64_t length = get_current_track_length_in_frames();
     
     return (progress > length) ? length : progress;
+}
+
+void rhythm::AudioEngine::set_current_track_progress_in_frames(int64_t frame)
+{
+    if(frame > get_current_track_length_in_frames()) set_current_track_progress_in_frames(get_current_track_length_in_frames());
+    
+    ma_sound_seek_to_pcm_frame(current_track->sound, frame);
+    
+    CURRENT_TRACK_START_FRAME = ma_engine_get_time_in_pcm_frames(&engine) - frame;
+    if(!playing_track) CURRENT_TRACK_LOCAL_PAUSE_FRAME = frame;
+    
+    godot::print_line("[AudioEngine::set_current_track_progress_in_frames] seeked to track frame ", frame);
+    godot::print_error("\tnote that set_current_track_progress_in_frames is still untested ...");
 }
 
 void rhythm::AudioEngine::set_current_track(const godot::Ref<rhythm::Track>& p_track) { current_track = p_track; }

@@ -19,6 +19,7 @@ class BeatGraph : public godot::Control
 
 private:
     rhythm::AudioEngine* audio_engine { nullptr };
+    godot::Ref<rhythm::Track> comparison_track;
 
 protected:
     static void _bind_methods()
@@ -26,12 +27,18 @@ protected:
         godot::ClassDB::bind_method(godot::D_METHOD("get_audio_engine"), &rhythm::BeatGraph::get_audio_engine);
         godot::ClassDB::bind_method(godot::D_METHOD("set_audio_engine", "p_audio_engine"), &rhythm::BeatGraph::set_audio_engine);
         ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "audio_engine", PROPERTY_HINT_NODE_TYPE, "AudioEngine"), "set_audio_engine", "get_audio_engine");
+
+        godot::ClassDB::bind_method(godot::D_METHOD("get_comparison_track"), &rhythm::BeatGraph::get_comparison_track);
+        godot::ClassDB::bind_method(godot::D_METHOD("set_comparison_track", "p_comparison_track"), &rhythm::BeatGraph::set_comparison_track);
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "comparison_track", PROPERTY_HINT_RESOURCE_TYPE, "Track"), "set_comparison_track", "get_comparison_track");
     }
 
 public:
     void _ready() override
     {
         if( audio_engine == nullptr ) godot::print_error("[BeatGraph::_ready()] no AudioEngine linked! please set one in the inspector!");
+        
+        if(comparison_track.is_valid() && comparison_track->get_file_path() != audio_engine->current_track->get_file_path()) godot::print_error("[BeatGraph::_ready()] WARN: AudioEngine's current_track and BeatGraph's comparison track do not use the same sound! ignoring ...");
     }
     
     void _process(double delta) override
@@ -84,10 +91,32 @@ public:
             draw_line({distance_screenspace + w/2, top_y}, {distance_screenspace + w/2, bottom_y}, beat_line_color, line_thickness);
             draw_string(default_font, {distance_screenspace + w/2, bottom_y}, godot::String::num_int64(i), godot::HORIZONTAL_ALIGNMENT_CENTER, 0, 9);
         }
+        
+        if(comparison_track.is_valid())
+        {
+            float comparison_top_y    = top_y - beat_line_height/4;
+            float comparison_bottom_y = top_y + beat_line_height/4;
+            godot::Color comparison_beat_line_color { .8, .6, .4, 1 };
+            
+            const godot::PackedInt64Array& comparison_beats = comparison_track->get_beats();
+            for(int i = 0; i < comparison_beats.size(); i++)
+            {
+                int64_t comparison_distance = comparison_beats[i] - track_progress_in_frames;
+                float comparison_distance_screenspace = static_cast<float>(static_cast<double>(comparison_distance) / static_cast<double>(timeline_radius));
+                
+                draw_line({comparison_distance_screenspace + w/2, comparison_top_y}, {comparison_distance_screenspace + w/2, comparison_bottom_y}, comparison_beat_line_color, line_thickness);
+                draw_string(default_font, {comparison_distance_screenspace + w/2, comparison_bottom_y}, godot::String::num_int64(i), godot::HORIZONTAL_ALIGNMENT_CENTER, 0, 9);
+            }
+        }
     }
+    
+    /* GETTERS & SETTERS */
 
     rhythm::AudioEngine* get_audio_engine() const { return audio_engine; }
     void set_audio_engine(rhythm::AudioEngine* p_audio_engine) { audio_engine = p_audio_engine; }
+    
+    godot::Ref<rhythm::Track> get_comparison_track() const { return comparison_track; }
+    void set_comparison_track(godot::Ref<rhythm::Track> p_comparison_track) { comparison_track = p_comparison_track; }
 }; // BeatGraph
 
 } // rhythm

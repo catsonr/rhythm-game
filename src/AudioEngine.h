@@ -67,6 +67,7 @@ public:
 
     int64_t get_current_track_length_in_frames() const;
     int64_t get_current_track_progress_in_frames() const;
+    void set_current_track_progress_in_frames(int64_t frame);
     
     // current_track
     void set_current_track(const godot::Ref<rhythm::Track>& p_track);
