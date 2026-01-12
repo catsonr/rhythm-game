@@ -25,7 +25,8 @@ public:
     float volume { 1.0 };
 
     godot::Ref<rhythm::Track> current_track;
-    godot::Ref<rhythm::Audio> click;
+    godot::Ref<rhythm::Audio> click; // plays on down beat
+    godot::Ref<rhythm::Audio> click_up; // plays on upbeat
     
     const int64_t INITIAL_CURRENT_TRACK_LOCAL_PAUSE_FRAME { -1 };
     // the time at which the current track began playback, in global time
@@ -80,16 +81,20 @@ public:
     void set_current_track_progress_in_frames(int64_t frame);
     
     // current_track
-    void set_current_track(const godot::Ref<rhythm::Track>& p_track);
     godot::Ref<rhythm::Track> get_current_track() const;
+    void set_current_track(const godot::Ref<rhythm::Track>& p_track);
 
     // click
-    void set_click(const godot::Ref<rhythm::Audio>& p_click);
     godot::Ref<rhythm::Audio> get_click() const;
+    void set_click(const godot::Ref<rhythm::Audio>& p_click);
+
+    // click_up
+    godot::Ref<rhythm::Audio> get_click_up() const;
+    void set_click_up(const godot::Ref<rhythm::Audio>& p_click_up);
     
     // LATENCY
-    void set_LATENCY(const uint64_t p_LATENCY);
     uint64_t get_LATENCY() const;
+    void set_LATENCY(const uint64_t p_LATENCY);
     
 }; // AudioEngine
 

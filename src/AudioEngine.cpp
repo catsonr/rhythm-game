@@ -17,8 +17,12 @@ void rhythm::AudioEngine::_bind_methods()
     ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "current_track", godot::PROPERTY_HINT_RESOURCE_TYPE, "Track"), "set_current_track", "get_current_track");
 
     godot::ClassDB::bind_method(godot::D_METHOD("get_click"), &rhythm::AudioEngine::get_click);
-    godot::ClassDB::bind_method(godot::D_METHOD("set_click", "p_track"), &rhythm::AudioEngine::set_click);
+    godot::ClassDB::bind_method(godot::D_METHOD("set_click", "p_click"), &rhythm::AudioEngine::set_click);
     ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "click", godot::PROPERTY_HINT_RESOURCE_TYPE, "Audio"), "set_click", "get_click");
+
+    godot::ClassDB::bind_method(godot::D_METHOD("get_click_up"), &rhythm::AudioEngine::get_click_up);
+    godot::ClassDB::bind_method(godot::D_METHOD("set_click_up", "p_click_up"), &rhythm::AudioEngine::set_click_up);
+    ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "click_up", godot::PROPERTY_HINT_RESOURCE_TYPE, "Audio"), "set_click_up", "get_click_up");
 
     godot::ClassDB::bind_method(godot::D_METHOD("get_LATENCY"), &rhythm::AudioEngine::get_LATENCY);
     godot::ClassDB::bind_method(godot::D_METHOD("set_LATENCY", "p_LATENCY"), &rhythm::AudioEngine::set_LATENCY);
@@ -42,6 +46,7 @@ void rhythm::AudioEngine::_ready()
     
     if(current_track.is_valid()) load_audio(current_track);
     if(click.is_valid()) load_audio(click);
+    if(click_up.is_valid()) load_audio(click_up);
     
     godot::print_line("[AudioEngine::_ready()] audio engine initialized\n\tusing LATENCY = ", LATENCY);
 }
@@ -72,6 +77,15 @@ void rhythm::AudioEngine::_process(double delta)
             ma_sound_set_start_time_in_pcm_frames(click->sound, next_beat_frame); // schedule beat to play at ADJUSTED frame
             ma_sound_start(click->sound);
             godot::print_line("scheduled beat ", CURRENT_TRACK_NEXT_BEAT_INDEX, " @ ", next_beat_frame);
+            
+            if(click_up.is_valid() && CURRENT_TRACK_NEXT_BEAT_INDEX + 1 < beats.size()) // if there is a beat after the next beat (to calculate upbeat), and if an upbeat sound is loaded
+            {
+                int64_t dt = (beats[CURRENT_TRACK_NEXT_BEAT_INDEX+1] - beats[CURRENT_TRACK_NEXT_BEAT_INDEX]) / 2;
+                
+                ma_sound_seek_to_pcm_frame(click_up->sound, 0);
+                ma_sound_set_start_time_in_pcm_frames(click_up->sound, next_beat_frame + dt); // schedule beat to play at ADJUSTED frame
+                ma_sound_start(click_up->sound);
+            }
 
             CURRENT_TRACK_NEXT_BEAT_INDEX++; // the "next" beat is now the one after this
         }
@@ -282,11 +296,14 @@ void rhythm::AudioEngine::set_current_track_progress_in_frames(int64_t frame)
     godot::print_line("[AudioEngine::set_current_track_progress_in_frames] seeked to track frame ", frame, " with next beat = ", CURRENT_TRACK_NEXT_BEAT_INDEX);
 }
 
-void rhythm::AudioEngine::set_current_track(const godot::Ref<rhythm::Track>& p_track) { current_track = p_track; }
 godot::Ref<rhythm::Track> rhythm::AudioEngine::get_current_track() const { return current_track; }
+void rhythm::AudioEngine::set_current_track(const godot::Ref<rhythm::Track>& p_track) { current_track = p_track; }
 
-void rhythm::AudioEngine::set_click(const godot::Ref<rhythm::Audio>& p_click) { click = p_click; }
 godot::Ref<rhythm::Audio> rhythm::AudioEngine::get_click() const { return click; }
+void rhythm::AudioEngine::set_click(const godot::Ref<rhythm::Audio>& p_click) { click = p_click; }
 
-void rhythm::AudioEngine::set_LATENCY(const uint64_t p_LATENCY) { LATENCY = p_LATENCY; }
+godot::Ref<rhythm::Audio> rhythm::AudioEngine::get_click_up() const { return click_up; }
+void rhythm::AudioEngine::set_click_up(const godot::Ref<rhythm::Audio>& p_click_up) { click_up = p_click_up; }
+
 uint64_t rhythm::AudioEngine::get_LATENCY() const { return LATENCY; }
+void rhythm::AudioEngine::set_LATENCY(const uint64_t p_LATENCY) { LATENCY = p_LATENCY; }
