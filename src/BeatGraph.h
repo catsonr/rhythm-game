@@ -68,7 +68,11 @@ public:
         int64_t track_length_in_frames = audio_engine->get_current_track_length_in_frames();
         double track_progress = static_cast<double>(track_progress_in_frames) / static_cast<double>(track_length_in_frames);
         
-        float now_line_height = 0.8*h;
+        godot::Rect2 progress_rect { 0, static_cast<real_t>(0.9*h), static_cast<real_t>(w*track_progress), static_cast<real_t>(0.1*h) };
+        godot::Color progress_color { 1, 1, 1, 0.8 };
+        draw_rect(progress_rect, progress_color, true);
+        
+        float now_line_height = 0.75*h;
         godot::Vector2 now_line_start_pos { w/2, h/2 - now_line_height/2};
         godot::Vector2 now_line_end_pos { w/2, h/2 + now_line_height/2};
         godot::Color now_line_color { 1, 1, 1, 0.5};
@@ -108,6 +112,8 @@ public:
                 draw_string(default_font, {comparison_distance_screenspace + w/2, comparison_bottom_y}, godot::String::num_int64(i), godot::HORIZONTAL_ALIGNMENT_CENTER, 0, 9);
             }
         }
+        
+        
     }
     
     /* GETTERS & SETTERS */

@@ -4,6 +4,7 @@
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/resource_saver.hpp>
+#include <godot_cpp/classes/input_event_mouse_button.hpp>
 
 void rhythm::AudioEngine::_bind_methods()
 {
@@ -55,14 +56,13 @@ void rhythm::AudioEngine::_process(double delta)
         return;
     }
 
-    static int next_beat_index = 0;
     static const godot::PackedInt64Array& beats = current_track->get_beats(); // list of beats in TRUE local track time
 
-    if(next_beat_index < beats.size()) // if there are still beats
+    if(CURRENT_TRACK_NEXT_BEAT_INDEX < beats.size()) // if there are still beats
     {
         int64_t true_engine_frame = ma_engine_get_time_in_pcm_frames(&engine); // the global frame where miniaudio TRULY, currently is. NOT adjusted for LATENCY
 
-        int64_t true_next_beat_frame = CURRENT_TRACK_START_FRAME + beats[next_beat_index]; // the global frame at which the beat TRULY happens
+        int64_t true_next_beat_frame = CURRENT_TRACK_START_FRAME + beats[CURRENT_TRACK_NEXT_BEAT_INDEX]; // the global frame at which the beat TRULY happens
         int64_t next_beat_frame = true_next_beat_frame - LATENCY; // the global frame at which the beat happens, adjusting for LATENCY
         
         int64_t LOOKAHEAD_WINDOW = 48000 * 0.1; // look ahead 1/10th of a second for next beat
@@ -71,17 +71,45 @@ void rhythm::AudioEngine::_process(double delta)
             ma_sound_seek_to_pcm_frame(click->sound, 0);
             ma_sound_set_start_time_in_pcm_frames(click->sound, next_beat_frame); // schedule beat to play at ADJUSTED frame
             ma_sound_start(click->sound);
-            godot::print_line("scheduled beat ", next_beat_index, " @ ", next_beat_frame);
+            godot::print_line("scheduled beat ", CURRENT_TRACK_NEXT_BEAT_INDEX, " @ ", next_beat_frame);
 
-            next_beat_index++; // the "next" beat is now the one after this
+            CURRENT_TRACK_NEXT_BEAT_INDEX++; // the "next" beat is now the one after this
         }
     }
 }
 
 void rhythm::AudioEngine::_input(const godot::Ref<godot::InputEvent>& event)
 {
+    godot::Ref<godot::InputEventMouseButton> mouse_event = event;
+    if(mouse_event.is_valid() && mouse_event->is_pressed()) // mouse button presssed
+    {
+        const int64_t scroll_speed = 3000;
+        float scroll_factor = mouse_event->get_factor();
+        int64_t current_progress = get_current_track_progress_in_frames();
+        if(mouse_event->get_button_index() == godot::MOUSE_BUTTON_WHEEL_UP)
+        {
+            set_current_track_progress_in_frames(current_progress + scroll_speed*scroll_factor);
+        } else if(mouse_event->get_button_index() == godot::MOUSE_BUTTON_WHEEL_DOWN)
+        {
+            set_current_track_progress_in_frames(current_progress - scroll_speed*scroll_factor);
+        }
+    }
+
+    // TODO: change these to checking the event, not the input singleton ...
     static godot::Input* input = godot::Input::get_singleton();
     static godot::PackedInt64Array beats;
+
+    const int64_t length = get_current_track_length_in_frames();
+    if(input->is_physical_key_pressed(godot::KEY_1)) set_current_track_progress_in_frames(0);
+    if(input->is_physical_key_pressed(godot::KEY_2)) set_current_track_progress_in_frames(length/9);
+    if(input->is_physical_key_pressed(godot::KEY_3)) set_current_track_progress_in_frames(2*length/9);
+    if(input->is_physical_key_pressed(godot::KEY_4)) set_current_track_progress_in_frames(3*length/9);
+    if(input->is_physical_key_pressed(godot::KEY_5)) set_current_track_progress_in_frames(4*length/9);
+    if(input->is_physical_key_pressed(godot::KEY_6)) set_current_track_progress_in_frames(5*length/9);
+    if(input->is_physical_key_pressed(godot::KEY_7)) set_current_track_progress_in_frames(6*length/9);
+    if(input->is_physical_key_pressed(godot::KEY_8)) set_current_track_progress_in_frames(7*length/9);
+    if(input->is_physical_key_pressed(godot::KEY_9)) set_current_track_progress_in_frames(8*length/9);
+    if(input->is_physical_key_pressed(godot::KEY_0)) set_current_track_progress_in_frames(length);
 
     if(input->is_physical_key_pressed(godot::KEY_SPACE)) play_current_track();
     if(input->is_physical_key_pressed(godot::KEY_ESCAPE)) pause_current_track();
@@ -242,8 +270,16 @@ void rhythm::AudioEngine::set_current_track_progress_in_frames(int64_t frame)
     CURRENT_TRACK_START_FRAME = ma_engine_get_time_in_pcm_frames(&engine) - frame;
     if(!playing_track) CURRENT_TRACK_LOCAL_PAUSE_FRAME = frame;
     
-    godot::print_line("[AudioEngine::set_current_track_progress_in_frames] seeked to track frame ", frame);
-    godot::print_error("\tnote that set_current_track_progress_in_frames is still untested ...");
+    const godot::PackedInt64Array& beats = current_track->get_beats();
+    for(int i = 0; i < beats.size(); i++)
+    {
+        if(beats[i] < frame) continue;
+        
+        CURRENT_TRACK_NEXT_BEAT_INDEX = i;
+        break;
+    }
+    
+    godot::print_line("[AudioEngine::set_current_track_progress_in_frames] seeked to track frame ", frame, " with next beat = ", CURRENT_TRACK_NEXT_BEAT_INDEX);
 }
 
 void rhythm::AudioEngine::set_current_track(const godot::Ref<rhythm::Track>& p_track) { current_track = p_track; }

@@ -33,6 +33,8 @@ public:
     // the frame at wich the current track was paused, in LOCAL time (i.e., where in the track it was paused)
     int64_t CURRENT_TRACK_LOCAL_PAUSE_FRAME { INITIAL_CURRENT_TRACK_LOCAL_PAUSE_FRAME };
     
+    int CURRENT_TRACK_NEXT_BEAT_INDEX { 0 };
+
     /**
      * LATENCY is how long, in PCM frames, it takes for a sound in miniaudio to be heard by the user
      *
