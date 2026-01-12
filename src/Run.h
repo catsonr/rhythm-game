@@ -30,8 +30,8 @@ public:
     void _ready() override;
     
     // getters n setters
-    void set_t(double p_t);
     double get_t() const;
+    void set_t(double p_t);
 }; // Run
 
 } // rhythm

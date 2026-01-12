@@ -1,10 +1,11 @@
 #include "register_types.h"
 
-// all classes in src
+// nodes
 #include "AudioEngine.h"
+#include "BeatGraph.h"
 #include "Run.h"
 
-// all resources in src
+// resources
 #include "Audio.h"
 #include "Track.h"
 
@@ -20,6 +21,7 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     
     // register nodes
     GDREGISTER_RUNTIME_CLASS(rhythm::AudioEngine);
+    GDREGISTER_RUNTIME_CLASS(rhythm::BeatGraph);
     GDREGISTER_RUNTIME_CLASS(rhythm::Run);
     
     // register resources

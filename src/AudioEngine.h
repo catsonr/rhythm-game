@@ -18,7 +18,8 @@ class AudioEngine : public godot::Node
 {
     GDCLASS(AudioEngine, Node)
 
-private:
+// these should be private ... but oh well :shrug:
+public:
     ma_engine engine;
     std::list<ma_sound> sounds;
     float volume { 1.0 };
@@ -26,9 +27,9 @@ private:
     godot::Ref<rhythm::Track> current_track;
     godot::Ref<rhythm::Audio> click;
     
-    // the time at which the current track began playback, in global time
-    int64_t CURRENT_TRACK_START_FRAME { -1 };
     const int64_t INITIAL_CURRENT_TRACK_LOCAL_PAUSE_FRAME { -1 };
+    // the time at which the current track began playback, in global time
+    int64_t CURRENT_TRACK_START_FRAME { INITIAL_CURRENT_TRACK_LOCAL_PAUSE_FRAME };
     // the local time at which the current track was paused
     int64_t CURRENT_TRACK_LOCAL_PAUSE_FRAME { INITIAL_CURRENT_TRACK_LOCAL_PAUSE_FRAME };
     // the number of frames to WAIT until click is played. positive values are later, negative values are earlier
@@ -63,6 +64,9 @@ public:
     // volume
     void set_volume(float p_volume);
     float get_volume() const;
+
+    int64_t get_current_track_length_in_frames() const;
+    int64_t get_current_track_progress_in_frames() const;
     
     // current_track
     void set_current_track(const godot::Ref<rhythm::Track>& p_track);
@@ -75,6 +79,7 @@ public:
     // CLICK_PLAYBACK_OFFSET
     void set_CLICK_PLAYBACK_OFFSET(const int p_CLICK_PLAYBACK_OFFSET);
     int get_CLICK_PLAYBACK_OFFSET() const;
+    
 }; // AudioEngine
 
 } // rhythm

@@ -203,6 +203,26 @@ void rhythm::AudioEngine::set_volume(float p_volume)
 }
 float rhythm::AudioEngine::get_volume() const { return volume; }
 
+int64_t rhythm::AudioEngine::get_current_track_length_in_frames() const
+{
+    ma_uint64 ma_track_length_in_frames;
+    ma_sound_get_length_in_pcm_frames(current_track->sound, &ma_track_length_in_frames);
+    
+    return static_cast<int64_t>(ma_track_length_in_frames);
+}
+
+int64_t rhythm::AudioEngine::get_current_track_progress_in_frames() const
+{
+    if(CURRENT_TRACK_START_FRAME == INITIAL_CURRENT_TRACK_LOCAL_PAUSE_FRAME) return 0; // track not started yet (zero progress)
+    
+    if(!playing_track) return CURRENT_TRACK_LOCAL_PAUSE_FRAME; // track paused, so progress is where it was paused at
+
+    int64_t progress = ma_engine_get_time_in_pcm_frames(&engine) - CURRENT_TRACK_START_FRAME;
+    int64_t length = get_current_track_length_in_frames();
+    
+    return (progress > length) ? length : progress;
+}
+
 void rhythm::AudioEngine::set_current_track(const godot::Ref<rhythm::Track>& p_track) { current_track = p_track; }
 godot::Ref<rhythm::Track> rhythm::AudioEngine::get_current_track() const { return current_track; }
 

@@ -44,16 +44,7 @@ void rhythm::Run::_process(double delta)
     t += delta;
     
     BG_shadermaterial->set_shader_parameter("t", t);
-    
-    if(!BG_shadermaterial.is_valid()) { godot::print_error("invalid!"); }
 }
 
-void rhythm::Run::set_t(double p_t)
-{
-    t = p_t;
-}
-
-double rhythm::Run::get_t() const
-{
-    return t;
-}
+double rhythm::Run::get_t() const { return t; }
+void rhythm::Run::set_t(double p_t) { t = p_t; }
