@@ -1,14 +1,20 @@
 #pragma once
 
+#include <vector>
+
 #include "miniaudio.h"
 
 #include <godot_cpp/classes/color_rect.hpp>
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/core/class_db.hpp>
+
 #include <godot_cpp/classes/theme_db.hpp>
 #include <godot_cpp/classes/font.hpp>
 
+#include <godot_cpp/classes/input_event_mouse_button.hpp>
+
 #include "AudioEngine.h"
+#include "Track.h"
 
 namespace rhythm
 {
@@ -20,6 +26,8 @@ class BeatGraph : public godot::Control
 private:
     rhythm::AudioEngine* audio_engine { nullptr };
     godot::Ref<rhythm::Track> comparison_track;
+    std::vector<rhythm::Track::Note> proposed_notes;
+    godot::PackedInt64Array current_beats;
 
 protected:
     static void _bind_methods()
@@ -39,6 +47,62 @@ public:
         if( audio_engine == nullptr ) godot::print_error("[BeatGraph::_ready()] no AudioEngine linked! please set one in the inspector!");
         
         if(comparison_track.is_valid() && comparison_track->get_file_path() != audio_engine->current_track->get_file_path()) godot::print_error("[BeatGraph::_ready()] WARN: AudioEngine's current_track and BeatGraph's comparison track do not use the same sound! ignoring ...");
+        
+        proposed_notes = rhythm::Track::Note::unpack(audio_engine->current_track->get_notes_packed());
+        current_beats = audio_engine->current_track->get_beats();
+    }
+    
+    void _input(const godot::Ref<godot::InputEvent>& event) override
+    {
+        /* mouse */
+
+        godot::Ref<godot::InputEventMouseButton> mouse_event = event;
+        if(mouse_event.is_valid() && mouse_event->is_pressed())
+        {
+            const int64_t scroll_speed = 3000;
+            float scroll_factor = mouse_event->get_factor();
+            int64_t current_progress = audio_engine->get_current_track_progress_in_frames();
+
+            if(mouse_event->get_button_index() == godot::MOUSE_BUTTON_WHEEL_UP)
+                audio_engine->set_current_track_progress_in_frames(current_progress + scroll_speed*scroll_factor);
+            else if(mouse_event->get_button_index() == godot::MOUSE_BUTTON_WHEEL_DOWN)
+                audio_engine->set_current_track_progress_in_frames(current_progress - scroll_speed*scroll_factor);
+        }
+        
+        /* keyboard */
+        
+        godot::Ref<godot::InputEventKey> key_event = event;
+        if(key_event.is_valid() && key_event->is_pressed() && !key_event->is_echo())
+            switch(key_event->get_physical_keycode())
+            {
+                case godot::KEY_SPACE:
+                {
+                    if(audio_engine->playing_track) audio_engine->pause_current_track();
+                    else audio_engine->play_current_track();
+                    break;
+                }
+                case godot::KEY_BACKSPACE:
+                {
+                    audio_engine->set_current_track_progress_in_frames(0);
+                    break;
+                }
+                case godot::KEY_BRACKETLEFT: // TODO: this doesn't work perfecty .... check audio_engine seeking!
+                {
+                    if(audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX - 1 >= 0)
+                        audio_engine->set_current_track_progress_in_frames(current_beats[audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX - 1]);
+                    break;
+                }
+                case godot::KEY_BRACKETRIGHT:
+                {
+                    int i = audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX;
+                    if(i < current_beats.size())
+                    {
+                        if(audio_engine->get_current_track_progress_in_frames() == current_beats[i] && i+1 < current_beats.size()) i++;
+                        audio_engine->set_current_track_progress_in_frames(current_beats[i]);
+                    }
+                    break;
+                }
+            }
     }
     
     void _process(double delta) override
@@ -55,34 +119,39 @@ public:
         float line_thickness = 1.5;
         float timeline_radius = 80;
 
+        // BACKGROUD
         godot::Rect2 background_rect {0, 0, w, h};
         godot::Color background_color { .2, .2, .2, 0.5 };
         draw_rect(background_rect, background_color, true);
         
+        // X-AXIS
         godot::Vector2 axis_start_pos { 0, h/2 };
         godot::Vector2 axis_end_pos { w, h/2 };
-        godot::Color axis_color { 0, 0, 0, 0.5 };
+        godot::Color axis_color { 1, 1, 1, 0.5 };
         draw_line(axis_start_pos, axis_end_pos, axis_color, line_thickness);
         
+        // PROGRESS BAR
         int64_t track_progress_in_frames = audio_engine->get_current_track_progress_in_frames();
         int64_t track_length_in_frames = audio_engine->get_current_track_length_in_frames();
         double track_progress = static_cast<double>(track_progress_in_frames) / static_cast<double>(track_length_in_frames);
-        
         godot::Rect2 progress_rect { 0, static_cast<real_t>(0.9*h), static_cast<real_t>(w*track_progress), static_cast<real_t>(0.1*h) };
         godot::Color progress_color { 1, 1, 1, 0.8 };
         draw_rect(progress_rect, progress_color, true);
         
+        // PROGRESS TEXT
+        godot::Ref<godot::Font> default_font = godot::ThemeDB::get_singleton()->get_fallback_font();
+        godot::String progress_string = godot::String::num_int64(track_progress_in_frames) + " / " + godot::String::num_int64(track_length_in_frames) + " (" + godot::String::num_int64(track_progress*100) + "%)";
+        draw_string(default_font, {2, 11}, progress_string, godot::HORIZONTAL_ALIGNMENT_CENTER, 0, 11);
+
+        // NOW LINE (y-intercept)
         float now_line_height = 0.75*h;
         godot::Vector2 now_line_start_pos { w/2, h/2 - now_line_height/2};
         godot::Vector2 now_line_end_pos { w/2, h/2 + now_line_height/2};
-        godot::Color now_line_color { 1, 1, 1, 0.5};
+        godot::Color now_line_color = axis_color;
         draw_line(now_line_start_pos, now_line_end_pos, now_line_color, line_thickness);
         
-        godot::Ref<godot::Font> default_font = godot::ThemeDB::get_singleton()->get_fallback_font();
-        draw_string(default_font, {w/2, h - now_line_height}, godot::String::num_int64(track_progress_in_frames), godot::HORIZONTAL_ALIGNMENT_CENTER, 0, 11);
-        
+        // BEATS
         const godot::PackedInt64Array beats = audio_engine->current_track->get_beats();
-        
         float beat_line_height = 0.5*h;
         float top_y    = h/2 - beat_line_height/2;
         float bottom_y = h/2 + beat_line_height/2;
@@ -95,7 +164,7 @@ public:
             draw_line({distance_screenspace + w/2, top_y}, {distance_screenspace + w/2, bottom_y}, beat_line_color, line_thickness);
             draw_string(default_font, {distance_screenspace + w/2, bottom_y}, godot::String::num_int64(i), godot::HORIZONTAL_ALIGNMENT_CENTER, 0, 9);
         }
-        
+        // COMPARISON BEATS
         if(comparison_track.is_valid())
         {
             float comparison_top_y    = top_y - beat_line_height/4;
@@ -113,7 +182,8 @@ public:
             }
         }
         
-        
+        // NOTES
+       
     }
     
     /* GETTERS & SETTERS */
