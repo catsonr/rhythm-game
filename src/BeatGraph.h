@@ -26,9 +26,12 @@ class BeatGraph : public godot::Control
 
 private:
     rhythm::AudioEngine* audio_engine { nullptr };
-    godot::Ref<rhythm::Track> comparison_track;
-    std::vector<rhythm::Track::Note> proposed_notes;
+
+    godot::PackedInt64Array proposed_beats;
     godot::PackedInt64Array current_beats;
+
+    std::vector<rhythm::Track::Note> proposed_notes;
+    godot::PackedInt64Array current_notes_packed;
 
 protected:
     static void _bind_methods()
@@ -36,18 +39,12 @@ protected:
         godot::ClassDB::bind_method(godot::D_METHOD("get_audio_engine"), &rhythm::BeatGraph::get_audio_engine);
         godot::ClassDB::bind_method(godot::D_METHOD("set_audio_engine", "p_audio_engine"), &rhythm::BeatGraph::set_audio_engine);
         ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "audio_engine", PROPERTY_HINT_NODE_TYPE, "AudioEngine"), "set_audio_engine", "get_audio_engine");
-
-        godot::ClassDB::bind_method(godot::D_METHOD("get_comparison_track"), &rhythm::BeatGraph::get_comparison_track);
-        godot::ClassDB::bind_method(godot::D_METHOD("set_comparison_track", "p_comparison_track"), &rhythm::BeatGraph::set_comparison_track);
-        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "comparison_track", PROPERTY_HINT_RESOURCE_TYPE, "Track"), "set_comparison_track", "get_comparison_track");
     }
 
 public:
     void _ready() override
     {
-        if( audio_engine == nullptr ) godot::print_error("[BeatGraph::_ready()] no AudioEngine linked! please set one in the inspector!");
-        
-        if(comparison_track.is_valid() && comparison_track->get_file_path() != audio_engine->current_track->get_file_path()) godot::print_error("[BeatGraph::_ready()] WARN: AudioEngine's current_track and BeatGraph's comparison track do not use the same sound! ignoring ...");
+        if( audio_engine == nullptr ) godot::print_error("[BeatGraph::_ready] no AudioEngine linked! please set one in the inspector!");
         
         proposed_notes = rhythm::Track::Note::unpack(audio_engine->current_track->get_notes_packed());
         current_beats = audio_engine->current_track->get_beats();
@@ -105,12 +102,12 @@ public:
                     break;
                 }
                 
-                static godot::PackedInt64Array proposed_beats;
-                case godot::KEY_ESCAPE:
+                // beat inputting
+                case godot::KEY_BACKSLASH:
                 {
                     proposed_beats.clear();
                     
-                    godot::print_line("[BeatGraph::_input()] cleared proposed beats");
+                    godot::print_line("[BeatGraph::_input] cleared proposed beats");
 
                     return;
                 }
@@ -119,7 +116,7 @@ public:
                     int64_t current_track_progress = audio_engine->get_current_track_progress_in_frames();
                     proposed_beats.append(current_track_progress);
                     
-                    godot::print_line("[BeatGraph::_input()] beat ", proposed_beats.size() - 1, " @ ", current_track_progress, " added to proposition");
+                    godot::print_line("[BeatGraph::_input] beat ", proposed_beats.size() - 1, " @ ", current_track_progress, " added to proposition");
 
                     break;
                 }
@@ -128,7 +125,50 @@ public:
                     audio_engine->current_track->set_beats(proposed_beats);
                     godot::ResourceSaver::get_singleton()->save(audio_engine->current_track);
                     
-                    godot::print_line("[BeatGraph::_input()] sent ", proposed_beats.size(), " proposed beats to current track!");
+                    godot::print_line("[BeatGraph::_input] sent ", proposed_beats.size(), " proposed beats to current track!");
+                    
+                    break;
+                }
+                
+                // note inputting
+                case godot::KEY_ESCAPE:
+                {
+                    proposed_notes.clear();
+                    
+                    godot::print_line("[BeatGraph::_input] cleared proposed notes");
+                    
+                    break;
+                }
+                case godot::KEY_X:
+                {
+                    uint32_t beat = audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX - 1; 
+                    int16_t numerator = rhythm::Track::Note::position_to_numerator(0.5);
+                    uint16_t type = rhythm::Track::Note::LEFT;
+                    
+                    proposed_notes.emplace_back(beat, numerator, type);
+                    
+                    godot::print_line("[BeatGraph::_input] placed an L note @ beat ", beat, ":", numerator);
+                    
+                    break;
+                }
+                case godot::KEY_C:
+                {
+                    uint32_t beat = audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX - 1; 
+                    int16_t numerator = 0;
+                    uint16_t type = rhythm::Track::Note::RIGHT;
+                    
+                    proposed_notes.emplace_back(beat, numerator, type);
+                    
+                    godot::print_line("[BeatGraph::_input] placed an R note @ beat ", beat, ":", numerator);
+                    
+                    break;
+                }
+                case godot::KEY_SHIFT:
+                {
+                    audio_engine->current_track->set_notes_packed( rhythm::Track::Note::pack(proposed_notes) );
+                    godot::ResourceSaver::get_singleton()->save(audio_engine->current_track);
+                    
+                    godot::print_line("[BeatGraph::_input] sent ", (int)proposed_notes.size(), " proposed notes to current track!");
                     
                     break;
                 }
@@ -139,6 +179,7 @@ public:
     void _process(double delta) override
     {
         current_beats = audio_engine->current_track->get_beats();
+        current_notes_packed = audio_engine->current_track->get_notes_packed();
         queue_redraw();
     }
     
@@ -195,35 +236,31 @@ public:
             draw_line({distance_screenspace + w/2, top_y}, {distance_screenspace + w/2, bottom_y}, beat_line_color, line_thickness);
             draw_string(default_font, {distance_screenspace + w/2, bottom_y}, godot::String::num_int64(i), godot::HORIZONTAL_ALIGNMENT_CENTER, 0, 9);
         }
-        // COMPARISON BEATS
-        if(comparison_track.is_valid())
-        {
-            float comparison_top_y    = top_y - beat_line_height/4;
-            float comparison_bottom_y = top_y + beat_line_height/4;
-            godot::Color comparison_beat_line_color { .8, .6, .4, 1 };
-            
-            const godot::PackedInt64Array& comparison_beats = comparison_track->get_beats();
-            for(int i = 0; i < comparison_beats.size(); i++)
-            {
-                int64_t comparison_distance = comparison_beats[i] - track_progress_in_frames;
-                float comparison_distance_screenspace = static_cast<float>(static_cast<double>(comparison_distance) / static_cast<double>(timeline_radius));
-                
-                draw_line({comparison_distance_screenspace + w/2, comparison_top_y}, {comparison_distance_screenspace + w/2, comparison_bottom_y}, comparison_beat_line_color, line_thickness);
-                draw_string(default_font, {comparison_distance_screenspace + w/2, comparison_bottom_y}, godot::String::num_int64(i), godot::HORIZONTAL_ALIGNMENT_CENTER, 0, 9);
-            }
-        }
         
         // NOTES
-       
+        std::vector<rhythm::Track::Note> notes = rhythm::Track::Note::unpack( current_notes_packed ); 
+        for(const rhythm::Track::Note& note : notes)
+        {
+            int64_t distance = current_beats[note.beat];
+            if(note.beat + 1 < current_beats.size())
+                distance += (current_beats[note.beat + 1] - current_beats[note.beat]) * note.position;
+            
+            distance -= track_progress_in_frames;
+            
+            float distance_screenspace = static_cast<float>(static_cast<double>(distance) / static_cast<double>(timeline_radius));
+            float note_size = 20;
+            
+            godot::Rect2 note_rect { distance_screenspace - note_size/2 + w/2, h/2 - note_size/2, note_size, note_size };
+            godot::Color note_color_R { 1, 0, .5, 1 };
+            godot::Color note_color_L { .5, 0, 1, 1 };
+            draw_rect(note_rect, note.type == rhythm::Track::Note::RIGHT ? note_color_R : note_color_L);
+        }
     }
     
     /* GETTERS & SETTERS */
 
     rhythm::AudioEngine* get_audio_engine() const { return audio_engine; }
     void set_audio_engine(rhythm::AudioEngine* p_audio_engine) { audio_engine = p_audio_engine; }
-    
-    godot::Ref<rhythm::Track> get_comparison_track() const { return comparison_track; }
-    void set_comparison_track(godot::Ref<rhythm::Track> p_comparison_track) { comparison_track = p_comparison_track; }
 }; // BeatGraph
 
 } // rhythm

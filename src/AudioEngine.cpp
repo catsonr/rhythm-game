@@ -47,7 +47,7 @@ void rhythm::AudioEngine::_ready()
     if(click.is_valid()) load_audio(click);
     if(click_up.is_valid()) load_audio(click_up);
     
-    godot::print_line("[AudioEngine::_ready()] audio engine initialized\n\tusing LATENCY = ", LATENCY);
+    godot::print_line("[AudioEngine::_ready] audio engine initialized\n\tusing LATENCY = ", LATENCY);
 }
 
 void rhythm::AudioEngine::_process(double delta)

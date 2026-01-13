@@ -27,14 +27,15 @@ private:
     // this can be any value, though highly compisite numbers are obviously preferred
     // 2520 has been chosen since it is the smallest integer with 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10 as its divisors
     // meaning we can represent exact n-tuplets, for any 1-10 n :)
-    const int PPQ = 2520;
-
 public:
+    static const int PPQ = 2520;
+
     struct Note
     {
         const uint32_t beat; // which beat the note lies on
-        const int16_t numerator; // the numerator of numerator/PPQ, represents *where* on the beat the note lies
-        const int16_t type; // the type of note
+        const uint16_t numerator; // the numerator of numerator/PPQ, represents *where* on the beat the note lies
+        const double position; // the result of numerator/PPQ
+        const uint16_t type; // the type of note
         
         enum Type : uint16_t
         {
@@ -45,12 +46,14 @@ public:
         explicit Note(uint64_t packed_value) :
             beat(packed_value >> 32),
             numerator((packed_value >> 16) & 0xFFFF),
+            position(static_cast<double>(numerator) / static_cast<double>(PPQ)),
             type(packed_value & 0xFFFF)
         {}
         
-        Note(uint32_t beat, int16_t numerator, int16_t type) :
+        Note(uint32_t beat, uint16_t numerator, uint16_t type) :
             beat(beat),
             numerator(numerator),
+            position(static_cast<double>(numerator) / static_cast<double>(PPQ)),
             type(type)
         {}
         
@@ -74,6 +77,8 @@ public:
             
             return array;
         }
+        
+        uint16_t static position_to_numerator(double position) { return PPQ*position; }
     }; // Note
 
 protected:
