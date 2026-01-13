@@ -12,6 +12,7 @@
 #include <godot_cpp/classes/font.hpp>
 
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
+#include <godot_cpp/classes/resource_saver.hpp>
 
 #include "AudioEngine.h"
 #include "Track.h"
@@ -73,6 +74,7 @@ public:
         
         godot::Ref<godot::InputEventKey> key_event = event;
         if(key_event.is_valid() && key_event->is_pressed() && !key_event->is_echo())
+        {
             switch(key_event->get_physical_keycode())
             {
                 case godot::KEY_SPACE:
@@ -102,11 +104,41 @@ public:
                     }
                     break;
                 }
+                
+                static godot::PackedInt64Array proposed_beats;
+                case godot::KEY_ESCAPE:
+                {
+                    proposed_beats.clear();
+                    
+                    godot::print_line("[BeatGraph::_input()] cleared proposed beats");
+
+                    return;
+                }
+                case godot::KEY_M:
+                {
+                    int64_t current_track_progress = audio_engine->get_current_track_progress_in_frames();
+                    proposed_beats.append(current_track_progress);
+                    
+                    godot::print_line("[BeatGraph::_input()] beat ", proposed_beats.size() - 1, " @ ", current_track_progress, " added to proposition");
+
+                    break;
+                }
+                case godot::KEY_ENTER:
+                {
+                    audio_engine->current_track->set_beats(proposed_beats);
+                    godot::ResourceSaver::get_singleton()->save(audio_engine->current_track);
+                    
+                    godot::print_line("[BeatGraph::_input()] sent ", proposed_beats.size(), " proposed beats to current track!");
+                    
+                    break;
+                }
             }
+        }
     }
     
     void _process(double delta) override
     {
+        current_beats = audio_engine->current_track->get_beats();
         queue_redraw();
     }
     
@@ -151,14 +183,13 @@ public:
         draw_line(now_line_start_pos, now_line_end_pos, now_line_color, line_thickness);
         
         // BEATS
-        const godot::PackedInt64Array beats = audio_engine->current_track->get_beats();
         float beat_line_height = 0.5*h;
         float top_y    = h/2 - beat_line_height/2;
         float bottom_y = h/2 + beat_line_height/2;
         godot::Color beat_line_color { .4, .6, .8, 1 };
-        for(int i = 0; i < beats.size(); i++)
+        for(int i = 0; i < current_beats.size(); i++)
         {
-            int64_t distance = beats[i] - track_progress_in_frames;
+            int64_t distance = current_beats[i] - track_progress_in_frames;
             float distance_screenspace = static_cast<float>(static_cast<double>(distance) / static_cast<double>(timeline_radius));
             
             draw_line({distance_screenspace + w/2, top_y}, {distance_screenspace + w/2, bottom_y}, beat_line_color, line_thickness);
