@@ -33,6 +33,9 @@ private:
     std::vector<rhythm::Track::Note> proposed_notes;
     godot::PackedInt64Array current_notes_packed;
 
+    const std::vector<double> positions = {0.0, 0.25, 0.5, 0.75};
+    int closest_position_index = 0;
+
 protected:
     static void _bind_methods()
     {
@@ -48,6 +51,8 @@ public:
         
         proposed_notes = rhythm::Track::Note::unpack(audio_engine->current_track->get_notes_packed());
         current_beats = audio_engine->current_track->get_beats();
+        
+        set_clip_contents(true);
     }
     
     void _input(const godot::Ref<godot::InputEvent>& event) override
@@ -176,6 +181,24 @@ public:
     
     void _process(double delta) override
     {
+        // calculates, of the possible posisions, which position of the current beat we are in
+        // there is likely a better place for this logic
+        if(audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX > 0 && audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX < current_beats.size())
+        {
+            int64_t dt = current_beats[audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX] - current_beats[audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX - 1];
+            int64_t  t = audio_engine->get_current_track_progress_in_frames() - current_beats[audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX - 1];
+
+            double position = static_cast<double>(t) / static_cast<double>(dt);
+            for(int i = positions.size()-1; i >= 0; i--)
+            {
+                if(position - positions[i] >= 0)
+                {
+                    closest_position_index = i;
+                    break;
+                }
+            }
+        }
+        
         current_beats = audio_engine->current_track->get_beats();
         current_notes_packed = audio_engine->current_track->get_notes_packed();
         queue_redraw();
@@ -220,13 +243,19 @@ public:
         godot::Vector2 now_line_end_pos { w/2, h/2 + now_line_height/2};
         godot::Color now_line_color = axis_color;
         draw_line(now_line_start_pos, now_line_end_pos, now_line_color, line_thickness);
-        draw_string(default_font, now_line_start_pos, "next beat: " + godot::String::num_int64(audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX), godot::HORIZONTAL_ALIGNMENT_CENTER, 0, 9);
+        
+        // BEAT & POSITION
+        if(audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX > 0 && audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX < current_beats.size())
+        {
+            draw_string(default_font, now_line_start_pos, "beat: " + godot::String::num_int64(audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX - 1), godot::HORIZONTAL_ALIGNMENT_CENTER, 0, 9);
+            draw_string(default_font, now_line_end_pos, "position: " + godot::String::num_real(positions[closest_position_index]), godot::HORIZONTAL_ALIGNMENT_CENTER, 0, 9);
+        }
         
         // BEATS
         float beat_line_height = 0.5*h;
         float top_y    = h/2 - beat_line_height/2;
         float bottom_y = h/2 + beat_line_height/2;
-        godot::Color beat_line_color { .4, .6, .8, 1 };
+        godot::Color beat_line_color { .8, .6, .4, 1 };
         for(int i = 0; i < current_beats.size(); i++)
         {
             int64_t distance = current_beats[i] - track_progress_in_frames;
@@ -234,6 +263,37 @@ public:
             
             draw_line({distance_screenspace + w/2, top_y}, {distance_screenspace + w/2, bottom_y}, beat_line_color, line_thickness);
             draw_string(default_font, {distance_screenspace + w/2, bottom_y}, godot::String::num_int64(i), godot::HORIZONTAL_ALIGNMENT_CENTER, 0, 9);
+            
+            // CURRENT BEAT
+            if( i == audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX - 1 && i < current_beats.size() - 1)
+            {
+                int64_t dt = current_beats[i+1] - current_beats[i];
+                
+                // CURRENT BEAT POSITIONS
+                godot::Color position_line_color { .4, .6, .8, 1 };
+                for(int j = 0; j < positions.size(); j++)
+                {
+                    const double position = positions[j];
+
+                    int64_t position_distance = distance + dt*position;
+                    float position_distance_screenspace = static_cast<float>( static_cast<double>(position_distance) / static_cast<double>(timeline_radius) );
+                    
+                    float position_top_y = top_y + beat_line_height/4;
+                    float position_bottom_y = bottom_y - beat_line_height/4;
+                    draw_line({position_distance_screenspace + w/2, position_top_y}, {position_distance_screenspace + w/2, position_bottom_y}, position_line_color, line_thickness);
+                    
+                    if( j == closest_position_index )
+                    {
+                        double next_position = ((j+1) < positions.size()) ? positions[j+1] : 1.0;
+                        double position_width = next_position - position;
+                        float position_width_screenspace = static_cast<float>( static_cast<double>(position_width * dt) / static_cast<double>(timeline_radius) );
+                        godot::Rect2 position_rect { position_distance_screenspace + w/2, position_top_y, position_width_screenspace, position_bottom_y-position_top_y };
+                        godot::Color position_rect_color = position_line_color;
+                        position_rect_color.a = 0.2;
+                        draw_rect(position_rect, position_rect_color);
+                    }
+                }
+            }
         }
         
         // NOTES

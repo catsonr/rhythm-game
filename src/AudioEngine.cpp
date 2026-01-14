@@ -86,6 +86,9 @@ void rhythm::AudioEngine::_process(double delta)
                 ma_sound_start(click_up->sound);
             }
 
+            // TODO: THIS IS NOT THE RIGHT WAY TO DO THIS!! this causes the "next_beat" to change once you hit the lookahead window!
+            // meaning we actually move up beats slightly early!
+            // this kinda works for now, but there is surely a better solution
             CURRENT_TRACK_NEXT_BEAT_INDEX++; // the "next" beat is now the one after this
         }
     }

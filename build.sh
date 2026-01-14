@@ -16,3 +16,5 @@ rm -rf "$1/bin"
 
 echo "copying library and .gdextension to $1/bin ..."
 mkdir -p "$1/bin" && cp -rf demo/bin/ "$1/bin" && cp gdexample.gdextension "$1/bin"
+
+echo "\nbuild complete!"
