@@ -85,20 +85,18 @@ public:
                     audio_engine->set_current_track_progress_in_frames(0);
                     break;
                 }
-                case godot::KEY_BRACKETLEFT: // TODO: this doesn't work perfecty .... check audio_engine seeking!
+                case godot::KEY_BRACKETLEFT:
                 {
-                    if(audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX - 1 >= 0)
-                        audio_engine->set_current_track_progress_in_frames(current_beats[audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX - 1]);
+                    int i_next = audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX;
+                    if(i_next - 2 >= 0)
+                        audio_engine->set_current_track_progress_in_frames(current_beats[i_next - 2]);
                     break;
                 }
                 case godot::KEY_BRACKETRIGHT:
                 {
-                    int i = audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX;
-                    if(i < current_beats.size())
-                    {
-                        if(audio_engine->get_current_track_progress_in_frames() == current_beats[i] && i+1 < current_beats.size()) i++;
-                        audio_engine->set_current_track_progress_in_frames(current_beats[i]);
-                    }
+                    int i_next = audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX;
+                    if(i_next < current_beats.size())
+                        audio_engine->set_current_track_progress_in_frames(current_beats[i_next]);
                     break;
                 }
                 
@@ -222,6 +220,7 @@ public:
         godot::Vector2 now_line_end_pos { w/2, h/2 + now_line_height/2};
         godot::Color now_line_color = axis_color;
         draw_line(now_line_start_pos, now_line_end_pos, now_line_color, line_thickness);
+        draw_string(default_font, now_line_start_pos, "next beat: " + godot::String::num_int64(audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX), godot::HORIZONTAL_ALIGNMENT_CENTER, 0, 9);
         
         // BEATS
         float beat_line_height = 0.5*h;

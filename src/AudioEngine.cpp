@@ -69,7 +69,7 @@ void rhythm::AudioEngine::_process(double delta)
         int64_t true_next_beat_frame = CURRENT_TRACK_START_FRAME + beats[CURRENT_TRACK_NEXT_BEAT_INDEX]; // the global frame at which the beat TRULY happens
         int64_t next_beat_frame = true_next_beat_frame - LATENCY; // the global frame at which the beat happens, adjusting for LATENCY
         
-        int64_t LOOKAHEAD_WINDOW = 48000 * 0.1; // look ahead 1/10th of a second for next beat
+        int64_t LOOKAHEAD_WINDOW = 48000 * 0.01; // look ahead 1/100th of a second for next beat
         if(next_beat_frame - true_engine_frame <= LOOKAHEAD_WINDOW) // the next beat is in the look ahead window!
         {
             ma_sound_seek_to_pcm_frame(click->sound, 0);
@@ -221,7 +221,7 @@ void rhythm::AudioEngine::set_current_track_progress_in_frames(int64_t frame)
     const godot::PackedInt64Array& beats = current_track->get_beats();
     for(int i = 0; i < beats.size(); i++)
     {
-        if(beats[i] < frame) continue;
+        if(beats[i] <= frame) continue;
         
         CURRENT_TRACK_NEXT_BEAT_INDEX = i;
         break;
