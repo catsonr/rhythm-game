@@ -75,7 +75,7 @@ void rhythm::AudioEngine::_process(double delta)
             ma_sound_seek_to_pcm_frame(click->sound, 0);
             ma_sound_set_start_time_in_pcm_frames(click->sound, next_beat_frame); // schedule beat to play at ADJUSTED frame
             ma_sound_start(click->sound);
-            godot::print_line("[AudioEngine::_process] scheduled beat ", CURRENT_TRACK_NEXT_BEAT_INDEX, " @ ", next_beat_frame);
+            //godot::print_line("[AudioEngine::_process] scheduled beat ", CURRENT_TRACK_NEXT_BEAT_INDEX, " @ ", next_beat_frame);
             
             if(click_up.is_valid() && CURRENT_TRACK_NEXT_BEAT_INDEX + 1 < beats.size()) // if there is a beat after the next beat (to calculate upbeat), and if an upbeat sound is loaded
             {
@@ -230,7 +230,7 @@ void rhythm::AudioEngine::set_current_track_progress_in_frames(int64_t frame)
         break;
     }
     
-    godot::print_line("[AudioEngine::set_current_track_progress_in_frames] seeked to track frame ", frame, " with next beat = ", CURRENT_TRACK_NEXT_BEAT_INDEX);
+    //godot::print_line("[AudioEngine::set_current_track_progress_in_frames] seeked to track frame ", frame, " with next beat = ", CURRENT_TRACK_NEXT_BEAT_INDEX);
 }
 
 godot::Ref<rhythm::Track> rhythm::AudioEngine::get_current_track() const { return current_track; }

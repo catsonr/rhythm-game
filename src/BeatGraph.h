@@ -31,7 +31,7 @@ private:
     godot::PackedInt64Array current_beats;
 
     std::vector<rhythm::Track::Note> proposed_notes;
-    godot::PackedInt64Array current_notes_packed;
+    bool proposed_notes_modified = false;
 
     const std::vector<double> positions = {0.0, 0.25, 0.5, 0.75};
     int closest_position_index = 0;
@@ -66,9 +66,9 @@ public:
             float scroll_factor = mouse_event->get_factor();
             int64_t current_progress = audio_engine->get_current_track_progress_in_frames();
 
-            if(mouse_event->get_button_index() == godot::MOUSE_BUTTON_WHEEL_UP)
+            if(mouse_event->get_button_index() == godot::MOUSE_BUTTON_WHEEL_DOWN)
                 audio_engine->set_current_track_progress_in_frames(current_progress + scroll_speed*scroll_factor);
-            else if(mouse_event->get_button_index() == godot::MOUSE_BUTTON_WHEEL_DOWN)
+            else if(mouse_event->get_button_index() == godot::MOUSE_BUTTON_WHEEL_UP)
                 audio_engine->set_current_track_progress_in_frames(current_progress - scroll_speed*scroll_factor);
         }
         
@@ -132,23 +132,16 @@ public:
                     
                     break;
                 }
-                
+
                 // note inputting
-                case godot::KEY_ESCAPE:
-                {
-                    proposed_notes.clear();
-                    
-                    godot::print_line("[BeatGraph::_input] cleared proposed notes");
-                    
-                    break;
-                }
                 case godot::KEY_X:
                 {
                     uint32_t beat = audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX - 1; 
-                    int16_t numerator = rhythm::Track::Note::position_to_numerator(0.5);
+                    int16_t numerator = rhythm::Track::Note::position_to_numerator(positions[closest_position_index]);
                     uint16_t type = rhythm::Track::Note::LEFT;
                     
                     proposed_notes.emplace_back(beat, numerator, type);
+                    proposed_notes_modified = true;
                     
                     godot::print_line("[BeatGraph::_input] placed an L note @ beat ", beat, ":", numerator);
                     
@@ -157,23 +150,39 @@ public:
                 case godot::KEY_C:
                 {
                     uint32_t beat = audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX - 1; 
-                    int16_t numerator = 0;
+                    int16_t numerator = rhythm::Track::Note::position_to_numerator(positions[closest_position_index]);
                     uint16_t type = rhythm::Track::Note::RIGHT;
                     
                     proposed_notes.emplace_back(beat, numerator, type);
+                    proposed_notes_modified = true;
                     
                     godot::print_line("[BeatGraph::_input] placed an R note @ beat ", beat, ":", numerator);
                     
                     break;
                 }
-                case godot::KEY_SHIFT:
+                case godot::KEY_Z:
                 {
-                    audio_engine->current_track->set_notes_packed( rhythm::Track::Note::pack(proposed_notes) );
-                    godot::ResourceSaver::get_singleton()->save(audio_engine->current_track);
+                    uint32_t beat = audio_engine->CURRENT_TRACK_NEXT_BEAT_INDEX - 1; 
+                    uint16_t numerator = rhythm::Track::Note::position_to_numerator(positions[closest_position_index]);
+                    uint16_t type = 0; // type does not matter as it will be ignored
                     
-                    godot::print_line("[BeatGraph::_input] sent ", (int)proposed_notes.size(), " proposed notes to current track!");
+                    rhythm::Track::Note comparison_note = { beat, numerator, type };
+                    uint64_t comparison_note_time_value = comparison_note.packed_value() >> 16;
                     
-                    break;
+                    for(int i = 0; i < proposed_notes.size(); i++)
+                    {
+                        uint64_t note_time_value = proposed_notes[i].packed_value() >> 16;
+                        
+                        if(note_time_value == comparison_note_time_value)
+                        {
+                            proposed_notes.erase(proposed_notes.begin() + i);
+                            i--;
+                            
+                            godot::print_line("[BeatGraph::_input] removed proposed note @ ", beat, ":", numerator);
+                            
+                            proposed_notes_modified = true;
+                        }
+                    }
                 }
             }
         }
@@ -199,8 +208,18 @@ public:
             }
         }
         
+        // save notes if they have been changed
+        if(proposed_notes_modified)
+        {
+            audio_engine->current_track->set_notes_packed( rhythm::Track::Note::pack(proposed_notes) );
+            godot::ResourceSaver::get_singleton()->save(audio_engine->current_track);
+            
+            godot::print_line("[BeatGraph::_input] sent ", (int)proposed_notes.size(), " proposed notes to current track!");
+
+            proposed_notes_modified = false;
+        }
+        
         current_beats = audio_engine->current_track->get_beats();
-        current_notes_packed = audio_engine->current_track->get_notes_packed();
         queue_redraw();
     }
     
@@ -297,7 +316,7 @@ public:
         }
         
         // NOTES
-        std::vector<rhythm::Track::Note> notes = rhythm::Track::Note::unpack( current_notes_packed ); 
+        std::vector<rhythm::Track::Note> notes = rhythm::Track::Note::unpack( audio_engine->current_track->get_notes_packed() ); 
         for(const rhythm::Track::Note& note : notes)
         {
             int64_t distance = current_beats[note.beat];

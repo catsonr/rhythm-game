@@ -32,10 +32,11 @@ public:
 
     struct Note
     {
-        const uint32_t beat; // which beat the note lies on
-        const uint16_t numerator; // the numerator of numerator/PPQ, represents *where* on the beat the note lies
-        const double position; // the result of numerator/PPQ
-        const uint16_t type; // the type of note
+        uint32_t beat; // which beat the note lies on
+        uint16_t numerator; // the numerator of numerator/PPQ, represents *where* on the beat the note lies
+        uint16_t type; // the type of note
+
+        double position; // the result of numerator/PPQ
         
         enum Type : uint16_t
         {
