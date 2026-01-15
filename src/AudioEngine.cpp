@@ -52,6 +52,7 @@ void rhythm::AudioEngine::_ready()
 
 void rhythm::AudioEngine::_process(double delta)
 {
+    // if we're at the end or paused, nothing to process!
     if(!playing_track) return;
     else if(get_current_track_progress_in_frames() == get_current_track_length_in_frames())
     {
@@ -62,14 +63,23 @@ void rhythm::AudioEngine::_process(double delta)
 
     static const godot::PackedInt64Array& beats = current_track->get_beats(); // list of beats in TRUE local track time
 
-    if(CURRENT_TRACK_NEXT_BEAT_INDEX < beats.size()) // if there are still beats
+    // update beat index
+    if(CURRENT_TRACK_NEXT_BEAT_INDEX < beats.size() && get_current_track_progress_in_frames() >= beats[CURRENT_TRACK_NEXT_BEAT_INDEX])
+    {
+        CURRENT_TRACK_NEXT_BEAT_INDEX++; 
+    }
+
+    // update to-schedule beat index
+    // this is separate from CURRENT_TRACK_NEXT_BEAT_INDEX; it runs slightly ahead so that any audio
+    // needed to play on a beat frame can be scheduled to happen at that time
+    if(CURRENT_TRACK_NEXT_SCHEDULED_BEAT_INDEX < beats.size()) // if there are still beats to be scheduled
     {
         int64_t true_engine_frame = ma_engine_get_time_in_pcm_frames(&engine); // the global frame where miniaudio TRULY, currently is. NOT adjusted for LATENCY
 
-        int64_t true_next_beat_frame = CURRENT_TRACK_START_FRAME + beats[CURRENT_TRACK_NEXT_BEAT_INDEX]; // the global frame at which the beat TRULY happens
+        int64_t true_next_beat_frame = CURRENT_TRACK_START_FRAME + beats[CURRENT_TRACK_NEXT_SCHEDULED_BEAT_INDEX]; // the global frame at which the beat TRULY happens
         int64_t next_beat_frame = true_next_beat_frame - LATENCY; // the global frame at which the beat happens, adjusting for LATENCY
         
-        int64_t LOOKAHEAD_WINDOW = 48000 * 0.01; // look ahead 1/100th of a second for next beat
+        int64_t LOOKAHEAD_WINDOW = 48000 * 0.1; // look ahead 1/10th of a second for next beat
         if(next_beat_frame - true_engine_frame <= LOOKAHEAD_WINDOW) // the next beat is in the look ahead window!
         {
             ma_sound_seek_to_pcm_frame(click->sound, 0);
@@ -77,19 +87,16 @@ void rhythm::AudioEngine::_process(double delta)
             ma_sound_start(click->sound);
             //godot::print_line("[AudioEngine::_process] scheduled beat ", CURRENT_TRACK_NEXT_BEAT_INDEX, " @ ", next_beat_frame);
             
-            if(click_up.is_valid() && CURRENT_TRACK_NEXT_BEAT_INDEX + 1 < beats.size()) // if there is a beat after the next beat (to calculate upbeat), and if an upbeat sound is loaded
+            if(click_up.is_valid() && CURRENT_TRACK_NEXT_SCHEDULED_BEAT_INDEX + 1 < beats.size()) // if there is a beat after the next beat (to calculate upbeat), and if an upbeat sound is loaded
             {
-                int64_t dt = (beats[CURRENT_TRACK_NEXT_BEAT_INDEX+1] - beats[CURRENT_TRACK_NEXT_BEAT_INDEX]) / 2;
+                int64_t dt = (beats[CURRENT_TRACK_NEXT_SCHEDULED_BEAT_INDEX+1] - beats[CURRENT_TRACK_NEXT_SCHEDULED_BEAT_INDEX]) / 2;
                 
                 ma_sound_seek_to_pcm_frame(click_up->sound, 0);
                 ma_sound_set_start_time_in_pcm_frames(click_up->sound, next_beat_frame + dt); // schedule beat to play at ADJUSTED frame
                 ma_sound_start(click_up->sound);
             }
 
-            // TODO: THIS IS NOT THE RIGHT WAY TO DO THIS!! this causes the "next_beat" to change once you hit the lookahead window!
-            // meaning we actually move up beats slightly early!
-            // this kinda works for now, but there is surely a better solution
-            CURRENT_TRACK_NEXT_BEAT_INDEX++; // the "next" beat is now the one after this
+            CURRENT_TRACK_NEXT_SCHEDULED_BEAT_INDEX++; // the "next" to-be-scheduled beat is now the one after this
         }
     }
 }
@@ -227,6 +234,7 @@ void rhythm::AudioEngine::set_current_track_progress_in_frames(int64_t frame)
         if(beats[i] <= frame) continue;
         
         CURRENT_TRACK_NEXT_BEAT_INDEX = i;
+        CURRENT_TRACK_NEXT_SCHEDULED_BEAT_INDEX = i;
         break;
     }
     
