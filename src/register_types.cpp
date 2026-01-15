@@ -3,7 +3,6 @@
 // nodes
 #include "AudioEngine.h"
 #include "BeatGraph.h"
-#include "Run.h"
 #include "Taiko.h"
 
 // resources
@@ -23,7 +22,6 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     // register nodes
     GDREGISTER_RUNTIME_CLASS(rhythm::AudioEngine);
     GDREGISTER_RUNTIME_CLASS(rhythm::BeatGraph);
-    GDREGISTER_RUNTIME_CLASS(rhythm::Run);
     GDREGISTER_RUNTIME_CLASS(rhythm::Taiko);
     
     // register resources

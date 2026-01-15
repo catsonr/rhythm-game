@@ -16,7 +16,3 @@ copy that directory AND gdexample.gdextension into my-cool-project/bin/
 
 this can be automatically done with
 sh build.sh path/to/project
-
-
-# ASSUMPTIONS
- - Run is assumed to have a child Sprite2D named 'BG'
