@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "Album.h"
 #include "Audio.h"
 
 namespace rhythm
@@ -12,6 +13,9 @@ class Track : public Audio
     GDCLASS(Track, Audio);
 
 private:
+    godot::Ref<rhythm::Album> album;
+    godot::StringName title;
+
     // beats is an int64_t array where the value at each index represents what PCM frame of a sound that beat lies on
     // PackedInt64Arrays are signed (and miniaudio PCM frames are UNsigned), but it would take
     // (2^63-1)/48000/60/60/24/365/100 = 60,931 centuries of audio to overflow
@@ -85,6 +89,16 @@ public:
 protected:
     static void _bind_methods()
     {
+        // album
+        godot::ClassDB::bind_method(godot::D_METHOD("get_album"), &rhythm::Track::get_album);
+        godot::ClassDB::bind_method(godot::D_METHOD("set_album", "p_album"), &rhythm::Track::set_album);
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "album", godot::PROPERTY_HINT_RESOURCE_TYPE, "Album"), "set_album", "get_album");
+        
+        // title
+        godot::ClassDB::bind_method(godot::D_METHOD("get_title"), &rhythm::Track::get_title);
+        godot::ClassDB::bind_method(godot::D_METHOD("set_title", "p_title"), &rhythm::Track::set_title);
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::STRING_NAME, "title"), "set_title", "get_title");
+
         // beats
         godot::ClassDB::bind_method(godot::D_METHOD("get_beats"), &rhythm::Track::get_beats);
         godot::ClassDB::bind_method(godot::D_METHOD("set_beats", "p_beats"), &rhythm::Track::set_beats);
@@ -97,6 +111,14 @@ protected:
     }
 
 public:
+    // album
+    godot::Ref<rhythm::Album> get_album() const { return album; }
+    void set_album(const godot::Ref<rhythm::Album>& p_album) { album = p_album; }
+    
+    // title
+    godot::StringName get_title() const { return title; }
+    void set_title(const godot::StringName& p_title) { title = p_title; }
+
     // beats
     godot::PackedInt64Array get_beats() const { return beats; }
     void set_beats(const godot::PackedInt64Array& p_beats) { beats = p_beats; }
