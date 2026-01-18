@@ -40,6 +40,7 @@ struct Album : public godot::Resource
     
     /* GETTERS & SETTERS */
     
+public:
     godot::StringName get_title() const { return title; }
     void set_title(const godot::StringName& p_title) { title = p_title; }
     

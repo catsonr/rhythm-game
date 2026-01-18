@@ -47,7 +47,7 @@ void rhythm::AudioEngine::_ready()
     if(click.is_valid()) load_audio(click);
     if(click_up.is_valid()) load_audio(click_up);
     
-    godot::print_line("[AudioEngine::_ready] audio engine initialized\n\tusing LATENCY = ", LATENCY);
+    //godot::print_line("[AudioEngine::_ready] audio engine initialized\n\tusing LATENCY = ", LATENCY);
 }
 
 void rhythm::AudioEngine::_process(double delta)
@@ -110,7 +110,7 @@ void rhythm::AudioEngine::_process(double delta)
  */
 bool rhythm::AudioEngine::load_sound(const godot::String& p_path)
 {
-    godot::print_line("[AudioEngine::load_sound] attempting to load '", p_path, "' ...");
+    //godot::print_line("[AudioEngine::load_sound] attempting to load '", p_path, "' ...");
 
     sounds.emplace_back();
     ma_sound& sound = sounds.back();
@@ -129,7 +129,7 @@ bool rhythm::AudioEngine::load_sound(const godot::String& p_path)
         return false;
     }
     
-    godot::print_line("\t", p_path, " loaded as sound ", (int)(sounds.size() - 1), "!");
+    //godot::print_line("\t", p_path, " loaded as sound ", (int)(sounds.size() - 1), "!");
 
     return true;
 }
