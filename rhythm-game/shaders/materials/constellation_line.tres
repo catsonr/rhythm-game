@@ -1,9 +1,9 @@
-[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://b3gu5go2grkwp"]
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://dkou015de6sj1"]
 
-[ext_resource type="Shader" uid="uid://ceavq710pwdkg" path="res://shaders/constellation_background.gdshader" id="1_vtmeh"]
+[ext_resource type="Shader" uid="uid://bpb2hf0kl61dm" path="res://shaders/constellation_line.gdshader" id="1_wl0mm"]
 
 [resource]
-shader = ExtResource("1_vtmeh")
+shader = ExtResource("1_wl0mm")
 shader_parameter/t = 0.0
 shader_parameter/x_offset = 0.0
 shader_parameter/y_offset = 0.0

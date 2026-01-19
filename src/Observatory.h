@@ -5,6 +5,7 @@
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/color_rect.hpp>
 #include <godot_cpp/classes/shader_material.hpp>
+#include <godot_cpp/classes/image_texture.hpp>
 #include <godot_cpp/classes/rich_text_label.hpp>
 #include <godot_cpp/classes/input_event_mouse.hpp>
 
@@ -21,6 +22,7 @@ public:
     godot::TypedArray<Track> tracks;
     std::vector<godot::Ref<godot::Texture2D>> covers;
     std::vector<godot::Vector2i> ids;
+    godot::Ref<godot::ImageTexture> observatory_line_shader_texture;
 
 protected:
     static void _bind_methods()
@@ -33,12 +35,11 @@ protected:
 public:
     bool init()
     {
+        // pre-computes where tracks are and what covers they use
         covers.clear();
         covers.reserve(tracks.size());
-
         ids.clear();
         ids.reserve(tracks.size());
-        
         for(int i = 0; i < tracks.size(); i++)
         {
             godot::Ref<Track> track = tracks[i];
@@ -47,6 +48,9 @@ public:
             ids.emplace_back(0, i);
         }
         
+        // packs all track connections into a single texture to be used by the Observatory's line_shader
+        
+
         return true;
     }
     
@@ -139,7 +143,6 @@ public:
         line_shader->set_anchors_and_offsets_preset(godot::Control::PRESET_FULL_RECT);
         line_shader->set_draw_behind_parent(true);
         if( line_shader_material.is_valid() ) line_shader->set_material(line_shader_material);
-        line_shader->set_visible(false);
         add_child(line_shader);
         
         selected_track_label = memnew(godot::RichTextLabel);
@@ -166,6 +169,12 @@ public:
                     selected_track_index = (selected_track_index+1) % current_constellation->get_tracks().size();
 
                     move_to( MULTIPLY_BY_G(G, current_constellation->ids[selected_track_index] ));
+                    
+                    /*
+                    // this works once AudioEngine can handle switching tracks...
+                    audio_engine->set_current_track(current_constellation->tracks[selected_track_index]);
+                    audio_engine->play_current_track();
+                    */
 
                     break;
                 }
@@ -175,6 +184,11 @@ public:
                     selected_track_index = (selected_track_index-1 + size) % size;
 
                     move_to( MULTIPLY_BY_G(G, current_constellation->ids[selected_track_index] ));
+
+                    /*
+                    audio_engine->set_current_track(current_constellation->tracks[selected_track_index]);
+                    audio_engine->play_current_track();
+                    */
 
                     break;
                 }
@@ -233,17 +247,26 @@ public:
     
     void _process(double delta) override
     {
+        godot::Vector2 background_shader_size = background_shader->get_size();
         if(background_shader_material.is_valid())
         {
             background_shader_material->set_shader_parameter("t", t);
             background_shader_material->set_shader_parameter("x_offset", x_offset);
             background_shader_material->set_shader_parameter("y_offset", y_offset);
-            //background_shader->set_size({ 800, 100 }); // does not work
-            godot::Vector2 background_shader_size = background_shader->get_size();
             background_shader_material->set_shader_parameter("aspect_ratio", background_shader_size.x / background_shader_size.y);
             background_shader_material->set_shader_parameter("scale", scale);
-            background_shader_material->set_shader_parameter("iResolution", background_shader->get_size());
+            background_shader_material->set_shader_parameter("iResolution", background_shader_size);
             background_shader_material->set_shader_parameter("grid_matrix_vector", G);
+        }
+        if(line_shader_material.is_valid())
+        {
+            line_shader_material->set_shader_parameter("t", t);
+            line_shader_material->set_shader_parameter("x_offset", x_offset);
+            line_shader_material->set_shader_parameter("y_offset", y_offset);
+            line_shader_material->set_shader_parameter("aspect_ratio", background_shader_size.x / background_shader_size.y);
+            line_shader_material->set_shader_parameter("scale", scale);
+            line_shader_material->set_shader_parameter("iResolution", background_shader_size);
+            line_shader_material->set_shader_parameter("grid_matrix_vector", G);
         }
 
         godot::Input* input = godot::Input::get_singleton();
@@ -333,9 +356,9 @@ public:
                 godot::Ref<rhythm::Album> selected_track_album = track->get_album();
                 godot::String selected_track_label_text
                 {
-                    "[wave][rainbow]" + track->get_title() + "[/rainbow][/wave]\n" +
+                    "[outline_color=#222][outline_size=8][wave][rainbow]" + track->get_title() + "[/rainbow][/wave]\n" +
                     selected_track_album->get_artist() + "\n" +
-                    selected_track_album->get_title() + " (" + godot::String::num_int64(selected_track_album->get_release_year()) + ")"
+                    selected_track_album->get_title() + " (" + godot::String::num_int64(selected_track_album->get_release_year()) + ")[/outline_size][/outline_color]"
                 };
                 selected_track_label->set_text(selected_track_label_text);
             }

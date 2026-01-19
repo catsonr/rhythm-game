@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://b1uggg1m38n24"]
+[gd_scene load_steps=5 format=3 uid="uid://b1uggg1m38n24"]
 
 [ext_resource type="Material" uid="uid://b3gu5go2grkwp" path="res://shaders/materials/constellation_background.tres" id="1_xfbim"]
 [ext_resource type="Constellation" uid="uid://od053yvm1luo" path="res://resources/Constellations/constellation1.tres" id="2_dq4of"]
+[ext_resource type="Material" uid="uid://dkou015de6sj1" path="res://shaders/materials/constellation_line.tres" id="2_lsiga"]
 [ext_resource type="Script" uid="uid://0yvhwm24n06y" path="res://fps_label.gd" id="2_xfbim"]
 
 [node name="AudioEngine" type="AudioEngine"]
@@ -11,11 +12,12 @@
 [node name="Observatory" type="Observatory" parent="Camera2D"]
 audio_engine_path = NodePath("../..")
 background_shader_material = ExtResource("1_xfbim")
+line_shader_material = ExtResource("2_lsiga")
 current_constellation = ExtResource("2_dq4of")
-offset_left = -400.0
-offset_top = -300.0
-offset_right = 400.0
-offset_bottom = 300.0
+offset_left = -395.0
+offset_top = -306.0
+offset_right = 405.0
+offset_bottom = 294.0
 
 [node name="Label" type="Label" parent="Camera2D"]
 offset_left = -394.0

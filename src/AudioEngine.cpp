@@ -242,7 +242,7 @@ void rhythm::AudioEngine::set_current_track_progress_in_frames(int64_t frame)
 }
 
 godot::Ref<rhythm::Track> rhythm::AudioEngine::get_current_track() const { return current_track; }
-void rhythm::AudioEngine::set_current_track(const godot::Ref<rhythm::Track>& p_track) { current_track = p_track; }
+void rhythm::AudioEngine::set_current_track(const godot::Ref<rhythm::Track>& p_track) { current_track = p_track; load_audio(p_track); }
 
 godot::Ref<rhythm::Audio> rhythm::AudioEngine::get_click() const { return click; }
 void rhythm::AudioEngine::set_click(const godot::Ref<rhythm::Audio>& p_click) { click = p_click; }
