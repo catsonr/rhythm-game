@@ -1,0 +1,29 @@
+[gd_scene load_steps=4 format=3 uid="uid://b75r6cbcrwq4y"]
+
+[ext_resource type="Track" uid="uid://8p4c7xhd6qt1" path="res://resources/Tracks/basement_wired_xm4.tres" id="1_lquwl"]
+[ext_resource type="Audio" uid="uid://dnq6uads5qy54" path="res://resources/Audio/click.tres" id="5_lquwl"]
+[ext_resource type="Script" uid="uid://0yvhwm24n06y" path="res://fps_label.gd" id="6_7mycd"]
+
+[node name="AudioEngine" type="AudioEngine"]
+current_track = ExtResource("1_lquwl")
+click = ExtResource("5_lquwl")
+LATENCY = 2500
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="BeatGraph" type="BeatGraph" parent="Camera2D" node_paths=PackedStringArray("audio_engine")]
+audio_engine = NodePath("../..")
+offset_left = -381.0
+offset_top = -49.0
+offset_right = 387.0
+offset_bottom = 49.0
+metadata/_edit_use_anchors_ = true
+
+[node name="Label" type="Label" parent="Camera2D"]
+offset_left = -394.0
+offset_top = -295.0
+offset_right = -263.0
+offset_bottom = -272.0
+text = "fps counter"
+script = ExtResource("6_7mycd")
+metadata/_edit_use_anchors_ = true

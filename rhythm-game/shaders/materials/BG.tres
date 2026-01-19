@@ -1,0 +1,6 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://cgbip4fg7o2v"]
+
+[ext_resource type="Shader" uid="uid://ceavq710pwdkg" path="res://shaders/constellation_background.gdshader" id="1_482pu"]
+
+[resource]
+shader = ExtResource("1_482pu")

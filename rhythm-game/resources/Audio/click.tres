@@ -1,0 +1,4 @@
+[gd_resource type="Audio" format=3 uid="uid://dnq6uads5qy54"]
+
+[resource]
+file_path = &"audio/click.wav"

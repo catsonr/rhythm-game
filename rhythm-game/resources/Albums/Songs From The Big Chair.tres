@@ -1,0 +1,9 @@
+[gd_resource type="Album" load_steps=2 format=3 uid="uid://dudxpkxgnkdkk"]
+
+[ext_resource type="Texture2D" uid="uid://bjn80n1052lm0" path="res://images/album-covers/Songs From The Big Chair.jpg" id="1_8ta66"]
+
+[resource]
+title = &"Songs From The Big Chair"
+artist = &"Tears for Fears"
+release_year = 1985
+cover = ExtResource("1_8ta66")

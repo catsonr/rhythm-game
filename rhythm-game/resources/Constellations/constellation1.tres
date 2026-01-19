@@ -1,0 +1,8 @@
+[gd_resource type="Constellation" load_steps=4 format=3 uid="uid://od053yvm1luo"]
+
+[ext_resource type="Track" uid="uid://ob4xcpywyngf" path="res://resources/Tracks/lovers_desk_speakers.tres" id="1_vjk6d"]
+[ext_resource type="Track" uid="uid://8p4c7xhd6qt1" path="res://resources/Tracks/basement_wired_xm4.tres" id="2_h5uus"]
+[ext_resource type="Track" uid="uid://bdl6f22lg8w8y" path="res://resources/Tracks/rule_desk_speakers.tres" id="3_h5uus"]
+
+[resource]
+tracks = Array[Track]([ExtResource("1_vjk6d"), ExtResource("2_h5uus"), ExtResource("3_h5uus")])

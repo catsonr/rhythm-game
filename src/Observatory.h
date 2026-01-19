@@ -66,6 +66,9 @@ struct Observatory : public godot::Control
     godot::ColorRect* background_shader;
     godot::Ref<godot::ShaderMaterial> background_shader_material;
     
+    godot::ColorRect* line_shader;
+    godot::Ref<godot::ShaderMaterial> line_shader_material;
+    
     godot::Vector4 G {
         7, 3,
         5, 1
@@ -90,6 +93,10 @@ public:
         godot::ClassDB::bind_method(godot::D_METHOD("get_background_shader_material"), &rhythm::Observatory::get_background_shader_material);
         godot::ClassDB::bind_method(godot::D_METHOD("set_background_shader_material", "p_background_shader_material"), &rhythm::Observatory::set_background_shader_material);
         ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "background_shader_material", PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_background_shader_material", "get_background_shader_material");
+
+        godot::ClassDB::bind_method(godot::D_METHOD("get_line_shader_material"), &rhythm::Observatory::get_line_shader_material);
+        godot::ClassDB::bind_method(godot::D_METHOD("set_line_shader_material", "p_line_shader_material"), &rhythm::Observatory::set_line_shader_material);
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "line_shader_material", PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_line_shader_material", "get_line_shader_material");
 
         godot::ClassDB::bind_method(godot::D_METHOD("get_scale"), &rhythm::Observatory::get_scale);
         godot::ClassDB::bind_method(godot::D_METHOD("set_scale", "p_scale"), &rhythm::Observatory::set_scale);
@@ -126,6 +133,14 @@ public:
         background_shader->set_draw_behind_parent(true);
         if( background_shader_material.is_valid() ) background_shader->set_material(background_shader_material);
         add_child(background_shader);
+
+        line_shader = memnew(godot::ColorRect);
+        line_shader->set_name("line_shader");
+        line_shader->set_anchors_and_offsets_preset(godot::Control::PRESET_FULL_RECT);
+        line_shader->set_draw_behind_parent(true);
+        if( line_shader_material.is_valid() ) line_shader->set_material(line_shader_material);
+        line_shader->set_visible(false);
+        add_child(line_shader);
         
         selected_track_label = memnew(godot::RichTextLabel);
         selected_track_label->set_name("selected_track_label");
@@ -149,12 +164,18 @@ public:
                 case godot::KEY_UP:
                 {
                     selected_track_index = (selected_track_index+1) % current_constellation->get_tracks().size();
+
+                    move_to( MULTIPLY_BY_G(G, current_constellation->ids[selected_track_index] ));
+
                     break;
                 }
                 case godot::KEY_DOWN:
                 {
                     int size = current_constellation->get_tracks().size();
                     selected_track_index = (selected_track_index-1 + size) % size;
+
+                    move_to( MULTIPLY_BY_G(G, current_constellation->ids[selected_track_index] ));
+
                     break;
                 }
 
@@ -221,7 +242,7 @@ public:
             godot::Vector2 background_shader_size = background_shader->get_size();
             background_shader_material->set_shader_parameter("aspect_ratio", background_shader_size.x / background_shader_size.y);
             background_shader_material->set_shader_parameter("scale", scale);
-            background_shader_material->set_shader_parameter("iResolution", get_size());
+            background_shader_material->set_shader_parameter("iResolution", background_shader->get_size());
             background_shader_material->set_shader_parameter("grid_matrix_vector", G);
         }
 
@@ -235,6 +256,27 @@ public:
 
         queue_redraw();
         
+    }
+    
+    /*
+        focuses the Observatory to the given point, in std basis
+    */
+    void move_to(godot::Vector2 p_std) { x_offset = p_std.x; y_offset = p_std.y; }
+    
+    /* multiplies v by G */
+    static godot::Vector2 MULTIPLY_BY_G(const godot::Vector4& G, const godot::Vector2& v) { return { G.x*v.x + G.y*v.y, G.z*v.x + G.w*v.y }; }
+    
+    /*
+        maps from the standard basis to the Control basis in pixels with (0, 0) in the center of Control
+    */
+    static godot::Vector2 std_to_pixel(const godot::Vector2& pos_std, float x_offset, float y_offset, float w, float h, float scale)
+    {
+        const float unit = h/scale;
+
+        float x_pixel = (pos_std.x - x_offset)*unit + w/2;
+        float y_pixel = (pos_std.y - y_offset)*unit + h/2;
+
+        return { x_pixel, y_pixel };
     }
 
     void _draw() override
@@ -268,13 +310,14 @@ public:
             float size_scale = 1.;
             if( i == selected_track_index ) size_scale = 2.5;
 
-            // position track rect
-            // (0,0) is at the center of the screen! (assuming no x or y offset)
-            // this must also be true for the shader, of course
+            // track rect width in pixels, according to scale
             float track_rect_width = size_scale*unit;
-            float track_rect_x     = ( id_std.x - x_offset + (scale * (w/h))/2)*unit - track_rect_width/2;
-            float track_rect_y     = ( id_std.y - y_offset + (    scale    )/2)*unit - track_rect_width/2;
-            godot::Rect2 track_rect { track_rect_x, track_rect_y, track_rect_width, track_rect_width }; // track_rect is a square (which is 'size_scale' units wide) centered on its corresponding lattice point
+            // track rect pos in pixels, from lattice coordinate id_std
+            godot::Vector2 track_rect_pos = std_to_pixel(id_std, x_offset, y_offset, w, h, scale);
+            // center track cover on lattice points
+            track_rect_pos.x -= track_rect_width / 2;
+            track_rect_pos.y -= track_rect_width / 2;
+            godot::Rect2 track_rect { track_rect_pos, {track_rect_width, track_rect_width} }; // track_rect is a square (which is 'size_scale' units wide) centered on its corresponding lattice point
             // position track dropshadow 
             godot::Rect2 dropshadow_rect = track_rect;
             dropshadow_rect.position.x -= dropshadow_offset;
@@ -313,6 +356,9 @@ public:
     
     godot::Ref<godot::ShaderMaterial> get_background_shader_material() const { return background_shader_material; }
     void set_background_shader_material(const godot::Ref<godot::ShaderMaterial>& p_background_shader_material) { background_shader_material = p_background_shader_material; }
+    
+    godot::Ref<godot::ShaderMaterial> get_line_shader_material() const { return line_shader_material; }
+    void set_line_shader_material(const godot::Ref<godot::ShaderMaterial>& p_line_shader_material) { line_shader_material = p_line_shader_material; }
     
     float get_scale() const { return scale; }
     void set_scale(float p_scale) { scale = p_scale; }

@@ -1,6 +1,11 @@
+# gdextension-test
 *.os
 *.dblite
 .DS_Store
 
 build/
 demo/
+
+# rhythm game
+rhythm-game/bin/
+rhythm-game/export/
