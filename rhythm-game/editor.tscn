@@ -1,11 +1,11 @@
 [gd_scene load_steps=4 format=3 uid="uid://b75r6cbcrwq4y"]
 
-[ext_resource type="Track" uid="uid://8p4c7xhd6qt1" path="res://resources/Tracks/basement_wired_xm4.tres" id="1_lquwl"]
+[ext_resource type="Track" uid="uid://ob4xcpywyngf" path="res://resources/Tracks/lovers_desk_speakers.tres" id="1_wrb8p"]
 [ext_resource type="Audio" uid="uid://dnq6uads5qy54" path="res://resources/Audio/click.tres" id="5_lquwl"]
 [ext_resource type="Script" uid="uid://0yvhwm24n06y" path="res://fps_label.gd" id="6_7mycd"]
 
 [node name="AudioEngine" type="AudioEngine"]
-current_track = ExtResource("1_lquwl")
+current_track = ExtResource("1_wrb8p")
 click = ExtResource("5_lquwl")
 LATENCY = 2500
 

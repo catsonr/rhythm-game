@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <random>
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/color_rect.hpp>
@@ -19,10 +20,37 @@ struct Constellation : public godot::Resource
     GDCLASS(Constellation, Resource)
 
 public:
+    /*
+      0  1  2
+      TL TC TR
+    7 ML xx MR 3
+      BL BC BR 
+      6  5  4
+
+      thus for any direction, opposite = (forwards+4) % 8 aka (^ 0x4)
+      where forwards is { 0, 1, 2, 3 } and backwards is { 4, 5, 6, 7 } (or any set of )
+    */
+    enum Adjacency : uint8_t
+    {
+        // forwards
+        TL = 1 << 0,
+        TC = 1 << 1,
+        TR = 1 << 2,
+        MR = 1 << 3,
+        // backwards (opposite of forwards)
+        BR = 1 << 4,
+        BC = 1 << 5,
+        BL = 1 << 6,
+        ML = 1 << 7
+    };
+
     godot::TypedArray<Track> tracks;
     std::vector<godot::Ref<godot::Texture2D>> covers;
-    std::vector<godot::Vector2i> ids;
-    godot::Ref<godot::ImageTexture> observatory_line_shader_texture;
+    std::vector<godot::Vector2i> ids; // can also be thought of as position
+    std::vector<uint8_t> adjacencies;
+    godot::Ref<godot::ImageTexture> observatory_adjacency_shader_texture;
+    
+    int seed { 0 };
 
 protected:
     static void _bind_methods()
@@ -30,34 +58,76 @@ protected:
         godot::ClassDB::bind_method(godot::D_METHOD("get_tracks"), &rhythm::Constellation::get_tracks);
         godot::ClassDB::bind_method(godot::D_METHOD("set_tracks", "p_track"), &rhythm::Constellation::set_tracks);
         ADD_PROPERTY(godot::PropertyInfo(godot::Variant::ARRAY, "tracks", godot::PROPERTY_HINT_TYPE_STRING, godot::String::num(godot::Variant::OBJECT) + "/" + godot::String::num(godot::PROPERTY_HINT_RESOURCE_TYPE) + ":Track"), "set_tracks", "get_tracks");
+
+        godot::ClassDB::bind_method(godot::D_METHOD("get_seed"), &rhythm::Constellation::get_seed);
+        godot::ClassDB::bind_method(godot::D_METHOD("set_seed", "p_seed"), &rhythm::Constellation::set_seed);
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::INT, "seed"), "set_seed", "get_seed");
     }
 
 public:
-    bool init()
+    // caches the cover, and generates the adjacencies (and thus positions) of each Track in tracks (since we assume first track is at (0, 0))
+    void cache()
     {
-        // pre-computes where tracks are and what covers they use
+        int tracks_size = tracks.size();
+
         covers.clear();
-        covers.reserve(tracks.size());
+        covers.reserve(tracks_size);
         ids.clear();
-        ids.reserve(tracks.size());
-        for(int i = 0; i < tracks.size(); i++)
+        ids.reserve(tracks_size);
+        adjacencies.clear();
+        adjacencies.reserve(tracks_size);
+
+        std::random_device random_device;
+        std::mt19937 device( (seed == 0) ? random_device() : seed );
+        // only choose from directions into positive quadrant
+        std::uniform_int_distribution rng(3, 5); 
+        
+        // the bytes we will be saving to obervatory_adjacency_shader_texture
+        godot::PackedByteArray adjacencies_texture_data;
+        adjacencies_texture_data.resize(tracks_size * tracks_size);
+        adjacencies_texture_data.fill(0);
+        uint8_t* ptr = adjacencies_texture_data.ptrw();
+
+        godot::Vector2i current_id { 0, 0 };
+        for(int i = 0; i < tracks_size; i++)
         {
             godot::Ref<Track> track = tracks[i];
-            
+
             covers.emplace_back(track->get_album()->get_cover());
-            ids.emplace_back(0, i);
+            ids.emplace_back(current_id);
+            
+            // each Track goes to one other, in a random forward direction
+            int random_number = rng(device);
+
+            if( i < tracks_size-1 ) // if not last track
+            {
+                adjacencies.emplace_back( 1 << random_number ); // set the direction to the bit the rng chose
+                ptr[ current_id.x*tracks_size + current_id.y ] = adjacencies[i]; // and save that direction at current position
+
+                // finally, move the next track from the random direction chosen
+                if     (random_number == 3) { current_id.x += 1; }
+                else if(random_number == 4) { current_id.x += 1; current_id.y += 1; }
+                else if(random_number == 5) {                    current_id.y += 1; }
+                //else if(random_number == 6) { current_id.x -= 1; current_id.y += 1; }
+                //else if(random_number == 7) { current_id.x -= 1; }
+            }
+            else adjacencies.emplace_back( 0 );
         }
         
-        // packs all track connections into a single texture to be used by the Observatory's line_shader
-        
-
-        return true;
+        // save adjacencies_texture_data as an image
+        godot::Ref<godot::Image> texture_image = godot::Image::create_from_data(tracks_size, tracks_size, false, godot::Image::FORMAT_R8, adjacencies_texture_data);
+        // save image to adjacency texture, this is what finally is passed to the adjacency shader
+        if(observatory_adjacency_shader_texture.is_valid()) observatory_adjacency_shader_texture->set_image(texture_image);
+        else observatory_adjacency_shader_texture = godot::ImageTexture::create_from_image(texture_image);
     }
     
     bool is_initialized() const { return !ids.empty() && !covers.empty() && ids.size() == tracks.size() && covers.size() == tracks.size(); }
 
     godot::TypedArray<Track> get_tracks() const { return tracks; }
     void set_tracks(const godot::TypedArray<Track>& p_tracks) { tracks = p_tracks; }
+    
+    int get_seed() const { return seed; }
+    void set_seed(int p_seed) { seed = p_seed; cache(); }
 }; // Constellation
 
 struct Observatory : public godot::Control
@@ -70,9 +140,13 @@ struct Observatory : public godot::Control
     godot::ColorRect* background_shader;
     godot::Ref<godot::ShaderMaterial> background_shader_material;
     
-    godot::ColorRect* line_shader;
-    godot::Ref<godot::ShaderMaterial> line_shader_material;
+    godot::ColorRect* adjacency_shader;
+    godot::Ref<godot::ShaderMaterial> adjacency_shader_material;
     
+    /*
+        other cool bases:
+        { 1, 1, 2, -2 }
+    */
     godot::Vector4 G {
         7, 3,
         5, 1
@@ -98,9 +172,9 @@ public:
         godot::ClassDB::bind_method(godot::D_METHOD("set_background_shader_material", "p_background_shader_material"), &rhythm::Observatory::set_background_shader_material);
         ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "background_shader_material", PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_background_shader_material", "get_background_shader_material");
 
-        godot::ClassDB::bind_method(godot::D_METHOD("get_line_shader_material"), &rhythm::Observatory::get_line_shader_material);
-        godot::ClassDB::bind_method(godot::D_METHOD("set_line_shader_material", "p_line_shader_material"), &rhythm::Observatory::set_line_shader_material);
-        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "line_shader_material", PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_line_shader_material", "get_line_shader_material");
+        godot::ClassDB::bind_method(godot::D_METHOD("get_adjacency_shader_material"), &rhythm::Observatory::get_adjacency_shader_material);
+        godot::ClassDB::bind_method(godot::D_METHOD("set_adjacency_shader_material", "p_adjacency_shader_material"), &rhythm::Observatory::set_adjacency_shader_material);
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "adjacency_shader_material", PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_adjacency_shader_material", "get_adjacency_shader_material");
 
         godot::ClassDB::bind_method(godot::D_METHOD("get_scale"), &rhythm::Observatory::get_scale);
         godot::ClassDB::bind_method(godot::D_METHOD("set_scale", "p_scale"), &rhythm::Observatory::set_scale);
@@ -138,12 +212,13 @@ public:
         if( background_shader_material.is_valid() ) background_shader->set_material(background_shader_material);
         add_child(background_shader);
 
-        line_shader = memnew(godot::ColorRect);
-        line_shader->set_name("line_shader");
-        line_shader->set_anchors_and_offsets_preset(godot::Control::PRESET_FULL_RECT);
-        line_shader->set_draw_behind_parent(true);
-        if( line_shader_material.is_valid() ) line_shader->set_material(line_shader_material);
-        add_child(line_shader);
+        adjacency_shader = memnew(godot::ColorRect);
+        adjacency_shader->set_name("adjacency_shader");
+        adjacency_shader->set_anchors_and_offsets_preset(godot::Control::PRESET_FULL_RECT);
+        adjacency_shader->set_draw_behind_parent(true);
+        adjacency_shader->set_visible(false);
+        if( adjacency_shader_material.is_valid() ) adjacency_shader->set_material(adjacency_shader_material);
+        add_child(adjacency_shader);
         
         selected_track_label = memnew(godot::RichTextLabel);
         selected_track_label->set_name("selected_track_label");
@@ -153,7 +228,7 @@ public:
         selected_track_label->set_use_bbcode(true);
         add_child(selected_track_label);
         
-        if( current_constellation.is_valid() ) current_constellation->init();
+        if( current_constellation.is_valid() ) current_constellation->cache();
     }
     
     void _input(const godot::Ref<godot::InputEvent>& event) override
@@ -258,15 +333,15 @@ public:
             background_shader_material->set_shader_parameter("iResolution", background_shader_size);
             background_shader_material->set_shader_parameter("grid_matrix_vector", G);
         }
-        if(line_shader_material.is_valid())
+        if(adjacency_shader_material.is_valid())
         {
-            line_shader_material->set_shader_parameter("t", t);
-            line_shader_material->set_shader_parameter("x_offset", x_offset);
-            line_shader_material->set_shader_parameter("y_offset", y_offset);
-            line_shader_material->set_shader_parameter("aspect_ratio", background_shader_size.x / background_shader_size.y);
-            line_shader_material->set_shader_parameter("scale", scale);
-            line_shader_material->set_shader_parameter("iResolution", background_shader_size);
-            line_shader_material->set_shader_parameter("grid_matrix_vector", G);
+            adjacency_shader_material->set_shader_parameter("t", t);
+            adjacency_shader_material->set_shader_parameter("x_offset", x_offset);
+            adjacency_shader_material->set_shader_parameter("y_offset", y_offset);
+            adjacency_shader_material->set_shader_parameter("aspect_ratio", background_shader_size.x / background_shader_size.y);
+            adjacency_shader_material->set_shader_parameter("scale", scale);
+            adjacency_shader_material->set_shader_parameter("iResolution", background_shader_size);
+            adjacency_shader_material->set_shader_parameter("grid_matrix_vector", G);
         }
 
         godot::Input* input = godot::Input::get_singleton();
@@ -327,8 +402,8 @@ public:
             godot::Ref<Track> track = tracks[i];
             
             godot::Vector2i id_G = current_constellation->ids[i]; // integer lattice coordinate, in G basis
-            godot::Vector2 id_std { G.x*id_G.x + G.y*id_G.y, G.z*id_G.x + G.w*id_G.y }; // G*id_G -> id_std -- convert from lattice point to std coordinate
-            
+            godot::Vector2 id_std = MULTIPLY_BY_G(G, id_G); // G*id_G -> id_std -- convert from lattice point to std coordinate
+
             // size scale (so that selected track is bigger)
             float size_scale = 1.;
             if( i == selected_track_index ) size_scale = 2.5;
@@ -380,8 +455,8 @@ public:
     godot::Ref<godot::ShaderMaterial> get_background_shader_material() const { return background_shader_material; }
     void set_background_shader_material(const godot::Ref<godot::ShaderMaterial>& p_background_shader_material) { background_shader_material = p_background_shader_material; }
     
-    godot::Ref<godot::ShaderMaterial> get_line_shader_material() const { return line_shader_material; }
-    void set_line_shader_material(const godot::Ref<godot::ShaderMaterial>& p_line_shader_material) { line_shader_material = p_line_shader_material; }
+    godot::Ref<godot::ShaderMaterial> get_adjacency_shader_material() const { return adjacency_shader_material; }
+    void set_adjacency_shader_material(const godot::Ref<godot::ShaderMaterial>& p_adjacency_shader_material) { adjacency_shader_material = p_adjacency_shader_material; }
     
     float get_scale() const { return scale; }
     void set_scale(float p_scale) { scale = p_scale; }
@@ -390,7 +465,7 @@ public:
     void set_G(const godot::Vector4& p_G) { G = p_G; }
     
     godot::Ref<rhythm::Constellation> get_current_constellation() const { return current_constellation; }
-    void set_current_constellation(const godot::Ref<rhythm::Constellation>& p_current_constellation) { current_constellation = p_current_constellation; current_constellation->init(); }
+    void set_current_constellation(const godot::Ref<rhythm::Constellation>& p_current_constellation) { current_constellation = p_current_constellation; current_constellation->cache(); }
 }; // Observatory
 
 } // rhythm
