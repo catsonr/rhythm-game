@@ -5,6 +5,7 @@
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/color_rect.hpp>
 #include <godot_cpp/classes/shader_material.hpp>
+#include <godot_cpp/classes/rich_text_label.hpp>
 
 #include "AudioEngine.h"
 
@@ -65,8 +66,8 @@ struct Observatory : public godot::Control
     godot::Ref<godot::ShaderMaterial> background_shader_material;
     
     godot::Vector4 G {
-        2, 1,
-        0, 1
+        7, 3,
+        5, 1
     }; // vector components are matrix values, row-major
     float scale { 6 };
     float t { 0 };
@@ -74,6 +75,8 @@ struct Observatory : public godot::Control
     float y_offset { 0 };
     
     godot::Ref<rhythm::Constellation> current_constellation;
+    int selected_track_index { 0 };
+    godot::RichTextLabel* selected_track_label;
 
 public:
     static void _bind_methods()
@@ -115,28 +118,66 @@ public:
         else
             godot::print_line("[Observatory::_ready] a path to AudioEngine is set but it is invalid");
 
-        background_shader = get_node<godot::ColorRect>("background_shader");
-        if(!background_shader)
-        {
-            godot::print_line("[Observatory::_ready] expected a child ColorRect 'background_shader'. found nothing!");
-            return;
-        }
+        background_shader = memnew(godot::ColorRect);
+        background_shader->set_name("background_shader");
         background_shader->set_anchors_and_offsets_preset(godot::Control::PRESET_FULL_RECT);
         background_shader->set_draw_behind_parent(true);
+        if( background_shader_material.is_valid() ) background_shader->set_material(background_shader_material);
+        add_child(background_shader);
         
-        current_constellation->init();
+        selected_track_label = memnew(godot::RichTextLabel);
+        selected_track_label->set_name("selected_track_label");
+        selected_track_label->set_anchors_and_offsets_preset(godot::Control::PRESET_TOP_WIDE);
+        selected_track_label->set_fit_content(true);
+        selected_track_label->set_clip_contents(false);
+        selected_track_label->set_use_bbcode(true);
+        add_child(selected_track_label);
+        
+        if( current_constellation.is_valid() ) current_constellation->init();
+    }
+    
+    void _input(const godot::Ref<godot::InputEvent>& event) override
+    {
+        godot::Ref<godot::InputEventKey> key_event = event;
+        if(key_event.is_valid() && key_event->is_pressed() && !key_event->is_echo())
+        {
+            switch(key_event->get_physical_keycode())
+            {
+                case godot::KEY_UP:
+                {
+                    selected_track_index = (selected_track_index+1) % current_constellation->get_tracks().size();
+                    break;
+                }
+                case godot::KEY_DOWN:
+                {
+                    int size = current_constellation->get_tracks().size();
+                    selected_track_index = (selected_track_index-1 + size) % size;
+                    break;
+                }
+            }
+        }
+        else if(key_event.is_valid() && key_event->is_released())
+        {
+            switch(key_event->get_physical_keycode())
+            {
+                case godot::KEY_J:
+                {
+                    break;
+                }
+            }
+        }
     }
     
     void _process(double delta) override
     {
-        //if(current_constellation.is_valid() && !current_constellation->is_initialized()) current_constellation->init();
-
         if(background_shader_material.is_valid())
         {
             background_shader_material->set_shader_parameter("t", t);
             background_shader_material->set_shader_parameter("x_offset", x_offset);
             background_shader_material->set_shader_parameter("y_offset", y_offset);
-            background_shader_material->set_shader_parameter("aspect_ratio", 4.0/3.0);
+            //background_shader->set_size({ 800, 100 }); // does not work
+            godot::Vector2 background_shader_size = background_shader->get_size();
+            background_shader_material->set_shader_parameter("aspect_ratio", background_shader_size.x / background_shader_size.y);
             background_shader_material->set_shader_parameter("scale", scale);
             background_shader_material->set_shader_parameter("iResolution", get_size());
             background_shader_material->set_shader_parameter("grid_matrix_vector", G);
@@ -177,13 +218,38 @@ public:
             godot::Vector2i id_G = current_constellation->ids[i]; // integer lattice coordinate, in G basis
             godot::Vector2 id_std { G.x*id_G.x + G.y*id_G.y, G.z*id_G.x + G.w*id_G.y }; // G*id_G -> id_std -- convert from lattice point to std coordinate
             
-            godot::Rect2 track_rect { (id_std.x - x_offset)*unit - unit/2, (id_std.y - y_offset)*unit - unit/2, unit, unit }; // track is a square (who is 'unit' wide) centered on its corresponding lattice point
+            // size scale (so that selected track is bigger)
+            float size_scale = 1.;
+            if( i == selected_track_index ) size_scale = 2.5;
+
+            // position track rect (and dropshadow)
+            godot::Rect2 track_rect { (id_std.x - x_offset)*unit - unit*size_scale/2, (id_std.y - y_offset)*unit - unit*size_scale/2, unit*size_scale, unit*size_scale }; // track is a square (who is 'unit' wide) centered on its corresponding lattice point
             godot::Rect2 dropshadow_rect = track_rect;
             dropshadow_rect.position.x -= dropshadow_offset;
             dropshadow_rect.position.y += dropshadow_offset;
             
+            // position selected track label
+            if( i == selected_track_index )
+            {
+                godot::Vector2 selected_track_label_position = track_rect.position;
+                selected_track_label_position.x += size_scale*unit;
+                selected_track_label->set_position(selected_track_label_position);
+                
+                godot::Ref<rhythm::Album> selected_track_album = track->get_album();
+                godot::String selected_track_label_text
+                {
+                    "[wave][rainbow]" + track->get_title() + "[/rainbow][/wave]\n" +
+                    selected_track_album->get_artist() + "\n" +
+                    selected_track_album->get_title() + " (" + godot::String::num_int64(selected_track_album->get_release_year()) + ")"
+                };
+                selected_track_label->set_text(selected_track_label_text);
+            }
+            
+            // draw dropshadow
             draw_rect(dropshadow_rect, dropshadow_color);
+            // draw cover, if it exists
             if(current_constellation->covers[i].is_valid()) draw_texture_rect(current_constellation->covers[i], track_rect, false);
+            // otherwise draw pure red
             else draw_rect(track_rect, { 1, 0, 0, 1 });
         }
     }

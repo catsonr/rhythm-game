@@ -1,0 +1,2 @@
+global input node for hotkeys, e.g. close game with (cmd + w)
+scene switching
