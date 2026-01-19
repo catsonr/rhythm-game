@@ -6,6 +6,7 @@
 #include <godot_cpp/classes/color_rect.hpp>
 #include <godot_cpp/classes/shader_material.hpp>
 #include <godot_cpp/classes/rich_text_label.hpp>
+#include <godot_cpp/classes/input_event_mouse.hpp>
 
 #include "AudioEngine.h"
 
@@ -69,7 +70,8 @@ struct Observatory : public godot::Control
         7, 3,
         5, 1
     }; // vector components are matrix values, row-major
-    float scale { 6 };
+    const float scale_initial { 6 };
+    float scale { scale_initial };
     float t { 0 };
     float x_offset { 0 };
     float y_offset { 0 };
@@ -143,6 +145,7 @@ public:
         {
             switch(key_event->get_physical_keycode())
             {
+                // track selection
                 case godot::KEY_UP:
                 {
                     selected_track_index = (selected_track_index+1) % current_constellation->get_tracks().size();
@@ -154,6 +157,17 @@ public:
                     selected_track_index = (selected_track_index-1 + size) % size;
                     break;
                 }
+
+                // camera movement 
+                case godot::KEY_BACKSPACE:
+                {
+                    x_offset = 0;
+                    y_offset = 0;
+                    set_scale(scale_initial);
+                    break;
+                }
+                
+                default: break;
             }
         }
         else if(key_event.is_valid() && key_event->is_released())
@@ -164,7 +178,35 @@ public:
                 {
                     break;
                 }
+                
+                default: break;
             }
+        }
+        
+        godot::Ref<godot::InputEventMouseButton> mouse_event = event;
+        if(mouse_event.is_valid() && mouse_event->is_pressed())
+        {
+            float zoom_amount = 1;
+            switch(mouse_event->get_button_index())
+            {
+                    // zoom out when scrolling down
+                case godot::MOUSE_BUTTON_WHEEL_DOWN:
+                {
+                    //godot::print_line("scroll down");
+                    set_scale(scale + zoom_amount);
+                    break;
+                }
+                case godot::MOUSE_BUTTON_WHEEL_UP:
+                {
+                    //godot::print_line("scroll up");
+                    float min_zoom_amount = 2; // the minimum value, which is the maximum zoom
+                    set_scale( (scale-zoom_amount > min_zoom_amount) ? (scale - zoom_amount) : min_zoom_amount );
+                    break;
+                }
+
+                default: break;
+            }
+            
         }
     }
     
@@ -184,10 +226,10 @@ public:
         }
 
         godot::Input* input = godot::Input::get_singleton();
-        if(input->is_physical_key_pressed(godot::KEY_W)) y_offset -= delta;
-        if(input->is_physical_key_pressed(godot::KEY_A)) x_offset -= delta;
-        if(input->is_physical_key_pressed(godot::KEY_S)) y_offset += delta;
-        if(input->is_physical_key_pressed(godot::KEY_D)) x_offset += delta;
+        if(input->is_physical_key_pressed(godot::KEY_W)) y_offset -= delta*scale;
+        if(input->is_physical_key_pressed(godot::KEY_A)) x_offset -= delta*scale;
+        if(input->is_physical_key_pressed(godot::KEY_S)) y_offset += delta*scale;
+        if(input->is_physical_key_pressed(godot::KEY_D)) x_offset += delta*scale;
         
         t += delta;
 
@@ -197,19 +239,23 @@ public:
 
     void _draw() override
     {
+        // draw half-opaque rectangle around Control border
         godot::Vector2 size = get_size();
         float w = size.x;
         float h = size.y;
         godot::Rect2 background_rect { 0, 0, w, h };
         godot::Color background_color { 0.1, 0.1, 0.1, 0.5 };
         draw_rect(background_rect, background_color, false, 20);
+
+        // nothing to draw if no constellation is loaded
+        if(current_constellation.is_null()) return;
         
-        float unit = h/scale;
+        // some constants
+        float unit = h/scale; // converts from std to Control pixels
         float dropshadow_offset = .1*unit;
         godot::Color dropshadow_color = { 0.2, 0.2, 0.2, 0.8 };
 
-        if(current_constellation.is_null()) return;
-
+        // draw each track
         godot::TypedArray<Track> tracks = current_constellation->get_tracks();
         for(int i = 0; i < tracks.size(); i++)
         {
@@ -222,8 +268,14 @@ public:
             float size_scale = 1.;
             if( i == selected_track_index ) size_scale = 2.5;
 
-            // position track rect (and dropshadow)
-            godot::Rect2 track_rect { (id_std.x - x_offset)*unit - unit*size_scale/2, (id_std.y - y_offset)*unit - unit*size_scale/2, unit*size_scale, unit*size_scale }; // track is a square (who is 'unit' wide) centered on its corresponding lattice point
+            // position track rect
+            // (0,0) is at the center of the screen! (assuming no x or y offset)
+            // this must also be true for the shader, of course
+            float track_rect_width = size_scale*unit;
+            float track_rect_x     = ( id_std.x - x_offset + (scale * (w/h))/2)*unit - track_rect_width/2;
+            float track_rect_y     = ( id_std.y - y_offset + (    scale    )/2)*unit - track_rect_width/2;
+            godot::Rect2 track_rect { track_rect_x, track_rect_y, track_rect_width, track_rect_width }; // track_rect is a square (which is 'size_scale' units wide) centered on its corresponding lattice point
+            // position track dropshadow 
             godot::Rect2 dropshadow_rect = track_rect;
             dropshadow_rect.position.x -= dropshadow_offset;
             dropshadow_rect.position.y += dropshadow_offset;

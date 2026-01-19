@@ -184,6 +184,8 @@ public:
                         }
                     }
                 }
+                
+                default: break;
             }
         }
     }

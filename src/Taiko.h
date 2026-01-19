@@ -85,6 +85,8 @@ public:
                     if(audio_engine->playing_track) audio_engine->pause_current_track();
                     else audio_engine->play_current_track();
                 }
+                
+                default: break;
             }
         }
         else if(key_event.is_valid() && key_event->is_released())
@@ -101,6 +103,8 @@ public:
                     L_pressed = false;
                     break;
                 }
+                
+                default: break;
             }
         }
     }
