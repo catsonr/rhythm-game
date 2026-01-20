@@ -121,7 +121,7 @@ bool rhythm::AudioEngine::load_sound(const godot::String& p_path)
         //MA_SOUND_FLAG_ASYNC
     ;
 
-    godot::String abs_path = godot::ProjectSettings::get_singleton()->globalize_path(p_path.utf8().get_data());
+    godot::String abs_path = godot::ProjectSettings::get_singleton()->globalize_path(p_path);
     
     if( ma_sound_init_from_file(&engine, abs_path.utf8().get_data(), flags, NULL, NULL, &sound) != MA_SUCCESS )
     {
@@ -242,7 +242,7 @@ void rhythm::AudioEngine::set_current_track_progress_in_frames(int64_t frame)
 }
 
 godot::Ref<rhythm::Track> rhythm::AudioEngine::get_current_track() const { return current_track; }
-void rhythm::AudioEngine::set_current_track(const godot::Ref<rhythm::Track>& p_track) { current_track = p_track; load_audio(p_track); }
+void rhythm::AudioEngine::set_current_track(const godot::Ref<rhythm::Track>& p_track) { current_track = p_track; if(is_node_ready()) load_audio(p_track); }
 
 godot::Ref<rhythm::Audio> rhythm::AudioEngine::get_click() const { return click; }
 void rhythm::AudioEngine::set_click(const godot::Ref<rhythm::Audio>& p_click) { click = p_click; }
