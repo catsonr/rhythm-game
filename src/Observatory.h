@@ -28,7 +28,7 @@ public:
       6  5  4
 
       thus for any direction, opposite = (forwards+4) % 8 aka (^ 0x4)
-      where forwards is { 0, 1, 2, 3 } and backwards is { 4, 5, 6, 7 } (or any set of )
+      where forwards is { 0, 1, 2, 3 } and backwards is { 4, 5, 6, 7 }
     */
     enum Adjacency : uint8_t
     {
@@ -48,6 +48,13 @@ public:
     std::vector<godot::Ref<godot::Texture2D>> covers;
     std::vector<godot::Vector2i> ids; // can also be thought of as position
     std::vector<uint8_t> adjacencies;
+    /*
+        this texture, along with the adjacencies shader is currently unused
+        for now, adjacencies are simply rendered with draw_line, in _draw()
+
+        adjacency shader is still running however, and draws a rainbow circle at (0, 0), just to
+        show that it is in fact running
+    */
     godot::Ref<godot::ImageTexture> observatory_adjacency_shader_texture;
     
     int seed { 0 };
@@ -79,7 +86,8 @@ public:
 
         std::random_device random_device;
         std::mt19937 device( (seed == 0) ? random_device() : seed );
-        // only choose from directions into positive quadrant
+        // for now, only choose from directions 3, 4, and 5 which are the directions defined to only
+        // move in the positive directions (see Constellation::Adjacency)
         std::uniform_int_distribution rng(3, 5); 
         
         // the bytes we will be saving to obervatory_adjacency_shader_texture
@@ -119,6 +127,8 @@ public:
         // save image to adjacency texture, this is what finally is passed to the adjacency shader
         if(observatory_adjacency_shader_texture.is_valid()) observatory_adjacency_shader_texture->set_image(texture_image);
         else observatory_adjacency_shader_texture = godot::ImageTexture::create_from_image(texture_image);
+
+        //texture_image->save_png("res://adjacencies.png"); // save to disk for debug
     }
     
     bool is_initialized() const { return !ids.empty() && !covers.empty() && ids.size() == tracks.size() && covers.size() == tracks.size(); }
@@ -216,7 +226,7 @@ public:
         adjacency_shader->set_name("adjacency_shader");
         adjacency_shader->set_anchors_and_offsets_preset(godot::Control::PRESET_FULL_RECT);
         adjacency_shader->set_draw_behind_parent(true);
-        adjacency_shader->set_visible(false);
+        //adjacency_shader->set_visible(false);
         if( adjacency_shader_material.is_valid() ) adjacency_shader->set_material(adjacency_shader_material);
         add_child(adjacency_shader);
         
@@ -342,6 +352,9 @@ public:
             adjacency_shader_material->set_shader_parameter("scale", scale);
             adjacency_shader_material->set_shader_parameter("iResolution", background_shader_size);
             adjacency_shader_material->set_shader_parameter("grid_matrix_vector", G);
+            
+            adjacency_shader_material->set_shader_parameter("adjacency_texture", current_constellation->observatory_adjacency_shader_texture);
+            adjacency_shader_material->set_shader_parameter("adjacency_texture_size", adjacency_shader->get_size());
         }
 
         godot::Input* input = godot::Input::get_singleton();
@@ -438,8 +451,78 @@ public:
                 selected_track_label->set_text(selected_track_label_text);
             }
             
+            // position adjacency lines
+            // WARN: this only renders a single adjacency!!
+            bool has_adjacency = false;
+            godot::Vector2 adjacency_start_pos, adjacency_end_pos;
+            const std::vector<uint8_t>& adjacencies = current_constellation->adjacencies;
+            if( i < tracks.size()-1 && adjacencies[i] != 0 ) // if this track has (a single) adjacency
+            {
+                has_adjacency = true;
+                
+                // the change in id, in G basis
+                godot::Vector2i d_id_G;
+
+                switch(adjacencies[i])
+                {
+                    case Constellation::Adjacency::TL:
+                    {
+                        d_id_G = { -1, -1 };
+                        break;
+                    }
+                    case Constellation::Adjacency::TC:
+                    {
+                        d_id_G = {  0, -1 };
+                        break;
+                    }
+                    case Constellation::Adjacency::TR:
+                    {
+                        d_id_G = {  1, -1 };
+                        break;
+                    }
+                    case Constellation::Adjacency::ML:
+                    {
+                        d_id_G = { -1,  0 };
+                        break;
+                    }
+                    case Constellation::Adjacency::MR:
+                    {
+                        d_id_G = {  1,  0 };
+                        break;
+                    }
+                    case Constellation::Adjacency::BL:
+                    {
+                        d_id_G = { -1,  1 };
+                        break;
+                    }
+                    case Constellation::Adjacency::BC:
+                    {
+                        d_id_G = {  0,  1 };
+                        break;
+                    }
+                    case Constellation::Adjacency::BR:
+                    {
+                        d_id_G = {  1,  1 };
+                        break;
+                    }
+                }
+                
+                godot::Vector2 d_id_std = MULTIPLY_BY_G(G, d_id_G); // change in position (in G) -> change in position (in std)!
+                
+                adjacency_start_pos = track_rect_pos;
+                adjacency_start_pos.x += track_rect_width/2;
+                adjacency_start_pos.y += track_rect_width/2; // track_rect_pos is shifted off center so that the cover art IS centered. here we just shift it back
+
+                adjacency_end_pos = adjacency_start_pos + d_id_std*unit; // end is start + d_id_pixel
+            }
+            
             // draw dropshadow
             draw_rect(dropshadow_rect, dropshadow_color);
+
+            // draw adjacency, if it exists
+            godot::Color adjacency_color = { sin(t)*sin(t), cos(t)*cos(t), 1, 0.8 };
+            if( has_adjacency ) draw_dashed_line(adjacency_start_pos, adjacency_end_pos, adjacency_color, 1, 4 + sin(t/4)*sin(t/4));
+
             // draw cover, if it exists
             if(current_constellation->covers[i].is_valid()) draw_texture_rect(current_constellation->covers[i], track_rect, false);
             // otherwise draw pure red
