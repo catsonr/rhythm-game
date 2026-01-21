@@ -14,7 +14,10 @@ namespace rhythm
 struct CTX
 {
     AudioEngine* audio_engine { nullptr };
-    godot::Vector4 G { 1, 0, 0, 1 };
+    /*
+       {3,3,-3,3}
+    */
+    godot::Vector4 G { 3, 0, 0, 3 };
 }; // CTX
 
 /*
@@ -73,6 +76,10 @@ protected:
         godot::ClassDB::bind_method(godot::D_METHOD("get_audio_engine_path"), &rhythm::SceneManager::get_audio_engine_path);
         godot::ClassDB::bind_method(godot::D_METHOD("set_audio_engine_path", "p_audio_engine_path"), &rhythm::SceneManager::set_audio_engine_path);
         ADD_PROPERTY(godot::PropertyInfo(godot::Variant::NODE_PATH, "audio_engine_path"), "set_audio_engine_path", "get_audio_engine_path");
+
+        godot::ClassDB::bind_method(godot::D_METHOD("get_G"), &rhythm::SceneManager::get_G);
+        godot::ClassDB::bind_method(godot::D_METHOD("set_G", "p_G"), &rhythm::SceneManager::set_G);
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::VECTOR4, "G"), "set_G", "get_G");
         
         godot::ClassDB::bind_method(D_METHOD("get_initial_scene"), &rhythm::SceneManager::get_initial_scene);
         godot::ClassDB::bind_method(D_METHOD("set_initial_scene", "p_initial_scene"), &rhythm::SceneManager::set_initial_scene);
@@ -130,6 +137,9 @@ public:
 
     godot::NodePath get_audio_engine_path() const { return audio_engine_path; }
     void set_audio_engine_path(const godot::NodePath& p_audio_engine_path) { audio_engine_path = p_audio_engine_path; }
+    
+    godot::Vector4 get_G() const { return ctx.G; }
+    void set_G(const godot::Vector4& p_G) { ctx.G = p_G; }
 
     godot::Ref<godot::PackedScene> get_initial_scene() const { return initial_scene; }
     void set_initial_scene(const godot::Ref<godot::PackedScene>& p_initial_scene) { initial_scene = p_initial_scene; }

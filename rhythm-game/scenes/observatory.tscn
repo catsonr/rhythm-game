@@ -1,8 +1,50 @@
-[gd_scene load_steps=4 format=3 uid="uid://dd01cfxsp0sua"]
+[gd_scene load_steps=9 format=3 uid="uid://dd01cfxsp0sua"]
 
 [ext_resource type="Material" uid="uid://b3gu5go2grkwp" path="res://shaders/materials/constellation_background.tres" id="1_duydk"]
 [ext_resource type="Material" uid="uid://dkou015de6sj1" path="res://shaders/materials/constellation_adjacency.tres" id="2_nq624"]
 [ext_resource type="Constellation" uid="uid://od053yvm1luo" path="res://resources/Constellations/constellation1.tres" id="3_epj8e"]
+[ext_resource type="FontFile" uid="uid://bad72xp20qcxh" path="res://fonts/Husky Stash.otf" id="4_2gdk4"]
+
+[sub_resource type="Theme" id="Theme_rvuaq"]
+default_font = ExtResource("4_2gdk4")
+default_font_size = 20
+
+[sub_resource type="Animation" id="Animation_2gdk4"]
+resource_name = "Observatory_scale"
+length = 6.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 6),
+"transitions": PackedFloat32Array(-3.4822001, 1),
+"update": 0,
+"values": [40.0, 6.0]
+}
+
+[sub_resource type="Animation" id="Animation_rvuaq"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [6.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_vyuj5"]
+_data = {
+&"Observatory_scale": SubResource("Animation_2gdk4"),
+&"RESET": SubResource("Animation_rvuaq")
+}
 
 [node name="Scene" type="Scene"]
 
@@ -12,3 +54,10 @@ adjacency_shader_material = ExtResource("2_nq624")
 current_constellation = ExtResource("3_epj8e")
 offset_right = 800.0
 offset_bottom = 600.0
+theme = SubResource("Theme_rvuaq")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Observatory"]
+libraries = {
+&"": SubResource("AnimationLibrary_vyuj5")
+}
+autoplay = "Observatory_scale"

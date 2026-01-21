@@ -152,14 +152,7 @@ struct Observatory : public godot::Control
     godot::ColorRect* adjacency_shader;
     godot::Ref<godot::ShaderMaterial> adjacency_shader_material;
     
-    /*
-        other cool bases:
-        { 1, 1, 2, -2 }
-    */
-    godot::Vector4 G {
-        7, 3,
-        5, 1
-    }; // vector components are matrix values, row-major
+    godot::Vector4* G { nullptr };
     const float scale_initial { 6 };
     float scale { scale_initial };
     float t { 0 };
@@ -185,10 +178,6 @@ public:
         godot::ClassDB::bind_method(godot::D_METHOD("set_scale", "p_scale"), &rhythm::Observatory::set_scale);
         ADD_PROPERTY(godot::PropertyInfo(godot::Variant::FLOAT, "scale"), "set_scale", "get_scale");
 
-        godot::ClassDB::bind_method(godot::D_METHOD("get_G"), &rhythm::Observatory::get_G);
-        godot::ClassDB::bind_method(godot::D_METHOD("set_G", "p_G"), &rhythm::Observatory::set_G);
-        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::VECTOR4, "G"), "set_G", "get_G");
-
         godot::ClassDB::bind_method(godot::D_METHOD("get_current_constellation"), &rhythm::Observatory::get_current_constellation);
         godot::ClassDB::bind_method(godot::D_METHOD("set_current_constellation", "p_track"), &rhythm::Observatory::set_current_constellation);
         ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "current_constellation", godot::PROPERTY_HINT_RESOURCE_TYPE, "Constellation"), "set_current_constellation", "get_current_constellation");
@@ -197,6 +186,7 @@ public:
     void _ready() override
     {
         audio_engine = Scene::conjure_ctx(this)->audio_engine;
+        G = &Scene::conjure_ctx(this)->G;
 
         background_shader = memnew(godot::ColorRect);
         background_shader->set_name("background_shader");
@@ -302,7 +292,7 @@ public:
                 case godot::MOUSE_BUTTON_WHEEL_UP:
                 {
                     //godot::print_line("scroll up");
-                    float min_zoom_amount = 2; // the minimum value, which is the maximum zoom
+                    float min_zoom_amount = 3; // the minimum value, which is the maximum zoom
                     set_scale( (scale-zoom_amount > min_zoom_amount) ? (scale - zoom_amount) : min_zoom_amount );
                     break;
                 }
@@ -324,7 +314,7 @@ public:
             background_shader_material->set_shader_parameter("aspect_ratio", background_shader_size.x / background_shader_size.y);
             background_shader_material->set_shader_parameter("scale", scale);
             background_shader_material->set_shader_parameter("iResolution", background_shader_size);
-            background_shader_material->set_shader_parameter("grid_matrix_vector", G);
+            background_shader_material->set_shader_parameter("grid_matrix_vector", *G);
         }
         if(adjacency_shader_material.is_valid())
         {
@@ -334,7 +324,7 @@ public:
             adjacency_shader_material->set_shader_parameter("aspect_ratio", background_shader_size.x / background_shader_size.y);
             adjacency_shader_material->set_shader_parameter("scale", scale);
             adjacency_shader_material->set_shader_parameter("iResolution", background_shader_size);
-            adjacency_shader_material->set_shader_parameter("grid_matrix_vector", G);
+            adjacency_shader_material->set_shader_parameter("grid_matrix_vector", *G);
             
             adjacency_shader_material->set_shader_parameter("adjacency_texture", current_constellation->observatory_adjacency_shader_texture);
             adjacency_shader_material->set_shader_parameter("adjacency_texture_size", adjacency_shader->get_size());
@@ -358,7 +348,7 @@ public:
     void move_to(godot::Vector2 p_std) { x_offset = p_std.x; y_offset = p_std.y; }
     
     /* multiplies v by G */
-    static godot::Vector2 MULTIPLY_BY_G(const godot::Vector4& G, const godot::Vector2& v) { return { G.x*v.x + G.y*v.y, G.z*v.x + G.w*v.y }; }
+    static godot::Vector2 MULTIPLY_BY_G(godot::Vector4* G, const godot::Vector2& v) { return { G->x*v.x + G->y*v.y, G->z*v.x + G->w*v.y }; }
     
     /*
         maps from the standard basis to the Control basis in pixels with (0, 0) in the center of Control
@@ -523,9 +513,6 @@ public:
     
     float get_scale() const { return scale; }
     void set_scale(float p_scale) { scale = p_scale; }
-
-    godot::Vector4 get_G() const { return G; }
-    void set_G(const godot::Vector4& p_G) { G = p_G; }
     
     godot::Ref<rhythm::Constellation> get_current_constellation() const { return current_constellation; }
     void set_current_constellation(const godot::Ref<rhythm::Constellation>& p_current_constellation) { current_constellation = p_current_constellation; current_constellation->cache(); }
