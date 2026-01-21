@@ -4,6 +4,7 @@
 #include <godot_cpp/classes/packed_scene.hpp>
 
 #include "AudioEngine.h"
+#include "AudioEngine2.h"
 
 namespace rhythm
 {
@@ -14,6 +15,7 @@ namespace rhythm
 struct CTX
 {
     AudioEngine* audio_engine { nullptr };
+    AudioEngine2* audio_engine_2 { nullptr };
     /*
        {3,3,-3,3}
     */
@@ -65,6 +67,7 @@ struct SceneManager : public godot::Node
 
 private:
     godot::NodePath audio_engine_path;
+    godot::NodePath audio_engine_2_path;
     CTX ctx; // this is THE global context!
 
     Scene* current_scene { nullptr };
@@ -76,6 +79,10 @@ protected:
         godot::ClassDB::bind_method(godot::D_METHOD("get_audio_engine_path"), &rhythm::SceneManager::get_audio_engine_path);
         godot::ClassDB::bind_method(godot::D_METHOD("set_audio_engine_path", "p_audio_engine_path"), &rhythm::SceneManager::set_audio_engine_path);
         ADD_PROPERTY(godot::PropertyInfo(godot::Variant::NODE_PATH, "audio_engine_path"), "set_audio_engine_path", "get_audio_engine_path");
+
+        godot::ClassDB::bind_method(godot::D_METHOD("get_audio_engine_2_path"), &rhythm::SceneManager::get_audio_engine_2_path);
+        godot::ClassDB::bind_method(godot::D_METHOD("set_audio_engine_2_path", "p_audio_engine_2_path"), &rhythm::SceneManager::set_audio_engine_2_path);
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::NODE_PATH, "audio_engine_2_path"), "set_audio_engine_2_path", "get_audio_engine_2_path");
 
         godot::ClassDB::bind_method(godot::D_METHOD("get_G"), &rhythm::SceneManager::get_G);
         godot::ClassDB::bind_method(godot::D_METHOD("set_G", "p_G"), &rhythm::SceneManager::set_G);
@@ -99,6 +106,17 @@ public:
         if( !audio_engine ) { godot::print_error("[SceneManager::_ready] a path to AudioEngine has been set, but is it not an AudioEngine!"); return; }
         
         ctx.audio_engine = audio_engine;
+        
+        // audio engine 2 stuff
+
+        if( audio_engine_2_path.is_empty() ) { godot::print_error("[SceneManager::_ready] a NodePath to AudioEngine2 has not been set. please set one in the inspector!"); return; }
+        
+        godot::Node* node_2 = get_node_or_null(audio_engine_2_path);
+        AudioEngine2* audio_engine_2 = godot::Object::cast_to<rhythm::AudioEngine2>(node_2);
+        
+        if( !audio_engine_2 ) { godot::print_error("[SceneManager::_ready] a path to AudioEngine2 has been set, but is it not an AudioEngine2!"); return; }
+        
+        ctx.audio_engine_2 = audio_engine_2;
         
         // initial scene stuff
 
@@ -137,6 +155,9 @@ public:
 
     godot::NodePath get_audio_engine_path() const { return audio_engine_path; }
     void set_audio_engine_path(const godot::NodePath& p_audio_engine_path) { audio_engine_path = p_audio_engine_path; }
+
+    godot::NodePath get_audio_engine_2_path() const { return audio_engine_2_path; }
+    void set_audio_engine_2_path(const godot::NodePath& p_audio_engine_2_path) { audio_engine_2_path = p_audio_engine_2_path; }
     
     godot::Vector4 get_G() const { return ctx.G; }
     void set_G(const godot::Vector4& p_G) { ctx.G = p_G; }

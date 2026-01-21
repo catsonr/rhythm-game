@@ -15,7 +15,10 @@ class Audio : public godot::Resource
 public:
     // these should probably(?) be private, however it makes it much easier to load a Track if AudioEngine can directly modify it
     ma_sound* sound;
-    int AudioEngine_sounds_index;
+
+    // both of these are set on AudioEngine::load_audio
+    int AudioEngine_sounds_index { -1 };
+    bool loaded { false }; // whether or not miniaudio has loaded this track as a ma_sound
 private:
     godot::StringName file_path;
 
@@ -32,7 +35,6 @@ public:
     // file_path
     godot::StringName get_file_path() const { return file_path; }
     void set_file_path(const godot::StringName& p_file_path) { file_path = p_file_path; }
-    
 }; // Audio
 
 } // rhythm

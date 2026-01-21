@@ -8,7 +8,7 @@ if [ -z "$1" ]; then
 fi
 
 # compile
-scons
+scons target=template_debug debug_symbols=yes dev_build=yes
 
 # copy to project
 echo "removing $1/bin if it exists ..."

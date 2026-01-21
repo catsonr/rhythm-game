@@ -145,6 +145,7 @@ struct Observatory : public godot::Control
     GDCLASS(Observatory, Control)
 
     rhythm::AudioEngine* audio_engine { nullptr };
+    rhythm::AudioEngine2* audio_engine_2 { nullptr };
     
     godot::ColorRect* background_shader;
     godot::Ref<godot::ShaderMaterial> background_shader_material;
@@ -186,8 +187,12 @@ public:
     void _ready() override
     {
         audio_engine = Scene::conjure_ctx(this)->audio_engine;
+        audio_engine_2 = Scene::conjure_ctx(this)->audio_engine_2;
         G = &Scene::conjure_ctx(this)->G;
-
+        
+        audio_engine_2->set_current_track(current_constellation->tracks[0]);
+        audio_engine_2->play_current_track();
+        
         background_shader = memnew(godot::ColorRect);
         background_shader->set_name("background_shader");
         background_shader->set_anchors_and_offsets_preset(godot::Control::PRESET_FULL_RECT);
@@ -199,7 +204,6 @@ public:
         adjacency_shader->set_name("adjacency_shader");
         adjacency_shader->set_anchors_and_offsets_preset(godot::Control::PRESET_FULL_RECT);
         adjacency_shader->set_draw_behind_parent(true);
-        //adjacency_shader->set_visible(false);
         if( adjacency_shader_material.is_valid() ) adjacency_shader->set_material(adjacency_shader_material);
         add_child(adjacency_shader);
         
@@ -228,11 +232,9 @@ public:
 
                     move_to( MULTIPLY_BY_G(G, current_constellation->ids[selected_track_index] ));
                     
-                    /*
-                    // this works once AudioEngine can handle switching tracks...
-                    audio_engine->set_current_track(current_constellation->tracks[selected_track_index]);
-                    audio_engine->play_current_track();
-                    */
+                    audio_engine_2->pause_current_track();
+                    audio_engine_2->set_current_track(current_constellation->tracks[selected_track_index]);
+                    audio_engine_2->play_current_track();
 
                     break;
                 }
@@ -243,10 +245,9 @@ public:
 
                     move_to( MULTIPLY_BY_G(G, current_constellation->ids[selected_track_index] ));
 
-                    /*
-                    audio_engine->set_current_track(current_constellation->tracks[selected_track_index]);
-                    audio_engine->play_current_track();
-                    */
+                    audio_engine_2->pause_current_track();
+                    audio_engine_2->set_current_track(current_constellation->tracks[selected_track_index]);
+                    audio_engine_2->play_current_track();
 
                     break;
                 }
