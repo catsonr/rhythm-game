@@ -1,0 +1,14 @@
+[gd_scene load_steps=4 format=3 uid="uid://dd01cfxsp0sua"]
+
+[ext_resource type="Material" uid="uid://b3gu5go2grkwp" path="res://shaders/materials/constellation_background.tres" id="1_duydk"]
+[ext_resource type="Material" uid="uid://dkou015de6sj1" path="res://shaders/materials/constellation_adjacency.tres" id="2_nq624"]
+[ext_resource type="Constellation" uid="uid://od053yvm1luo" path="res://resources/Constellations/constellation1.tres" id="3_epj8e"]
+
+[node name="Scene" type="Scene"]
+
+[node name="Observatory" type="Observatory" parent="."]
+background_shader_material = ExtResource("1_duydk")
+adjacency_shader_material = ExtResource("2_nq624")
+current_constellation = ExtResource("3_epj8e")
+offset_right = 800.0
+offset_bottom = 600.0

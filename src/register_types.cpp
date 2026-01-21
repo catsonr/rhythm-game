@@ -4,6 +4,7 @@
 #include "AudioEngine.h"
 #include "BeatGraph.h"
 #include "Observatory.h"
+#include "SceneManager.h"
 #include "Taiko.h"
 
 // resources
@@ -25,6 +26,8 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     GDREGISTER_RUNTIME_CLASS(rhythm::AudioEngine);
     GDREGISTER_RUNTIME_CLASS(rhythm::BeatGraph);
     GDREGISTER_RUNTIME_CLASS(rhythm::Observatory);
+    GDREGISTER_RUNTIME_CLASS(rhythm::Scene);
+    GDREGISTER_RUNTIME_CLASS(rhythm::SceneManager);
     GDREGISTER_RUNTIME_CLASS(rhythm::Taiko);
     
     // register resources

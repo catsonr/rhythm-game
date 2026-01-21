@@ -10,7 +10,7 @@
 #include <godot_cpp/classes/theme_db.hpp>
 #include <godot_cpp/classes/font.hpp>
 
-#include "AudioEngine.h"
+#include "SceneManager.h"
 #include "Track.h"
 
 namespace rhythm
@@ -35,18 +35,13 @@ private:
     int64_t score;
 
 protected:
-    static void _bind_methods()
-    {
-        godot::ClassDB::bind_method(godot::D_METHOD("get_audio_engine"), &rhythm::Taiko::get_audio_engine);
-        godot::ClassDB::bind_method(godot::D_METHOD("set_audio_engine", "p_audio_engine"), &rhythm::Taiko::set_audio_engine);
-        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "audio_engine", godot::PROPERTY_HINT_NODE_TYPE, "AudioEngine"), "set_audio_engine", "get_audio_engine");
-    }
+    static void _bind_methods() {}
 
 public:
     void _ready() override
     {
-        if( audio_engine == nullptr ) godot::print_error("[Taiko::_ready()] no AudioEngine linked! please set one in the inspector!");
-        
+        audio_engine = Scene::conjure_ctx(this)->audio_engine;
+
          beats = audio_engine->current_track->get_beats();
          notes = rhythm::Track::Note::unpack( audio_engine->current_track->get_notes_packed() );
         
@@ -178,11 +173,6 @@ public:
         float score_font_size = 10;
         draw_string(default_font, {score_font_size, score_font_size}, score_string, godot::HORIZONTAL_ALIGNMENT_CENTER, 0, score_font_size);
     }
-
-    /* GETTERS & SETTERS */
-
-    rhythm::AudioEngine* get_audio_engine() const { return audio_engine; }
-    void set_audio_engine(rhythm::AudioEngine* p_audio_engine) { audio_engine = p_audio_engine; }
 }; // Taiko
 
 } // rhythm

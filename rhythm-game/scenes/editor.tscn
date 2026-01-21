@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://c1mglh01ilt60"]
+
+[node name="Scene" type="Scene"]
+
+[node name="BeatGraph" type="BeatGraph" parent="."]
+offset_left = 14.0
+offset_top = 152.0
+offset_right = 780.0
+offset_bottom = 348.0

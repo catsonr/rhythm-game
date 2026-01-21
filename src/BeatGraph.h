@@ -14,7 +14,7 @@
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/resource_saver.hpp>
 
-#include "AudioEngine.h"
+#include "SceneManager.h"
 #include "Track.h"
 
 namespace rhythm
@@ -37,17 +37,12 @@ private:
     int closest_position_index = 0;
 
 protected:
-    static void _bind_methods()
-    {
-        godot::ClassDB::bind_method(godot::D_METHOD("get_audio_engine"), &rhythm::BeatGraph::get_audio_engine);
-        godot::ClassDB::bind_method(godot::D_METHOD("set_audio_engine", "p_audio_engine"), &rhythm::BeatGraph::set_audio_engine);
-        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "audio_engine", PROPERTY_HINT_NODE_TYPE, "AudioEngine"), "set_audio_engine", "get_audio_engine");
-    }
+    static void _bind_methods() {}
 
 public:
     void _ready() override
     {
-        if( audio_engine == nullptr ) godot::print_error("[BeatGraph::_ready] no AudioEngine linked! please set one in the inspector!");
+        audio_engine = Scene::conjure_ctx(this)->audio_engine;
         
         proposed_notes = rhythm::Track::Note::unpack(audio_engine->current_track->get_notes_packed());
         current_beats = audio_engine->current_track->get_beats();
@@ -336,11 +331,6 @@ public:
             draw_rect(note_rect, note.type == rhythm::Track::Note::RIGHT ? note_color_R : note_color_L);
         }
     }
-    
-    /* GETTERS & SETTERS */
-
-    rhythm::AudioEngine* get_audio_engine() const { return audio_engine; }
-    void set_audio_engine(rhythm::AudioEngine* p_audio_engine) { audio_engine = p_audio_engine; }
 }; // BeatGraph
 
 } // rhythm

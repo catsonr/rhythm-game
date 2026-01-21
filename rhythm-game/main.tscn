@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://tq7dju4488yu"]
+
+[ext_resource type="Track" uid="uid://dacu4g7b40sy8" path="res://resources/Tracks/basement_wired_xm4.tres" id="1_h2yge"]
+[ext_resource type="Audio" uid="uid://dnq6uads5qy54" path="res://resources/Audio/click.tres" id="2_1bvp3"]
+[ext_resource type="PackedScene" uid="uid://dd01cfxsp0sua" path="res://scenes/observatory.tscn" id="3_h2yge"]
+
+[node name="Node" type="Node"]
+
+[node name="AudioEngine" type="AudioEngine" parent="."]
+current_track = ExtResource("1_h2yge")
+click = ExtResource("2_1bvp3")
+LATENCY = 2200
+
+[node name="SceneManager" type="SceneManager" parent="."]
+audio_engine_path = NodePath("../AudioEngine")
+initial_scene = ExtResource("3_h2yge")

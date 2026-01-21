@@ -10,7 +10,7 @@
 #include <godot_cpp/classes/rich_text_label.hpp>
 #include <godot_cpp/classes/input_event_mouse.hpp>
 
-#include "AudioEngine.h"
+#include "SceneManager.h"
 
 namespace rhythm
 {
@@ -144,7 +144,6 @@ struct Observatory : public godot::Control
 {
     GDCLASS(Observatory, Control)
 
-    godot::NodePath audio_engine_path;
     rhythm::AudioEngine* audio_engine { nullptr };
     
     godot::ColorRect* background_shader;
@@ -174,10 +173,6 @@ struct Observatory : public godot::Control
 public:
     static void _bind_methods()
     {
-        godot::ClassDB::bind_method(godot::D_METHOD("get_audio_engine_path"), &rhythm::Observatory::get_audio_engine_path);
-        godot::ClassDB::bind_method(godot::D_METHOD("set_audio_engine_path", "p_audio_engine_path"), &rhythm::Observatory::set_audio_engine_path);
-        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::NODE_PATH, "audio_engine_path"), "set_audio_engine_path", "get_audio_engine_path");
-
         godot::ClassDB::bind_method(godot::D_METHOD("get_background_shader_material"), &rhythm::Observatory::get_background_shader_material);
         godot::ClassDB::bind_method(godot::D_METHOD("set_background_shader_material", "p_background_shader_material"), &rhythm::Observatory::set_background_shader_material);
         ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "background_shader_material", PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_background_shader_material", "get_background_shader_material");
@@ -201,19 +196,7 @@ public:
 
     void _ready() override
     {
-        if( audio_engine_path.is_empty() )
-        {
-            godot::print_line("[Observatory::_ready] a NodePath to AudioEngine has not been set. please set one in the inspector!");
-
-            return;
-        }
-        
-        godot::Node* node = get_node_or_null(audio_engine_path);
-
-        if( node )
-            audio_engine = godot::Object::cast_to<rhythm::AudioEngine>(node);
-        else
-            godot::print_line("[Observatory::_ready] a path to AudioEngine is set but it is invalid");
+        audio_engine = Scene::conjure_ctx(this)->audio_engine;
 
         background_shader = memnew(godot::ColorRect);
         background_shader->set_name("background_shader");
@@ -531,9 +514,6 @@ public:
     }
 
     /* GETTERS & SETTERS */
-
-    godot::NodePath get_audio_engine_path() const { return audio_engine_path; }
-    void set_audio_engine_path(const godot::NodePath& p_audio_engine_path) {audio_engine_path = p_audio_engine_path; }
     
     godot::Ref<godot::ShaderMaterial> get_background_shader_material() const { return background_shader_material; }
     void set_background_shader_material(const godot::Ref<godot::ShaderMaterial>& p_background_shader_material) { background_shader_material = p_background_shader_material; }
