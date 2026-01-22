@@ -20,6 +20,8 @@ private:
     ma_engine engine;
     std::list<ma_sound> sounds;
     
+    float volume { 1.0 };
+    
     godot::Ref<rhythm::Track> current_track;
     bool playing_track { false };
     float current_track_pitch { 1.0 }; 
@@ -27,6 +29,11 @@ private:
 protected:
     static void _bind_methods()
     {
+        // volume
+        godot::ClassDB::bind_method(godot::D_METHOD("get_volume"), &rhythm::AudioEngine2::get_volume);
+        godot::ClassDB::bind_method(godot::D_METHOD("set_volume", "p_track_pitch"), &rhythm::AudioEngine2::set_volume);
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::FLOAT, "volume"), "set_volume", "get_volume");
+
         // current track
         godot::ClassDB::bind_method(godot::D_METHOD("get_current_track"), &rhythm::AudioEngine2::get_current_track);
         godot::ClassDB::bind_method(godot::D_METHOD("set_current_track", "p_track"), &rhythm::AudioEngine2::set_current_track);
@@ -56,6 +63,8 @@ public:
             godot::print_error("[AudioEngine2::_ready] failed to initialize miniaudio engine!");
             return;
         }
+        
+        ma_engine_set_volume(&engine, volume);
 
         godot::print_line("[AudioEngine2::_ready] miniaudio initialized : )");
     }
@@ -63,8 +72,19 @@ public:
     void _process(double delta) override
     {
         if(!playing_track) return;
-        if(current_track.is_null() || !current_track->loaded) return;
+        if(!current_track.is_valid() || !current_track->loaded) return;
         
+        if(playing_track && get_current_track_progress_in_frames() == get_current_track_length_in_frames())
+        {
+            godot::print_line("[AudioEngine2::_process] song ended!");
+            pause_current_track();
+            return;
+        }
+        
+        /* track is playing */
+
+        // match miniaudio to our godot properties
+        ma_engine_set_volume(&engine, volume);
         ma_sound_set_pitch(current_track->sound, current_track_pitch);
     }
     
@@ -116,25 +136,58 @@ public:
     
     void play_current_track()
     {
-        if(current_track->loaded) ma_sound_start(current_track->sound);
-        
-        playing_track = true;
+        if(current_track->loaded && !playing_track)
+        {
+            ma_sound_start(current_track->sound);
+            playing_track = true;
+        } else godot::print_line("[AudioEngine2::play_current_track] nothing to do ...");
     }
     
     void pause_current_track()
     {
-        if(current_track->loaded) ma_sound_stop(current_track->sound);
-
-        playing_track = false;
+        if(current_track->loaded && playing_track)
+        {
+            ma_sound_stop(current_track->sound);
+            playing_track = false;
+        } else godot::print_line("[AudioEngine2::pause_current_track] nothing to do ...");
     }
 
     /* GETTERS & SETTERS */
     
+    float get_volume() const { return volume; }
+    void set_volume(const float p_volume) { volume = p_volume; if(is_node_ready()) ma_engine_set_volume(&engine, volume); }
+
     godot::Ref<rhythm::Track> get_current_track() const { return current_track; }
     void set_current_track(const godot::Ref<rhythm::Track>& p_current_track) { current_track = p_current_track; if(is_node_ready()) load_audio(current_track); }
     
     float get_current_track_pitch() const { return current_track_pitch; }
     void set_current_track_pitch(const float p_current_track_pitch) { current_track_pitch = p_current_track_pitch; }
+    
+    int64_t get_current_track_length_in_frames() const
+    {
+        ma_uint64 ma_track_length_in_frames;
+        ma_sound_get_length_in_pcm_frames(current_track->sound, &ma_track_length_in_frames);
+        
+        return static_cast<int64_t>(ma_track_length_in_frames);
+    }
+    
+    int64_t get_current_track_progress_in_frames() const
+    {
+        if(!current_track.is_valid() || !current_track->loaded) return 0;
+        
+        return (int64_t)ma_sound_get_time_in_pcm_frames(current_track->sound);
+    }
+    
+    void set_current_track_progress_in_frames(int64_t frame)
+    {
+        if(!current_track.is_valid() || !current_track->loaded) return;
+
+        frame = (frame > get_current_track_length_in_frames()) ? get_current_track_length_in_frames() : frame;
+        
+        ma_sound_seek_to_pcm_frame(current_track->sound, (ma_uint64)frame);
+    }
+    
+    double get_current_track_progress() const { return static_cast<double>(get_current_track_progress_in_frames()) / static_cast<double>(get_current_track_length_in_frames()); }
 
 }; // AudioEngine2
 
