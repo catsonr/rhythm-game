@@ -210,7 +210,13 @@ public:
         selected_track_label->set_use_bbcode(true);
         add_child(selected_track_label);
         
-        if( current_constellation.is_valid() ) current_constellation->cache();
+        if( current_constellation.is_valid() )
+        {
+            current_constellation->cache();
+
+            audio_engine_2->set_current_track(current_constellation->tracks[selected_track_index]);
+            audio_engine_2->play_current_track();
+        }
     }
     
     void _input(const godot::Ref<godot::InputEvent>& event) override

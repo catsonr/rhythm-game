@@ -5,4 +5,4 @@
 [ext_resource type="Track" uid="uid://bdl6f22lg8w8y" path="res://resources/Tracks/rule_desk_speakers.tres" id="3_h5uus"]
 
 [resource]
-tracks = Array[Track]([ExtResource("2_h5uus"), ExtResource("1_vjk6d"), ExtResource("3_h5uus")])
+tracks = Array[Track]([ExtResource("1_vjk6d"), ExtResource("2_h5uus"), ExtResource("3_h5uus")])

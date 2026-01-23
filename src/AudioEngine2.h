@@ -16,6 +16,7 @@ namespace rhythm
 
 struct Conductor
 {
+    // TODO: separate next beat into next beat AND next beat to schedule
     int next_beat_index { 0 };
     double lookahead_window { 0.1 }; // what percentage of a second the Conductor will look ahead to schedule a beat
     int64_t LATENCY { 2000 }; // how many frames in advance beat playback is scheduled, in order to SOUND in time
@@ -52,6 +53,11 @@ struct Conductor
         else track_seeked(ma_engine_get_time_in_pcm_frames(engine), ma_sound_get_time_in_pcm_frames(track->sound), pitch, track_is_playing);
     }
     
+    void pitch_set(const int64_t current_global_time, const int64_t current_local_time, const float pitch, const bool track_is_playing)
+    {
+        track_seeked(current_global_time, current_local_time, pitch, track_is_playing);
+    }
+
     void process(ma_engine* engine, const float pitch, const godot::Ref<rhythm::Audio>& click)
     {
         if(GLOBAL_START_FRAME == INITIAL_START_PAUSE_FRAME) return; // track hasn't started!
@@ -77,7 +83,7 @@ struct Conductor
         }
     }
     
-    void track_played(const int64_t at_global_frame)
+    void track_played(const int64_t at_global_frame, const float pitch)
     {
         // if track is played from beginning
         if( LOCAL_PAUSE_FRAME == INITIAL_START_PAUSE_FRAME )
@@ -87,7 +93,7 @@ struct Conductor
         }
         
         // else track is being resumed
-        GLOBAL_START_FRAME = at_global_frame - LOCAL_PAUSE_FRAME;
+        GLOBAL_START_FRAME = at_global_frame - LOCAL_PAUSE_FRAME/pitch;
     }
     
     void track_paused(const int64_t at_local_frame)
@@ -123,11 +129,11 @@ private:
     
     float volume { 1.0 };
     
-    godot::Ref<rhythm::Track> current_track;
+    public: godot::Ref<rhythm::Track> current_track; private:
     public: bool playing_track { false }; private:
     float current_track_pitch { 1.0 };
 
-    Conductor conductor;
+    public: Conductor conductor; private:
     godot::Ref<rhythm::Audio> click;
 
 protected:
@@ -178,6 +184,12 @@ public:
         
         if(click.is_valid()) load_audio(click);
         else godot::print_line("[AudioEngine2::_ready] tried to load click Audio but one was not set. please set one in the inspector!");
+        
+        if(current_track.is_valid())
+        {
+            set_current_track(current_track);
+            set_current_track_pitch(current_track_pitch);
+        }
 
         godot::print_line("[AudioEngine2::_ready] miniaudio initialized : )");
     }
@@ -194,8 +206,6 @@ public:
         }
         
         /* track is playing */
-        
-        ma_sound_set_pitch(current_track->sound, current_track_pitch);
 
         // process conductor
         conductor.process(&engine, current_track_pitch, click);
@@ -254,7 +264,7 @@ public:
             ma_sound_start(current_track->sound);
             playing_track = true;
             
-            conductor.track_played(ma_engine_get_time_in_pcm_frames(&engine));
+            conductor.track_played(ma_engine_get_time_in_pcm_frames(&engine), current_track_pitch);
         } else godot::print_line("[AudioEngine2::play_current_track] nothing to do ...");
     }
     
@@ -286,6 +296,8 @@ public:
         {
             load_audio(current_track);
             conductor.track_set(&engine, current_track, current_track_pitch, playing_track);
+            
+            set_current_track_pitch(current_track_pitch);
         }
     }
     
@@ -293,8 +305,26 @@ public:
     float get_current_track_pitch() const { return current_track_pitch; }
     void set_current_track_pitch(const float p_current_track_pitch)
     {
+        /*
+            this is still super buggy, although it seems to be working for what it is needed for:
+            lerping pitch from 0.5 to 1.0 at Observatory start, and
+            choosing arbitrary CONSTANT pitch during game
+            
+            the GLOBAL_START_FRAME recalculation logic was per gemini's request. it works well enough for now
+        */
+        
+        float previous_pitch = current_track_pitch;
         current_track_pitch = p_current_track_pitch;
-        if(is_node_ready() && current_track.is_valid()) { ma_sound_set_pitch(current_track->sound, current_track_pitch); godot::print_error("[AudioEngine2::set_current_track_pitch] WARN: Conductor only works if pitch is set, and then held CONSTANT!"); }
+
+        if(is_node_ready() && current_track.is_valid())
+        {
+            int64_t current_global_frame = ma_engine_get_time_in_pcm_frames(&engine);
+            int64_t current_local_frame = (current_global_frame - conductor.GLOBAL_START_FRAME)*previous_pitch;
+
+            ma_sound_set_pitch(current_track->sound, current_track_pitch);
+
+            if(playing_track) conductor.GLOBAL_START_FRAME = current_global_frame - current_local_frame/current_track_pitch;
+        }
     }
 
     // click
