@@ -123,11 +123,11 @@ public:
         }
         
         // save adjacencies_texture_data as an image
+        return; // jk skip it
         godot::Ref<godot::Image> texture_image = godot::Image::create_from_data(tracks_size, tracks_size, false, godot::Image::FORMAT_R8, adjacencies_texture_data);
         // save image to adjacency texture, this is what finally is passed to the adjacency shader
         if(observatory_adjacency_shader_texture.is_valid()) observatory_adjacency_shader_texture->set_image(texture_image);
         else observatory_adjacency_shader_texture = godot::ImageTexture::create_from_image(texture_image);
-
         //texture_image->save_png("res://adjacencies.png"); // save to disk for debug
     }
     
@@ -144,7 +144,6 @@ struct Observatory : public godot::Control
 {
     GDCLASS(Observatory, Control)
 
-    rhythm::AudioEngine* audio_engine { nullptr };
     rhythm::AudioEngine2* audio_engine_2 { nullptr };
     
     godot::ColorRect* background_shader;
@@ -186,12 +185,8 @@ public:
 
     void _ready() override
     {
-        audio_engine = Scene::conjure_ctx(this)->audio_engine;
         audio_engine_2 = Scene::conjure_ctx(this)->audio_engine_2;
         G = &Scene::conjure_ctx(this)->G;
-        
-        audio_engine_2->set_current_track(current_constellation->tracks[0]);
-        audio_engine_2->play_current_track();
         
         background_shader = memnew(godot::ColorRect);
         background_shader->set_name("background_shader");
@@ -257,6 +252,13 @@ public:
                     y_offset = 0;
                     set_scale(scale_initial);
                     break;
+                }
+                
+                // track play/pause
+                case godot::KEY_SPACE:
+                {
+                    if(audio_engine_2->playing_track) audio_engine_2->pause_current_track();
+                    else audio_engine_2->play_current_track();
                 }
                 
                 default: break;
