@@ -232,7 +232,6 @@ public:
 
                     move_to( MULTIPLY_BY_G(G, current_constellation->ids[selected_track_index] ));
                     
-                    audio_engine_2->pause_current_track();
                     audio_engine_2->set_current_track(current_constellation->tracks[selected_track_index]);
                     audio_engine_2->play_current_track();
 
@@ -245,7 +244,6 @@ public:
 
                     move_to( MULTIPLY_BY_G(G, current_constellation->ids[selected_track_index] ));
 
-                    audio_engine_2->pause_current_track();
                     audio_engine_2->set_current_track(current_constellation->tracks[selected_track_index]);
                     audio_engine_2->play_current_track();
 

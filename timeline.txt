@@ -1,0 +1,7 @@
+thursday, jan 22
+ - Conductor keeping time on top of AudioEngine(2)
+ - remove AudioEngine (the first one)
+    - in BeatGraph and Taiko, replace AudioEngine calls with new Conductor calls
+
+friday, saturday, sunday, jan 23-25
+ - make taiko playable

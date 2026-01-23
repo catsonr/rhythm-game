@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://tq7dju4488yu"]
+[gd_scene load_steps=7 format=3 uid="uid://tq7dju4488yu"]
 
 [ext_resource type="Track" uid="uid://ob4xcpywyngf" path="res://resources/Tracks/lovers_desk_speakers.tres" id="1_1bvp3"]
 [ext_resource type="Track" uid="uid://dacu4g7b40sy8" path="res://resources/Tracks/basement_wired_xm4.tres" id="1_h2yge"]
@@ -26,43 +26,6 @@ _data = {
 &"G_wiggle": SubResource("Animation_h2yge")
 }
 
-[sub_resource type="Animation" id="Animation_lquwl"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("../AudioEngine2:current_track_pitch")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [0.5]
-}
-
-[sub_resource type="Animation" id="Animation_1bvp3"]
-resource_name = "pitch_rampup"
-length = 5.0
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("../AudioEngine2:current_track_pitch")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 5),
-"transitions": PackedFloat32Array(0.5, 1),
-"update": 0,
-"values": [0.5, 1.0]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_7mycd"]
-_data = {
-&"RESET": SubResource("Animation_lquwl"),
-&"pitch_rampup": SubResource("Animation_1bvp3")
-}
-
 [node name="Node" type="Node"]
 
 [node name="AudioEngine" type="AudioEngine" parent="."]
@@ -72,7 +35,7 @@ LATENCY = 2200
 
 [node name="AudioEngine2" type="AudioEngine2" parent="."]
 current_track = ExtResource("1_h2yge")
-current_track_pitch = 0.5
+click = ExtResource("2_1bvp3")
 
 [node name="SceneManager" type="SceneManager" parent="."]
 audio_engine_path = NodePath("../AudioEngine")
@@ -85,9 +48,3 @@ libraries = {
 &"": SubResource("AnimationLibrary_lquwl")
 }
 autoplay = "G_wiggle"
-
-[node name="pitch_rampup" type="AnimationPlayer" parent="SceneManager"]
-libraries = {
-&"": SubResource("AnimationLibrary_7mycd")
-}
-autoplay = "pitch_rampup"
