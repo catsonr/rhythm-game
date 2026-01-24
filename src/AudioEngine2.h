@@ -18,6 +18,7 @@ struct Conductor
 {
     // TODO: separate next beat into next beat AND next beat to schedule
     int next_beat_index { 0 };
+    int next_beat_to_schedule_index { 0 };
     double lookahead_window { 0.1 }; // what percentage of a second the Conductor will look ahead to schedule a beat
     int64_t LATENCY { 2000 }; // how many frames in advance beat playback is scheduled, in order to SOUND in time
     
@@ -36,6 +37,7 @@ struct Conductor
     void reset()
     {
         next_beat_index = 0;
+        next_beat_to_schedule_index = 0;
         GLOBAL_START_FRAME = INITIAL_START_PAUSE_FRAME;
         LOCAL_PAUSE_FRAME  = INITIAL_START_PAUSE_FRAME;
     }
@@ -63,23 +65,37 @@ struct Conductor
         if(GLOBAL_START_FRAME == INITIAL_START_PAUSE_FRAME) return; // track hasn't started!
         if(next_beat_index >= beats.size()) return; // no more beats left!
         
+        // NEXT BEAT
+        
         int64_t current_global_frame = ma_engine_get_time_in_pcm_frames(engine);
         int64_t current_local_frame = static_cast<int64_t>(ma_sound_get_time_in_pcm_frames(track->sound));
-        int64_t sample_rate = static_cast<int64_t>(ma_engine_get_sample_rate(engine)); // frames per second
-        
-        int64_t lookahead_window_frames = sample_rate * lookahead_window; // how many frames we will look ahead for a beat
         
         int64_t next_beat_local_frame = beats[next_beat_index];
-        // to account for pitch, divide the local beat frame by pitch (equivalent to increasing speed of time by pitch)
         int64_t next_beat_global_frame = GLOBAL_START_FRAME + next_beat_local_frame/pitch;
         
-        if( next_beat_global_frame - current_global_frame <= lookahead_window_frames ) // next beat is in lookahead window!
+        if( current_global_frame >= next_beat_global_frame ) // just passed the "next beat"
+        {
+            next_beat_index++;
+        }
+        
+        // NEXT BEAT TO SCHEDULE
+        
+        if(next_beat_to_schedule_index >= beats.size()) return; // no more beats to schedule!
+
+        int64_t sample_rate = static_cast<int64_t>(ma_engine_get_sample_rate(engine)); // frames per second
+        int64_t lookahead_window_frames = sample_rate * lookahead_window; // how many frames we will look ahead for a beat
+        
+        int64_t next_beat_to_schedule_local_frame = beats[next_beat_to_schedule_index];
+        // to account for pitch, divide the local beat frame by pitch (equivalent to increasing speed of time by pitch)
+        int64_t next_beat_to_schedule_global_frame = GLOBAL_START_FRAME + next_beat_to_schedule_local_frame/pitch;
+        
+        if( next_beat_to_schedule_global_frame - current_global_frame <= lookahead_window_frames ) // next beat is in lookahead window!
         {
             ma_sound_seek_to_pcm_frame(click->sound, 0);
-            ma_sound_set_start_time_in_pcm_frames(click->sound, next_beat_global_frame - LATENCY);
+            ma_sound_set_start_time_in_pcm_frames(click->sound, next_beat_to_schedule_global_frame - LATENCY);
             ma_sound_start(click->sound);
             
-            next_beat_index++;
+            next_beat_to_schedule_index++;
         }
     }
     
@@ -112,6 +128,7 @@ struct Conductor
             if(beats[i] <= to_local_frame) continue;
             
             next_beat_index = i;
+            next_beat_to_schedule_index = i;
             break;
         }
     }
@@ -189,6 +206,8 @@ public:
         {
             set_current_track(current_track);
             set_current_track_pitch(current_track_pitch);
+            
+            godot::print_line("[AudioEngine2::_ready] initialized with track '", current_track->get_title(), "' @ pitch = ", current_track_pitch);
         }
 
         godot::print_line("[AudioEngine2::_ready] miniaudio initialized : )");
