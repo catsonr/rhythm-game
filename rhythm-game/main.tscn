@@ -1,9 +1,11 @@
-[gd_scene load_steps=7 format=3 uid="uid://tq7dju4488yu"]
+[gd_scene load_steps=12 format=3 uid="uid://tq7dju4488yu"]
 
 [ext_resource type="Track" uid="uid://bdl6f22lg8w8y" path="res://resources/Tracks/rule_desk_speakers.tres" id="1_h2yge"]
 [ext_resource type="Audio" uid="uid://dnq6uads5qy54" path="res://resources/Audio/click.tres" id="2_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://dd01cfxsp0sua" path="res://scenes/observatory.tscn" id="3_h2yge"]
 [ext_resource type="Material" uid="uid://cfjls20sgqg8g" path="res://shaders/materials/audio_engine_2_pause_shader.tres" id="4_1bvp3"]
+[ext_resource type="Material" uid="uid://cct8sav1iprll" path="res://shaders/materials/CRT.tres" id="5_lquwl"]
+[ext_resource type="Script" uid="uid://0yvhwm24n06y" path="res://fps_label.gd" id="6_7mycd"]
 
 [sub_resource type="Animation" id="Animation_h2yge"]
 resource_name = "G_wiggle"
@@ -24,6 +26,43 @@ tracks/0/keys = {
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_lquwl"]
 _data = {
 &"G_wiggle": SubResource("Animation_h2yge")
+}
+
+[sub_resource type="Animation" id="Animation_7mycd"]
+resource_name = "pitch_rampup"
+length = 5.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../AudioEngine2:current_track_pitch")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 5),
+"transitions": PackedFloat32Array(0.5, 1),
+"update": 0,
+"values": [0.5, 1.0]
+}
+
+[sub_resource type="Animation" id="Animation_272bh"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../AudioEngine2:current_track_pitch")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [1.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_5vw27"]
+_data = {
+&"RESET": SubResource("Animation_272bh"),
+&"pitch_rampup": SubResource("Animation_7mycd")
 }
 
 [node name="Node" type="Node"]
@@ -48,6 +87,11 @@ libraries = {
 }
 autoplay = "G_wiggle"
 
+[node name="pitch_rampup" type="AnimationPlayer" parent="SceneManager"]
+libraries = {
+&"": SubResource("AnimationLibrary_5vw27")
+}
+
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="AudioEngine2_Pause_Shader" type="AudioEngine2_Pause_Shader" parent="CanvasLayer"]
@@ -55,3 +99,18 @@ audio_engine_2_path = NodePath("../../AudioEngine2")
 shader_material = ExtResource("4_1bvp3")
 offset_right = 40.0
 offset_bottom = 40.0
+
+[node name="CRT shader" type="ColorRect" parent="CanvasLayer"]
+material = ExtResource("5_lquwl")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="CanvasLayer"]
+visible = false
+offset_right = 40.0
+offset_bottom = 23.0
+text = "sfsdf"
+script = ExtResource("6_7mycd")

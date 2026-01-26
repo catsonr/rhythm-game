@@ -263,6 +263,18 @@ public:
                 
                 case godot::KEY_ENTER:
                 {
+                    if(key_event->is_shift_pressed())
+                    {
+                        godot::Ref<godot::PackedScene> chart_editor_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/chart_editor.tscn");
+                        if( chart_editor_scene.is_valid() )
+                        {
+                            audio_engine_2->pause_current_track();
+                            Scene::conjure_ctx(this)->scene_manager->push_scene(chart_editor_scene, false);
+                        }
+                        else godot::print_line("[Observatory::_input] failed to load chart editor ...");
+
+                        break;
+                    }
                     
                     godot::Ref<godot::PackedScene> taiko_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/taiko2.tscn");
                     

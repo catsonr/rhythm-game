@@ -1,0 +1,10 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://cct8sav1iprll"]
+
+[ext_resource type="Shader" uid="uid://dxtm2046talv4" path="res://shaders/CRT.gdshader" id="1_u5osa"]
+
+[resource]
+shader = ExtResource("1_u5osa")
+shader_parameter/curvature_strength = 5.0
+shader_parameter/scan_intensity = 0.35
+shader_parameter/vignette_opacity = 0.3
+shader_parameter/brightness = 2.8

@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://t1v6dh4j20vm"]
+
+[node name="Scene" type="Scene"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="ChartEditor" type="ChartEditor" parent="Camera2D"]
+offset_left = -380.0
+offset_top = -277.0
+offset_right = 384.0
+offset_bottom = 289.0

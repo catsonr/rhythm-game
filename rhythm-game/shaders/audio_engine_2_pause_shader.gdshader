@@ -18,7 +18,7 @@ void fragment() {
 	float space = .15;
 	float thickness = .12;
 	float height_offset = 0.1;
-	if( (( abs(space-uv.x) <= thickness ) && (uv.y <= 0.5 - height_offset)) ) discard;
+	if( !(( abs(space-uv.x) <= thickness ) && (uv.y <= 0.5 - height_offset)) ) discard;
 
 	COLOR = vec4(0, 0, 0, .8);
 }

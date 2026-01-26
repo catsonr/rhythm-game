@@ -1,0 +1,8 @@
+[gd_resource type="Track" load_steps=2 format=3 uid="uid://btw1wgehaj507"]
+
+[ext_resource type="Album" uid="uid://tlwh3ulugllq" path="res://resources/Albums/Brigthen the Corners Nicene Creedence Edition.tres" id="1_ridn0"]
+
+[resource]
+album = ExtResource("1_ridn0")
+title = &"Harness Your Hopes"
+file_path = &"res://audio/harness.mp3"
