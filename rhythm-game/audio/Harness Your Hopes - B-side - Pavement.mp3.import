@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://tcyyidrwo3ya"
+path="res://.godot/imported/Harness Your Hopes - B-side - Pavement.mp3-daa1f273b820d86630add78bbd5b7039.mp3str"
+
+[deps]
+
+source_file="res://audio/Harness Your Hopes - B-side - Pavement.mp3"
+dest_files=["res://.godot/imported/Harness Your Hopes - B-side - Pavement.mp3-daa1f273b820d86630add78bbd5b7039.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

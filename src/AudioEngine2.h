@@ -16,6 +16,7 @@ namespace rhythm
 
 struct Conductor
 {
+public:
     // TODO: separate next beat into next beat AND next beat to schedule
     int next_beat_index { 0 };
     int next_beat_to_schedule_index { 0 };
@@ -141,14 +142,14 @@ struct AudioEngine2 : public godot::Node
     GDCLASS(AudioEngine2, Node)
 
 private:
-    ma_engine engine;
+    public: ma_engine engine; private:
     std::list<ma_sound> sounds;
     
     float volume { 1.0 };
     
     public: godot::Ref<rhythm::Track> current_track; private:
     public: bool playing_track { false }; private:
-    float current_track_pitch { 1.0 };
+    public: float current_track_pitch { 1.0 }; private:
 
     public: Conductor conductor; private:
     godot::Ref<rhythm::Audio> click;

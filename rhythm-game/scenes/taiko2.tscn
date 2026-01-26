@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://beuke3q4mlx87"]
+
+[node name="Scene" type="Scene"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="Taiko2" type="Taiko2" parent="Camera2D"]
+offset_left = -303.0
+offset_top = -258.0
+offset_right = 325.0
+offset_bottom = 270.0

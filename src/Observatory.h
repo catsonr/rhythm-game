@@ -9,6 +9,7 @@
 #include <godot_cpp/classes/image_texture.hpp>
 #include <godot_cpp/classes/rich_text_label.hpp>
 #include <godot_cpp/classes/input_event_mouse.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
 
 #include "SceneManager.h"
 
@@ -265,6 +266,23 @@ public:
                 {
                     if(audio_engine_2->playing_track) audio_engine_2->pause_current_track();
                     else audio_engine_2->play_current_track();
+                    
+                    break;
+                }
+                
+                case godot::KEY_ENTER:
+                {
+                    
+                    godot::Ref<godot::PackedScene> taiko_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/taiko2.tscn");
+                    
+                    if( taiko_scene.is_valid() )
+                    {
+                        audio_engine_2->pause_current_track();
+                        Scene::conjure_ctx(this)->scene_manager->push_scene(taiko_scene, false);
+                    }
+                    else godot::print_line("[Observatory::_input] failed to load taiko ...");
+                    
+                    break;
                 }
                 
                 default: break;
@@ -346,7 +364,6 @@ public:
         t += delta;
 
         queue_redraw();
-        
     }
     
     /*

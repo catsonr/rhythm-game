@@ -2,8 +2,10 @@
 
 [node name="Scene" type="Scene"]
 
-[node name="BeatGraph" type="BeatGraph" parent="."]
-offset_left = 14.0
-offset_top = 152.0
-offset_right = 780.0
-offset_bottom = 348.0
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="BeatGraph" type="BeatGraph" parent="Camera2D"]
+offset_left = -390.0
+offset_top = -96.0
+offset_right = 376.0
+offset_bottom = 100.0

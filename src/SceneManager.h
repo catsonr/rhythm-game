@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stack>
+
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
 
@@ -9,16 +11,17 @@
 namespace rhythm
 {
 
+struct SceneManager; // forward declare for CTX
+
 /*
     the global rhythm context
+    TODO: enforce existance of CTX member variables
 */
 struct CTX
 {
+    SceneManager* scene_manager;
     AudioEngine* audio_engine { nullptr };
     AudioEngine2* audio_engine_2 { nullptr };
-    /*
-       {3,3,-3,3}
-    */
     godot::Vector4 G { 3, 0, 0, 3 };
 }; // CTX
 
@@ -29,9 +32,9 @@ struct CTX
     thus, any godot scene whose root node is rhythm::Scene, need not worry about where their
     AudioEngine, or lattice matrix G is coming from. they can simply use it
 */
-struct Scene : public godot::Node
+struct Scene : public godot::Control
 {
-    GDCLASS(Scene, godot::Node)
+    GDCLASS(Scene, godot::Control)
 
 private:
     CTX* ctx { nullptr };
@@ -53,6 +56,22 @@ public:
         
         return nullptr;
     }
+    
+    void enable()
+    {
+        set_process_mode(Node::PROCESS_MODE_INHERIT);
+        //show();
+
+        godot::print_line("[Scene::enable] enabled a scene!");
+    }
+    
+    void disable()
+    {
+        set_process_mode(Node::PROCESS_MODE_DISABLED);
+        //hide();
+
+        godot::print_line("[Scene::disable] disabled a scene!");
+    }
 
     CTX* get_ctx() const { return ctx; }
     void set_ctx(CTX* p_ctx) { ctx = p_ctx; }
@@ -70,8 +89,9 @@ private:
     godot::NodePath audio_engine_2_path;
     CTX ctx; // this is THE global context!
 
-    Scene* current_scene { nullptr };
     godot::Ref<godot::PackedScene> initial_scene;
+    
+    std::stack<Scene*> scenes;
 
 protected:
     static void _bind_methods()
@@ -120,11 +140,15 @@ public:
         
         // initial scene stuff
 
-        if(initial_scene.is_valid()) change_scene(initial_scene);
+        if(initial_scene.is_valid()) push_scene(initial_scene, true);
         else godot::print_line("[SceneManager::_ready] no initial scene is set... nothing to do!");
+        
+        // scene_manager pointer stuff
+        ctx.scene_manager = this;
     }
     
-    void change_scene(godot::Ref<godot::PackedScene> p_scene)
+    // if keep_processing is true, the scene before p_scene will continue to be processed
+    void push_scene(godot::Ref<godot::PackedScene> p_scene, bool keep_processing)
     {
         if(p_scene.is_null()) { godot::print_error("[SceneManager::change_scene] p_scene is null!"); return; }
         
@@ -141,16 +165,36 @@ public:
             return;
         }
         
-        // free any previous scene
-        if(current_scene) { current_scene->queue_free(); current_scene = nullptr; }
+        // disable the current scene (if neccessary)
+        if( !scenes.empty() && !keep_processing ) scenes.top()->disable();
         
         // give new scene a pointer to the global context
         scene->set_ctx(&ctx);
         
-        current_scene = scene;
-        
         // finally, pass scene to godot (calls _ready() )
         add_child(scene);
+        // and push to stack
+        scenes.push(scene);
+        
+        godot::print_line("[SceneManager::push_scene] pushed new scene '" + scene->get_name() + "'!");
+    }
+    
+    void pop_scene()
+    {
+        if( !scenes.empty() )
+        {
+            Scene* current_scene = scenes.top();
+            godot::String current_scene_name = current_scene->get_name();
+            
+            scenes.pop();
+            remove_child(current_scene);
+            current_scene->queue_free();
+
+            godot::print_line("[SceneManager::pop_scene] popped scene '" + current_scene_name + "'!");
+            
+            if( !scenes.empty() ) scenes.top()->enable();
+        }
+        else godot::print_line("[SceneManager::pop_scene] no scene to pop!");
     }
 
     godot::NodePath get_audio_engine_path() const { return audio_engine_path; }
