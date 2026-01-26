@@ -1,13 +1,9 @@
-[gd_scene load_steps=9 format=3 uid="uid://dd01cfxsp0sua"]
+[gd_scene load_steps=8 format=3 uid="uid://dd01cfxsp0sua"]
 
 [ext_resource type="Material" uid="uid://b3gu5go2grkwp" path="res://shaders/materials/constellation_background.tres" id="1_duydk"]
 [ext_resource type="Material" uid="uid://dkou015de6sj1" path="res://shaders/materials/constellation_adjacency.tres" id="2_nq624"]
 [ext_resource type="Constellation" uid="uid://od053yvm1luo" path="res://resources/Constellations/constellation1.tres" id="3_epj8e"]
-[ext_resource type="FontFile" uid="uid://bad72xp20qcxh" path="res://fonts/Husky Stash.otf" id="4_2gdk4"]
-
-[sub_resource type="Theme" id="Theme_rvuaq"]
-default_font = ExtResource("4_2gdk4")
-default_font_size = 20
+[ext_resource type="Theme" uid="uid://cdhi8rtxnqesl" path="res://themes/observatory_default_font.tres" id="4_2gdk4"]
 
 [sub_resource type="Animation" id="Animation_2gdk4"]
 resource_name = "Observatory_scale"
@@ -58,7 +54,7 @@ offset_left = -400.0
 offset_top = -300.0
 offset_right = 400.0
 offset_bottom = 300.0
-theme = SubResource("Theme_rvuaq")
+theme = ExtResource("4_2gdk4")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Camera2D/Observatory"]
 libraries = {

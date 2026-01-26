@@ -59,8 +59,13 @@ public:
         
         godot::print_line("[Taiko2::_ready] loaded ", (int)note_frames.size(), " notes");
         
+        // start track
         audio_engine_2->set_current_track_pitch(1.0);
-        audio_engine_2->set_current_track_progress_in_frames(0);
+
+        // only go to beginning of song if we're past the first note
+        if(audio_engine_2->get_current_track_progress_in_frames() >= note_frames[0])
+            audio_engine_2->set_current_track_progress_in_frames(0);
+
         audio_engine_2->play_current_track();
         
         // score label
@@ -69,6 +74,7 @@ public:
         score_label->set_anchors_and_offsets_preset(godot::Control::PRESET_CENTER);
         score_label->set_fit_content(true);
         score_label->set_clip_contents(false);
+        score_label->set_mouse_filter(MOUSE_FILTER_IGNORE);
         add_child(score_label);
     }
     
@@ -79,7 +85,7 @@ public:
         {
             switch( key_event->get_physical_keycode() )
             {
-                case godot::KEY_ESCAPE:
+                case godot::KEY_BACKSPACE:
                 {
                     Scene::conjure_ctx(this)->scene_manager->pop_scene();
                     break;
@@ -126,6 +132,8 @@ public:
     
     void _process(double delta) override
     {
+        if(notes.size() == 0) return; // no notes, nothing to do
+
         current_frame = ma_engine_get_time_in_pcm_frames(&audio_engine_2->engine) - audio_engine_2->conductor.GLOBAL_START_FRAME;
         if(!audio_engine_2->playing_track) current_frame = audio_engine_2->conductor.LOCAL_PAUSE_FRAME;
 

@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://tq7dju4488yu"]
+[gd_scene load_steps=7 format=3 uid="uid://tq7dju4488yu"]
 
 [ext_resource type="Track" uid="uid://bdl6f22lg8w8y" path="res://resources/Tracks/rule_desk_speakers.tres" id="1_h2yge"]
 [ext_resource type="Audio" uid="uid://dnq6uads5qy54" path="res://resources/Audio/click.tres" id="2_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://dd01cfxsp0sua" path="res://scenes/observatory.tscn" id="3_h2yge"]
+[ext_resource type="Material" uid="uid://cfjls20sgqg8g" path="res://shaders/materials/audio_engine_2_pause_shader.tres" id="4_1bvp3"]
 
 [sub_resource type="Animation" id="Animation_h2yge"]
 resource_name = "G_wiggle"
@@ -46,3 +47,11 @@ libraries = {
 &"": SubResource("AnimationLibrary_lquwl")
 }
 autoplay = "G_wiggle"
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="AudioEngine2_Pause_Shader" type="AudioEngine2_Pause_Shader" parent="CanvasLayer"]
+audio_engine_2_path = NodePath("../../AudioEngine2")
+shader_material = ExtResource("4_1bvp3")
+offset_right = 40.0
+offset_bottom = 40.0

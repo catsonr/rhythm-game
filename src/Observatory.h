@@ -252,15 +252,6 @@ public:
                     break;
                 }
 
-                // camera movement 
-                case godot::KEY_BACKSPACE:
-                {
-                    x_offset = 0;
-                    y_offset = 0;
-                    set_scale(scale_initial);
-                    break;
-                }
-                
                 // track play/pause
                 case godot::KEY_SPACE:
                 {

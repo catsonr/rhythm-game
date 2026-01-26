@@ -1,0 +1,6 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://cfjls20sgqg8g"]
+
+[ext_resource type="Shader" uid="uid://dioow4wmjj6d6" path="res://shaders/audio_engine_2_pause_shader.gdshader" id="1_0cx5f"]
+
+[resource]
+shader = ExtResource("1_0cx5f")
