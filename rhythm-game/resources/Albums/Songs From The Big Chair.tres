@@ -1,4 +1,4 @@
-[gd_resource type="Album" load_steps=2 format=3 uid="uid://dudxpkxgnkdkk"]
+[gd_resource type="Album" format=3 uid="uid://dudxpkxgnkdkk"]
 
 [ext_resource type="Texture2D" uid="uid://bjn80n1052lm0" path="res://images/album-covers/Songs From The Big Chair.jpg" id="1_8ta66"]
 

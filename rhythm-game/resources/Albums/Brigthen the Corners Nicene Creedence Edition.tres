@@ -1,9 +1,9 @@
-[gd_resource type="Album" load_steps=2 format=3 uid="uid://tlwh3ulugllq"]
+[gd_resource type="Album" format=3 uid="uid://tlwh3ulugllq"]
 
 [ext_resource type="Texture2D" uid="uid://ju430xnf4n6g" path="res://images/album-covers/Brigten the Corners Nicene Creedence Edition.jpg" id="1_xmrkh"]
 
 [resource]
-title = &"Brigten the Corners: Nicene Creedence Edition"
+title = &"Brighten the Corners: Nicene Creedence Edition"
 artist = &"Pavement"
 release_year = 2008
 cover = ExtResource("1_xmrkh")

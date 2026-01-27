@@ -1,6 +1,7 @@
 #pragma once
 
 #include <list>
+#include <algorithm>
 
 #include "miniaudio.h"
 
@@ -16,122 +17,91 @@ namespace rhythm
 
 struct Conductor
 {
-public:
-    // TODO: separate next beat into next beat AND next beat to schedule
-    int next_beat_index { 0 };
-    int next_beat_to_schedule_index { 0 };
-    double lookahead_window { 0.1 }; // what percentage of a second the Conductor will look ahead to schedule a beat
-    int64_t LATENCY { 2000 }; // how many frames in advance beat playback is scheduled, in order to SOUND in time
+    /* STATE */
+
+    static constexpr int64_t initial { -1 };
+    int64_t global_start_frame { initial };
+    int64_t local_pause_frame  { initial };
+    double pitch { 1.0 };
     
-    godot::Ref<rhythm::Track> track;
     godot::PackedInt64Array beats;
+    int next_beat_index { 0 };
+    
+    /* LEMMAS (known values that do not modify state) */
 
-    // these values are used to calculate the absolute positions of a track's beats, and should be updated on:
-    // track start, track pause, track seek, and pitch change
-    // since these are all the operations that change when beats would occur (in global time, and in the case of pitch change: local as well)
-    int64_t INITIAL_START_PAUSE_FRAME { -1 };
-    int64_t GLOBAL_START_FRAME { INITIAL_START_PAUSE_FRAME };
-    int64_t LOCAL_PAUSE_FRAME  { INITIAL_START_PAUSE_FRAME };
-    
-    
-    
-    void reset()
+    bool is_playing() const { return global_start_frame != initial; }
+    bool is_paused()  const { return local_pause_frame  != initial; }
+    int64_t pause_frame() const { return (local_pause_frame != initial) ? local_pause_frame : 0; }
+    int64_t get_local_current_frame(const int64_t global_current_frame) const
     {
-        next_beat_index = 0;
-        next_beat_to_schedule_index = 0;
-        GLOBAL_START_FRAME = INITIAL_START_PAUSE_FRAME;
-        LOCAL_PAUSE_FRAME  = INITIAL_START_PAUSE_FRAME;
+        // if track is playing, the local current frame is elapsed frames times pitch
+        if( is_playing() ) return static_cast<int64_t>( (global_current_frame - global_start_frame)*pitch );
+        // otherwise we're paused, where we already know the frame we paused on (or we're at initial, which is frame 0)
+        return pause_frame();
     }
-    
-    void track_set(ma_engine* engine, const godot::Ref<rhythm::Track>& p_track, const float pitch, const bool track_is_playing)
+    int next_beat_search(int64_t local_frame) const
     {
-        track = p_track;
-        beats = track->get_beats();
-        
-        godot::print_line("[Conductor::track_set] now following '", track->get_title(), "' w pitch @ ", pitch);
-        
-        // start Conductor from the top if the new track is starting from beginning
-        if( ma_sound_get_time_in_pcm_frames(track->sound) == 0 ) reset();
-        // otherwise seek to current frame
-        else track_seeked(ma_engine_get_time_in_pcm_frames(engine), ma_sound_get_time_in_pcm_frames(track->sound), pitch, track_is_playing);
-    }
-    
-    void pitch_set(const int64_t current_global_time, const int64_t current_local_time, const float pitch, const bool track_is_playing)
-    {
-        track_seeked(current_global_time, current_local_time, pitch, track_is_playing);
-    }
+        const int64_t* start = beats.ptr();
+        const int64_t* end   = start + beats.size();
 
-    void process(ma_engine* engine, const float pitch, const godot::Ref<rhythm::Audio>& click)
+        const int64_t* it = std::upper_bound(start, end, local_frame);
+        return static_cast<int>( it-start );
+    }
+    
+    /* OPERATIONS (actions that change state) */
+    
+    void set_beats(const int64_t global_current_frame, const godot::PackedInt64Array& p_beats)
     {
-        if(GLOBAL_START_FRAME == INITIAL_START_PAUSE_FRAME) return; // track hasn't started!
-        if(next_beat_index >= beats.size()) return; // no more beats left!
+        beats = p_beats;
+        next_beat_index = next_beat_search( get_local_current_frame(global_current_frame) );
+    }
+    
+    void process(const int64_t global_current_frame)
+    {
+        if( beats.is_empty() || next_beat_index >= beats.size() || is_paused() ) return;
         
-        // NEXT BEAT
-        
-        int64_t current_global_frame = ma_engine_get_time_in_pcm_frames(engine);
-        int64_t current_local_frame = static_cast<int64_t>(ma_sound_get_time_in_pcm_frames(track->sound));
-        
-        int64_t next_beat_local_frame = beats[next_beat_index];
-        int64_t next_beat_global_frame = GLOBAL_START_FRAME + next_beat_local_frame/pitch;
-        
-        if( current_global_frame >= next_beat_global_frame ) // just passed the "next beat"
+        int64_t local_current_time = get_local_current_frame(global_current_frame);
+        while( next_beat_index < beats.size() && local_current_time >= beats[next_beat_index] )
         {
+            godot::print_line("[Conductor::process] beat ", next_beat_index, "!");
+
             next_beat_index++;
         }
-        
-        // NEXT BEAT TO SCHEDULE
-        
-        if(next_beat_to_schedule_index >= beats.size()) return; // no more beats to schedule!
+    }
+    
+    void play(const int64_t global_current_frame)
+    {
+        if( is_playing() ) return;
 
-        int64_t sample_rate = static_cast<int64_t>(ma_engine_get_sample_rate(engine)); // frames per second
-        int64_t lookahead_window_frames = sample_rate * lookahead_window; // how many frames we will look ahead for a beat
-        
-        int64_t next_beat_to_schedule_local_frame = beats[next_beat_to_schedule_index];
-        // to account for pitch, divide the local beat frame by pitch (equivalent to increasing speed of time by pitch)
-        int64_t next_beat_to_schedule_global_frame = GLOBAL_START_FRAME + next_beat_to_schedule_local_frame/pitch;
-        
-        if( next_beat_to_schedule_global_frame - current_global_frame <= lookahead_window_frames ) // next beat is in lookahead window!
-        {
-            ma_sound_seek_to_pcm_frame(click->sound, 0);
-            ma_sound_set_start_time_in_pcm_frames(click->sound, next_beat_to_schedule_global_frame - LATENCY);
-            ma_sound_start(click->sound);
-            
-            next_beat_to_schedule_index++;
-        }
+        global_start_frame = global_current_frame - static_cast<int64_t>( pause_frame()/pitch );
+        // playing always sets local pause frame back to initial
+        local_pause_frame = initial;
     }
     
-    void track_played(const int64_t at_global_frame, const float pitch)
+    void pause(const int64_t global_current_frame)
     {
-        // if track is played from beginning
-        if( LOCAL_PAUSE_FRAME == INITIAL_START_PAUSE_FRAME )
-        {
-            GLOBAL_START_FRAME = at_global_frame;
-            return;
-        }
-        
-        // else track is being resumed
-        GLOBAL_START_FRAME = at_global_frame - LOCAL_PAUSE_FRAME/pitch;
-    }
-    
-    void track_paused(const int64_t at_local_frame)
-    {
-        LOCAL_PAUSE_FRAME = at_local_frame;
-    }
-    
-    void track_seeked(const int64_t at_global_frame, const int64_t to_local_frame, const float pitch, const bool track_is_playing)
-    {
-        GLOBAL_START_FRAME = at_global_frame - to_local_frame/pitch;
+        if( is_paused() ) return;
 
-        if(!track_is_playing) LOCAL_PAUSE_FRAME = to_local_frame;
+        local_pause_frame = get_local_current_frame(global_current_frame);
+        // pausing always sets global start frame back to initial
+        global_start_frame = initial;
+    }
+    
+    void seek(const int64_t global_current_frame, const int64_t to_local_frame)
+    {
+        if( is_paused() ) local_pause_frame = to_local_frame;
+        else global_start_frame = global_current_frame - static_cast<int64_t>( to_local_frame/pitch );
         
-        for(int i = 0; i < beats.size(); i++)
-        {
-            if(beats[i] <= to_local_frame) continue;
-            
-            next_beat_index = i;
-            next_beat_to_schedule_index = i;
-            break;
-        }
+        next_beat_index = next_beat_search(to_local_frame);
+    }
+    
+    void set_pitch(const int64_t global_current_frame, const double p_pitch)
+    {
+        if( pitch == p_pitch ) return;
+
+        if( is_playing() ) global_start_frame = global_current_frame - static_cast<int64_t>( get_local_current_frame(global_current_frame)/p_pitch );
+        
+        pitch = p_pitch;
     }
 }; // Conductor
 
@@ -228,7 +198,7 @@ public:
         /* track is playing */
 
         // process conductor
-        conductor.process(&engine, current_track_pitch, click);
+        conductor.process(ma_engine_get_time_in_pcm_frames(&engine));
     }
     
     /* PUBLIC METHODS */
@@ -284,7 +254,7 @@ public:
             ma_sound_start(current_track->sound);
             playing_track = true;
             
-            conductor.track_played(ma_engine_get_time_in_pcm_frames(&engine), current_track_pitch);
+            conductor.play(ma_engine_get_time_in_pcm_frames(&engine));
         } else godot::print_line("[AudioEngine2::play_current_track] nothing to do ...");
     }
     
@@ -295,7 +265,7 @@ public:
             ma_sound_stop(current_track->sound);
             playing_track = false;
 
-            conductor.track_paused(ma_sound_get_time_in_pcm_frames(current_track->sound));
+            conductor.pause(ma_engine_get_time_in_pcm_frames(&engine));
         } else godot::print_line("[AudioEngine2::pause_current_track] nothing to do ...");
     }
 
@@ -315,7 +285,10 @@ public:
         if(is_node_ready())
         {
             load_audio(current_track);
-            conductor.track_set(&engine, current_track, current_track_pitch, playing_track);
+            
+            int64_t global_current_frame = ma_engine_get_time_in_pcm_frames(&engine);
+            conductor.seek(global_current_frame, ma_sound_get_time_in_pcm_frames(current_track->sound)); // using miniaudio read head ask seek position when setting new track, may or may not work!!!!!
+            conductor.set_beats(global_current_frame, current_track->get_beats());
             
             set_current_track_pitch(current_track_pitch);
         }
@@ -325,25 +298,12 @@ public:
     float get_current_track_pitch() const { return current_track_pitch; }
     void set_current_track_pitch(const float p_current_track_pitch)
     {
-        /*
-            this is still super buggy, although it seems to be working for what it is needed for:
-            lerping pitch from 0.5 to 1.0 at Observatory start, and
-            choosing arbitrary CONSTANT pitch during game
-            
-            the GLOBAL_START_FRAME recalculation logic was per gemini's request. it works well enough for now
-        */
-        
-        float previous_pitch = current_track_pitch;
         current_track_pitch = p_current_track_pitch;
 
         if(is_node_ready() && current_track.is_valid())
         {
-            int64_t current_global_frame = ma_engine_get_time_in_pcm_frames(&engine);
-            int64_t current_local_frame = (current_global_frame - conductor.GLOBAL_START_FRAME)*previous_pitch;
-
             ma_sound_set_pitch(current_track->sound, current_track_pitch);
-
-            if(playing_track) conductor.GLOBAL_START_FRAME = current_global_frame - current_local_frame/current_track_pitch;
+            conductor.set_pitch(ma_engine_get_time_in_pcm_frames(&engine), p_current_track_pitch);
         }
     }
 
@@ -359,12 +319,18 @@ public:
         return static_cast<int64_t>(ma_track_length_in_frames);
     }
     
+    /*
+        WARN: this name is a bit of a misnomer; it returns the frame that miniaudio is reading, not
+        the frame we are on. for that, use Conductor::get_local_current_frame()
+    */
+    private:
     int64_t get_current_track_progress_in_frames() const
     {
         if(!current_track.is_valid() || !current_track->loaded) return 0;
         
         return (int64_t)ma_sound_get_time_in_pcm_frames(current_track->sound);
     }
+    public:
     
     void set_current_track_progress_in_frames(int64_t frame)
     {
@@ -373,7 +339,7 @@ public:
         frame = (frame > get_current_track_length_in_frames()) ? get_current_track_length_in_frames() : frame;
         
         ma_sound_seek_to_pcm_frame(current_track->sound, (ma_uint64)frame);
-        conductor.track_seeked(ma_engine_get_time_in_pcm_frames(&engine), frame, current_track_pitch, playing_track);
+        conductor.seek(ma_engine_get_time_in_pcm_frames(&engine), frame); // again, this is a place where we are going off of the miniaudio read head for seeking ....
     }
     
     double get_current_track_progress() const { return static_cast<double>(get_current_track_progress_in_frames()) / static_cast<double>(get_current_track_length_in_frames()); }

@@ -12,12 +12,12 @@ config_version=5
 
 config/name="rhythm-game"
 run/main_scene="uid://tq7dju4488yu"
-config/features=PackedStringArray("4.5", "GL Compatibility")
+config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
 
-ShaderHotReloader="*res://addons/shader_hot_reload/shader_hot_reloader.gd"
+ShaderHotReloader="*uid://c25f4r5srn1sb"
 
 [display]
 

@@ -1,4 +1,4 @@
-[gd_resource type="Constellation" load_steps=5 format=3 uid="uid://od053yvm1luo"]
+[gd_resource type="Constellation" format=3 uid="uid://od053yvm1luo"]
 
 [ext_resource type="Track" uid="uid://ob4xcpywyngf" path="res://resources/Tracks/lovers_desk_speakers.tres" id="1_vjk6d"]
 [ext_resource type="Track" uid="uid://dacu4g7b40sy8" path="res://resources/Tracks/basement_wired_xm4.tres" id="2_h5uus"]

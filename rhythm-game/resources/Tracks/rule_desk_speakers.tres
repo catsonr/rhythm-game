@@ -1,4 +1,4 @@
-[gd_resource type="Track" load_steps=2 format=3 uid="uid://bdl6f22lg8w8y"]
+[gd_resource type="Track" format=3 uid="uid://bdl6f22lg8w8y"]
 
 [ext_resource type="Album" uid="uid://dudxpkxgnkdkk" path="res://resources/Albums/Songs From The Big Chair.tres" id="1_6mrj1"]
 

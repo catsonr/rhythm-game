@@ -24,7 +24,7 @@ public:
     {
         audio_engine_2 = Scene::conjure_ctx(this)->audio_engine_2;
         
-        //audio_engine_2->set_current_track_pitch(1.2);
+        audio_engine_2->play_current_track();
     }
     
     void _input(const godot::Ref<godot::InputEvent>& event) override
@@ -73,8 +73,7 @@ public:
         const float pitch = audio_engine_2->get_current_track_pitch();
         const rhythm::Conductor& conductor = audio_engine_2->conductor;
         int64_t current_global_frame = ma_engine_get_time_in_pcm_frames(&audio_engine_2->engine);
-        int64_t current_local_frame  = (current_global_frame - conductor.GLOBAL_START_FRAME) * pitch;
-        if( !audio_engine_2->playing_track ) current_local_frame = conductor.LOCAL_PAUSE_FRAME;
+        int64_t current_local_frame  = conductor.get_local_current_frame(current_global_frame);
         
         // draw frame-axis
         godot::Color frame_axis_color { 1, 1, 1, 1 };

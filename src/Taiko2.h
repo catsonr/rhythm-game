@@ -63,7 +63,7 @@ public:
         audio_engine_2->set_current_track_pitch(1.0);
 
         // only go to beginning of song if we're past the first note
-        if(audio_engine_2->get_current_track_progress_in_frames() >= note_frames[0])
+        if( audio_engine_2->conductor.get_local_current_frame(ma_engine_get_time_in_pcm_frames(&audio_engine_2->engine)) >= note_frames[0] )
             audio_engine_2->set_current_track_progress_in_frames(0);
 
         audio_engine_2->play_current_track();
@@ -134,8 +134,8 @@ public:
     {
         if(notes.size() == 0) return; // no notes, nothing to do
 
-        current_frame = ma_engine_get_time_in_pcm_frames(&audio_engine_2->engine) - audio_engine_2->conductor.GLOBAL_START_FRAME;
-        if(!audio_engine_2->playing_track) current_frame = audio_engine_2->conductor.LOCAL_PAUSE_FRAME;
+        int64_t global_current_frame = ma_engine_get_time_in_pcm_frames(&audio_engine_2->engine);
+        current_frame = audio_engine_2->conductor.get_local_current_frame(global_current_frame);
 
         // find the "next note"
         if(next_note_index < notes.size() && current_frame >= note_frames[next_note_index]) next_note_index++;
