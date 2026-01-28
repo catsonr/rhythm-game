@@ -2,6 +2,7 @@
 
 #include <list>
 #include <algorithm>
+#include <map>
 
 #include "miniaudio.h"
 
@@ -33,6 +34,9 @@ private:
     bool play_click { true };
     int next_click_index { 0 };
     int64_t click_latency { 2000 };
+    // used to keep track of where Conductor was when playing a Track, so that it can be switched back to that position
+    // key is the AudioEngine_sounds_index (see Audio.h), and value is the last frame in local time (see Conductor.h)
+    std::map<int, int64_t> conductor_positions;
 
 protected:
     static void _bind_methods()
@@ -112,6 +116,7 @@ public:
         {
             godot::print_line("[AudioEngine2::_process] song ended!");
             pause_current_track();
+            conductor_positions.erase(current_track->AudioEngine_sounds_index);
             return;
         }
         
@@ -221,21 +226,25 @@ public:
     godot::Ref<rhythm::Track> get_current_track() const { return current_track; }
     void set_current_track(const godot::Ref<rhythm::Track>& p_current_track)
     {
-        if(current_track.is_valid() && current_track->loaded) pause_current_track();
+        if(current_track.is_valid() && current_track->loaded)
+        {
+            pause_current_track();
+            // save last position
+            conductor_positions[current_track->AudioEngine_sounds_index] = conductor.pause_frame();
+        }
 
+        const godot::Ref<rhythm::Track>& previous_track = current_track;
         current_track = p_current_track;
         if(is_node_ready())
         {
             load_audio(current_track);
             
             int64_t global_current_frame = ma_engine_get_time_in_pcm_frames(&engine);
-            // WARN:
-            // when switching back to a track, we seek Conductor to the current miniaudio read head
-            // which is almost always ahead. this causes Conductor to fall more and more behind
-            // every time you switch tracks
-            // TODO:
-            // find a way to keep track of Conductor's position when switching Tracks
-            conductor.seek(global_current_frame, ma_sound_get_time_in_pcm_frames(current_track->sound));
+            
+            auto it = conductor_positions.find(current_track->AudioEngine_sounds_index);
+            int64_t global_resume_frame = (it != conductor_positions.end()) ? it->second : 0;
+
+            conductor.seek(global_current_frame, global_resume_frame);
             conductor.set_beats(global_current_frame, current_track->get_beats());
             
             set_current_track_pitch(current_track_pitch);
