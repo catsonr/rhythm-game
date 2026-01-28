@@ -9,103 +9,10 @@
 #include <godot_cpp/classes/project_settings.hpp>
 
 #include "Track.h"
+#include "Conductor.h"
 
 namespace rhythm
 {
-
-/* CONDUCTOR */
-
-struct Conductor
-{
-    /* STATE */
-
-    static constexpr int64_t initial { -1 };
-    int64_t global_start_frame { initial };
-    int64_t local_pause_frame  { initial };
-    double pitch { 1.0 };
-    
-    godot::PackedInt64Array beats;
-    int next_beat_index { 0 };
-    
-    /* LEMMAS (known values that do not modify state) */
-
-    bool is_playing() const { return global_start_frame != initial; }
-    bool is_paused()  const { return local_pause_frame  != initial; }
-    int64_t pause_frame() const { return (local_pause_frame != initial) ? local_pause_frame : 0; }
-    int64_t get_local_current_frame(const int64_t global_current_frame) const
-    {
-        // if track is playing, the local current frame is elapsed frames times pitch
-        if( is_playing() ) return static_cast<int64_t>( (global_current_frame - global_start_frame)*pitch );
-        // otherwise we're paused, where we already know the frame we paused on (or we're at initial, which is frame 0)
-        return pause_frame();
-    }
-    int next_beat_search(int64_t local_frame) const
-    {
-        const int64_t* start = beats.ptr();
-        const int64_t* end   = start + beats.size();
-
-        const int64_t* it = std::upper_bound(start, end, local_frame);
-        return static_cast<int>( it-start );
-    }
-    
-    /* OPERATIONS (actions that change state) */
-    
-    void set_beats(const int64_t global_current_frame, const godot::PackedInt64Array& p_beats)
-    {
-        beats = p_beats;
-        next_beat_index = next_beat_search( get_local_current_frame(global_current_frame) );
-    }
-    
-    void process(const int64_t global_current_frame)
-    {
-        if( beats.is_empty() || next_beat_index >= beats.size() || is_paused() ) return;
-        
-        int64_t local_current_time = get_local_current_frame(global_current_frame);
-        while( next_beat_index < beats.size() && local_current_time >= beats[next_beat_index] )
-        {
-            godot::print_line("[Conductor::process] beat ", next_beat_index, "!");
-
-            next_beat_index++;
-        }
-    }
-    
-    void play(const int64_t global_current_frame)
-    {
-        if( is_playing() ) return;
-
-        global_start_frame = global_current_frame - static_cast<int64_t>( pause_frame()/pitch );
-        // playing always sets local pause frame back to initial
-        local_pause_frame = initial;
-    }
-    
-    void pause(const int64_t global_current_frame)
-    {
-        if( is_paused() ) return;
-
-        local_pause_frame = get_local_current_frame(global_current_frame);
-        // pausing always sets global start frame back to initial
-        global_start_frame = initial;
-    }
-    
-    void seek(const int64_t global_current_frame, const int64_t to_local_frame)
-    {
-        if( is_paused() ) local_pause_frame = to_local_frame;
-        else global_start_frame = global_current_frame - static_cast<int64_t>( to_local_frame/pitch );
-        
-        next_beat_index = next_beat_search(to_local_frame);
-    }
-    
-    void set_pitch(const int64_t global_current_frame, const double p_pitch)
-    {
-        if( pitch == p_pitch ) return;
-
-        if( is_playing() ) global_start_frame = global_current_frame - static_cast<int64_t>( get_local_current_frame(global_current_frame)/p_pitch );
-        
-        pitch = p_pitch;
-    }
-}; // Conductor
-
-/* AUIOENGINE */
 
 struct AudioEngine2 : public godot::Node
 {
@@ -123,6 +30,9 @@ private:
 
     public: Conductor conductor; private:
     godot::Ref<rhythm::Audio> click;
+    bool play_click { true };
+    int next_click_index { 0 };
+    int64_t click_latency { 2000 };
 
 protected:
     static void _bind_methods()
@@ -133,9 +43,11 @@ protected:
         ADD_PROPERTY(godot::PropertyInfo(godot::Variant::FLOAT, "volume"), "set_volume", "get_volume");
 
         // current track
+        /*
         godot::ClassDB::bind_method(godot::D_METHOD("get_current_track"), &rhythm::AudioEngine2::get_current_track);
         godot::ClassDB::bind_method(godot::D_METHOD("set_current_track", "p_track"), &rhythm::AudioEngine2::set_current_track);
         ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "current_track", godot::PROPERTY_HINT_RESOURCE_TYPE, "Track"), "set_current_track", "get_current_track");
+        */
 
         // current track pitch
         godot::ClassDB::bind_method(godot::D_METHOD("get_current_track_pitch"), &rhythm::AudioEngine2::get_current_track_pitch);
@@ -146,6 +58,11 @@ protected:
         godot::ClassDB::bind_method(godot::D_METHOD("get_click"), &rhythm::AudioEngine2::get_click);
         godot::ClassDB::bind_method(godot::D_METHOD("set_click", "p_track"), &rhythm::AudioEngine2::set_click);
         ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "click", godot::PROPERTY_HINT_RESOURCE_TYPE, "Audio"), "set_click", "get_click");
+
+        // click_latency
+        godot::ClassDB::bind_method(godot::D_METHOD("get_click_latency"), &rhythm::AudioEngine2::get_click_latency);
+        godot::ClassDB::bind_method(godot::D_METHOD("set_click_latency", "p_click_latency"), &rhythm::AudioEngine2::set_click_latency);
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::INT, "click_latency"), "set_click_latency", "get_click_latency");
     }
 
 public:
@@ -153,6 +70,8 @@ public:
     
     void _exit_tree() override
     {
+        pause_current_track();
+
         for(ma_sound& sound : sounds) ma_sound_uninit(&sound);
         sounds.clear();
 
@@ -161,7 +80,7 @@ public:
 
     void _ready() override
     {
-        // init miniaudio
+        // miniaudio
         if( ma_engine_init(NULL, &engine) != MA_SUCCESS )
         {
             godot::print_error("[AudioEngine2::_ready] failed to initialize miniaudio engine!");
@@ -170,9 +89,11 @@ public:
         
         ma_engine_set_volume(&engine, volume);
         
+        // click 
         if(click.is_valid()) load_audio(click);
         else godot::print_line("[AudioEngine2::_ready] tried to load click Audio but one was not set. please set one in the inspector!");
         
+        // current track
         if(current_track.is_valid())
         {
             set_current_track(current_track);
@@ -186,9 +107,8 @@ public:
     
     void _process(double delta) override
     {
-        if(!current_track.is_valid() || !playing_track) return;
-        if(!current_track.is_valid() || !current_track->loaded) return;
-        if(playing_track && get_current_track_progress_in_frames() == get_current_track_length_in_frames())
+        if(!current_track.is_valid() || !playing_track || !current_track->loaded) return;
+        if(get_current_track_progress_in_frames() == get_current_track_length_in_frames())
         {
             godot::print_line("[AudioEngine2::_process] song ended!");
             pause_current_track();
@@ -197,8 +117,30 @@ public:
         
         /* track is playing */
 
-        // process conductor
         conductor.process(ma_engine_get_time_in_pcm_frames(&engine));
+        
+        if( play_click )
+        {
+            const Conductor& c = conductor;
+            const int next_beat_index = c.next_beat_index;
+            const godot::PackedInt64Array& beats = c.beats;
+            const int64_t global_current_frame = ma_engine_get_time_in_pcm_frames(&engine);
+            const int64_t local_current_frame = c.get_local_current_frame(global_current_frame);
+            
+            if( next_click_index < beats.size() )
+            {
+                const int64_t global_next_beat_frame = c.global_start_frame + static_cast<int64_t>( beats[next_click_index] / c.pitch );
+
+                if( global_current_frame >= global_next_beat_frame - click_latency )
+                {
+                    ma_sound_seek_to_pcm_frame(click->sound, 0);
+                    ma_sound_set_start_time_in_pcm_frames(click->sound, global_next_beat_frame - click_latency);
+                    ma_sound_start(click->sound);
+
+                    next_click_index++;
+                }
+            }
+        }
     }
     
     /* PUBLIC METHODS */
@@ -287,10 +229,18 @@ public:
             load_audio(current_track);
             
             int64_t global_current_frame = ma_engine_get_time_in_pcm_frames(&engine);
-            conductor.seek(global_current_frame, ma_sound_get_time_in_pcm_frames(current_track->sound)); // using miniaudio read head ask seek position when setting new track, may or may not work!!!!!
+            // WARN:
+            // when switching back to a track, we seek Conductor to the current miniaudio read head
+            // which is almost always ahead. this causes Conductor to fall more and more behind
+            // every time you switch tracks
+            // TODO:
+            // find a way to keep track of Conductor's position when switching Tracks
+            conductor.seek(global_current_frame, ma_sound_get_time_in_pcm_frames(current_track->sound));
             conductor.set_beats(global_current_frame, current_track->get_beats());
             
             set_current_track_pitch(current_track_pitch);
+            
+            next_click_index = conductor.next_beat_index;
         }
     }
     
@@ -311,6 +261,10 @@ public:
     godot::Ref<rhythm::Track> get_click() const { return click; }
     void set_click(const godot::Ref<rhythm::Audio>& p_click) { click = p_click; if(is_node_ready()) load_audio(click); }
     
+    // click_latency
+    uint64_t get_click_latency() const { return click_latency; }
+    void set_click_latency(const uint64_t p_click_latency) { click_latency = p_click_latency; }
+
     int64_t get_current_track_length_in_frames() const
     {
         ma_uint64 ma_track_length_in_frames;
@@ -340,6 +294,8 @@ public:
         
         ma_sound_seek_to_pcm_frame(current_track->sound, (ma_uint64)frame);
         conductor.seek(ma_engine_get_time_in_pcm_frames(&engine), frame); // again, this is a place where we are going off of the miniaudio read head for seeking ....
+        
+        next_click_index = conductor.next_beat_index;
     }
     
     double get_current_track_progress() const { return static_cast<double>(get_current_track_progress_in_frames()) / static_cast<double>(get_current_track_length_in_frames()); }
