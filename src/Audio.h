@@ -17,7 +17,7 @@ public:
     ma_sound* sound;
 
     // both of these are set on AudioEngine::load_audio
-    int AudioEngine_sounds_index { -1 };
+    int AudioEngine2_sounds_index { -1 };
     bool loaded { false }; // whether or not miniaudio has loaded this track as a ma_sound
 private:
     godot::StringName file_path;

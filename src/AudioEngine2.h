@@ -1,5 +1,9 @@
 #pragma once
 
+/*
+    TODO: of course, should be renamed--at some point--to AudioEngine
+*/
+
 #include <list>
 #include <algorithm>
 #include <map>
@@ -116,7 +120,7 @@ public:
         {
             godot::print_line("[AudioEngine2::_process] song ended!");
             pause_current_track();
-            conductor_positions.erase(current_track->AudioEngine_sounds_index);
+            conductor_positions.erase(current_track->AudioEngine2_sounds_index);
             return;
         }
         
@@ -188,7 +192,7 @@ public:
         }
         
         audio->sound = &sounds.back();
-        audio->AudioEngine_sounds_index = sounds.size()-1;
+        audio->AudioEngine2_sounds_index = sounds.size()-1;
         audio->loaded = true;
 
         return true;
@@ -230,7 +234,7 @@ public:
         {
             pause_current_track();
             // save last position
-            conductor_positions[current_track->AudioEngine_sounds_index] = conductor.pause_frame();
+            conductor_positions[current_track->AudioEngine2_sounds_index] = conductor.pause_frame();
         }
 
         const godot::Ref<rhythm::Track>& previous_track = current_track;
@@ -241,7 +245,7 @@ public:
             
             int64_t global_current_frame = ma_engine_get_time_in_pcm_frames(&engine);
             
-            auto it = conductor_positions.find(current_track->AudioEngine_sounds_index);
+            auto it = conductor_positions.find(current_track->AudioEngine2_sounds_index);
             int64_t global_resume_frame = (it != conductor_positions.end()) ? it->second : 0;
 
             conductor.seek(global_current_frame, global_resume_frame);

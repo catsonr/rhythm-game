@@ -1,14 +1,11 @@
 #include "register_types.h"
 
 // nodes
-#include "AudioEngine.h"
 #include "AudioEngine2.h"
 #include "AudioEngine2_Pause_Shader.h"
-#include "BeatGraph.h"
 #include "ChartEditor.h"
 #include "Observatory.h"
 #include "SceneManager.h"
-#include "Taiko.h"
 #include "Taiko2.h"
 
 // resources
@@ -27,15 +24,12 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     if(p_level != MODULE_INITIALIZATION_LEVEL_SCENE) return;
     
     // register nodes
-    GDREGISTER_RUNTIME_CLASS(rhythm::AudioEngine);
     GDREGISTER_RUNTIME_CLASS(rhythm::AudioEngine2);
     GDREGISTER_RUNTIME_CLASS(rhythm::AudioEngine2_Pause_Shader);
-    GDREGISTER_RUNTIME_CLASS(rhythm::BeatGraph);
     GDREGISTER_RUNTIME_CLASS(rhythm::ChartEditor);
     GDREGISTER_RUNTIME_CLASS(rhythm::Observatory);
     GDREGISTER_RUNTIME_CLASS(rhythm::Scene);
     GDREGISTER_RUNTIME_CLASS(rhythm::SceneManager);
-    GDREGISTER_RUNTIME_CLASS(rhythm::Taiko);
     GDREGISTER_RUNTIME_CLASS(rhythm::Taiko2);
     
     // register resources

@@ -8,7 +8,9 @@
 #include <godot_cpp/classes/shader_material.hpp>
 #include <godot_cpp/classes/image_texture.hpp>
 #include <godot_cpp/classes/rich_text_label.hpp>
+#include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event_mouse.hpp>
+#include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 
 #include "SceneManager.h"

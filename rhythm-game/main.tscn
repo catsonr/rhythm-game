@@ -1,6 +1,5 @@
 [gd_scene format=3 uid="uid://tq7dju4488yu"]
 
-[ext_resource type="Track" uid="uid://bdl6f22lg8w8y" path="res://resources/Tracks/rule_desk_speakers.tres" id="1_h2yge"]
 [ext_resource type="Audio" uid="uid://dnq6uads5qy54" path="res://resources/Audio/click.tres" id="2_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://dd01cfxsp0sua" path="res://scenes/observatory.tscn" id="3_h2yge"]
 [ext_resource type="Material" uid="uid://cfjls20sgqg8g" path="res://shaders/materials/audio_engine_2_pause_shader.tres" id="4_1bvp3"]
@@ -67,17 +66,11 @@ _data = {
 
 [node name="Node" type="Node" unique_id=1431783181]
 
-[node name="AudioEngine" type="AudioEngine" parent="." unique_id=1897972364]
-current_track = ExtResource("1_h2yge")
-click = ExtResource("2_1bvp3")
-LATENCY = 2200
-
 [node name="AudioEngine2" type="AudioEngine2" parent="." unique_id=1791835464]
 current_track_pitch = 0.5
 click = ExtResource("2_1bvp3")
 
 [node name="SceneManager" type="SceneManager" parent="." unique_id=913746002]
-audio_engine_path = NodePath("../AudioEngine")
 audio_engine_2_path = NodePath("../AudioEngine2")
 G = Vector4(0, 1, 0, -1)
 initial_scene = ExtResource("3_h2yge")

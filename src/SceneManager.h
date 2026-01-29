@@ -5,7 +5,6 @@
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
 
-#include "AudioEngine.h"
 #include "AudioEngine2.h"
 
 namespace rhythm
@@ -20,7 +19,6 @@ struct SceneManager; // forward declare for CTX
 struct CTX
 {
     SceneManager* scene_manager;
-    AudioEngine* audio_engine { nullptr };
     AudioEngine2* audio_engine_2 { nullptr };
     godot::Vector4 G { 3, 0, 0, 3 };
 }; // CTX
@@ -116,17 +114,6 @@ protected:
 public:
     void _ready() override
     {
-        // audio engine stuff
-
-        if( audio_engine_path.is_empty() ) { godot::print_error("[SceneManager::_ready] a NodePath to AudioEngine has not been set. please set one in the inspector!"); return; }
-        
-        godot::Node* node = get_node_or_null(audio_engine_path);
-        AudioEngine* audio_engine = godot::Object::cast_to<rhythm::AudioEngine>(node);
-        
-        if( !audio_engine ) { godot::print_error("[SceneManager::_ready] a path to AudioEngine has been set, but is it not an AudioEngine!"); return; }
-        
-        ctx.audio_engine = audio_engine;
-        
         // audio engine 2 stuff
 
         if( audio_engine_2_path.is_empty() ) { godot::print_error("[SceneManager::_ready] a NodePath to AudioEngine2 has not been set. please set one in the inspector!"); return; }
