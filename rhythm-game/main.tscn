@@ -88,6 +88,7 @@ autoplay = &"RESET"
 [node name="AudioEngine2_Pause_Shader" type="AudioEngine2_Pause_Shader" parent="CanvasLayer" unique_id=1135987157]
 audio_engine_2_path = NodePath("../../AudioEngine2")
 shader_material = ExtResource("4_1bvp3")
+visible = false
 offset_right = 40.0
 offset_bottom = 40.0
 

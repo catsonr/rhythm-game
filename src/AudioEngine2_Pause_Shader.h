@@ -34,6 +34,7 @@ public:
 
         // color rect
         set_anchors_and_offsets_preset(godot::Control::PRESET_FULL_RECT);
+        set_mouse_filter(MouseFilter::MOUSE_FILTER_IGNORE);
     }
     
     void _process(double delta) override

@@ -35,7 +35,7 @@ private:
 
     public: Conductor conductor; private:
     godot::Ref<rhythm::Audio> click;
-    bool play_click { true };
+    public: bool play_click { true }; private:
     int next_click_index { 0 };
     int64_t click_latency { 2000 };
     // used to keep track of where Conductor was when playing a Track, so that it can be switched back to that position
@@ -128,26 +128,27 @@ public:
 
         conductor.process(ma_engine_get_time_in_pcm_frames(&engine));
         
-        if( play_click )
+        // play click sound based of conductor (only audible if play_click is true)
+        const Conductor& c = conductor;
+        const int next_beat_index = c.next_beat_index;
+        const godot::PackedInt64Array& beats = c.beats;
+        const int64_t global_current_frame = ma_engine_get_time_in_pcm_frames(&engine);
+        const int64_t local_current_frame = c.get_local_current_frame(global_current_frame);
+        
+        if( next_click_index < beats.size() )
         {
-            const Conductor& c = conductor;
-            const int next_beat_index = c.next_beat_index;
-            const godot::PackedInt64Array& beats = c.beats;
-            const int64_t global_current_frame = ma_engine_get_time_in_pcm_frames(&engine);
-            const int64_t local_current_frame = c.get_local_current_frame(global_current_frame);
-            
-            if( next_click_index < beats.size() )
-            {
-                const int64_t global_next_beat_frame = c.global_start_frame + static_cast<int64_t>( beats[next_click_index] / c.pitch );
+            const int64_t global_next_beat_frame = c.global_start_frame + static_cast<int64_t>( beats[next_click_index] / c.pitch );
 
-                if( global_current_frame >= global_next_beat_frame - click_latency )
+            if( global_current_frame >= global_next_beat_frame - click_latency )
+            {
+                if( play_click )
                 {
                     ma_sound_seek_to_pcm_frame(click->sound, 0);
                     ma_sound_set_start_time_in_pcm_frames(click->sound, global_next_beat_frame - click_latency);
                     ma_sound_start(click->sound);
-
-                    next_click_index++;
                 }
+
+                next_click_index++;
             }
         }
     }
@@ -164,7 +165,8 @@ public:
 
         const ma_uint32 LOAD_FLAGS =
             MA_SOUND_FLAG_NO_SPATIALIZATION |
-            MA_SOUND_FLAG_ASYNC
+            MA_SOUND_FLAG_DECODE
+            //MA_SOUND_FLAG_ASYNC
         ;
 
         if( ma_sound_init_from_file(&engine, abs_path_charstring.get_data(), LOAD_FLAGS, NULL, NULL, &sound) != MA_SUCCESS )

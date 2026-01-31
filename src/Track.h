@@ -111,6 +111,61 @@ protected:
     }
 
 public:
+
+    /* beats (PackedInt64Array) opeations */
+
+    static godot::PackedInt64Array delete_beat_at_index(const godot::PackedInt64Array& beats, int i)
+    {
+        if( i < 0 || i >= beats.size() )
+        {
+            godot::print_error("[Track::delete_beat_at_index] attempted to delete a beat (", i, ") at an out of bounds index!");
+            return beats;
+        }
+        
+        godot::PackedInt64Array new_beats = beats;
+        new_beats.remove_at(i);
+        
+        return new_beats;
+    }
+    
+    static constexpr int64_t minimum_recommended_beat_distance { 10000 };
+    static godot::PackedInt64Array nudge_beat_at_index(const godot::PackedInt64Array& beats, int i, int64_t dframes)
+    {
+        if( i < 0 || i >= beats.size() )
+        {
+            godot::print_error("[Track::delete_beat_at_index] attempted to nudge a beat (", i, ") at an out of bounds index!");
+            return beats;
+        }
+        
+        int64_t new_frame = beats[i] + dframes;
+        if(new_frame < 0) new_frame = 0;
+        
+        
+        if( dframes >= 0 ) // nudge right (and identity)
+        {
+            if( i+1 < beats.size() && beats[i+1] - new_frame < minimum_recommended_beat_distance )
+            {
+                new_frame = beats[i+1] - minimum_recommended_beat_distance;
+                godot::print_line("[Track::nudge_beat_at_index] attempted to nudege a beat (", i, ") too close to the next beat! using a minimum recommended beat distance of ", minimum_recommended_beat_distance, " instead");
+            }
+        }
+        else // nudge left
+        {
+            if( i-1 >= 0 && new_frame - beats[i-1] < minimum_recommended_beat_distance )
+            {
+                new_frame = beats[i-1] - minimum_recommended_beat_distance;
+                godot::print_line("[Track::nudge_beat_at_index] attempted to nudege a beat (", i, ") too close to the previous beat! using a minimum recommended beat distance of ", minimum_recommended_beat_distance, " instead");
+            }
+        }
+        
+        godot::PackedInt64Array new_beats = beats;
+        new_beats[i] = new_frame;
+
+        return new_beats;
+    }
+
+    /* GETTERS & SETTERS */
+
     // album
     godot::Ref<rhythm::Album> get_album() const { return album; }
     void set_album(const godot::Ref<rhythm::Album>& p_album) { album = p_album; }

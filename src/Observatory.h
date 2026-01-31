@@ -270,7 +270,6 @@ public:
                         godot::Ref<godot::PackedScene> chart_editor_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/chart_editor.tscn");
                         if( chart_editor_scene.is_valid() )
                         {
-                            audio_engine_2->pause_current_track();
                             Scene::conjure_ctx(this)->scene_manager->push_scene(chart_editor_scene, false);
                         }
                         else godot::print_line("[Observatory::_input] failed to load chart editor ...");
@@ -282,7 +281,6 @@ public:
                     
                     if( taiko_scene.is_valid() )
                     {
-                        audio_engine_2->pause_current_track();
                         Scene::conjure_ctx(this)->scene_manager->push_scene(taiko_scene, false);
                     }
                     else godot::print_line("[Observatory::_input] failed to load taiko ...");

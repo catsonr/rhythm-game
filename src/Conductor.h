@@ -57,11 +57,7 @@ struct Conductor
         
         int64_t local_current_time = get_local_current_frame(global_current_frame);
         while( next_beat_index < beats.size() && local_current_time >= beats[next_beat_index] )
-        {
-            godot::print_line("[Conductor::process] beat ", next_beat_index, "!");
-
             next_beat_index++;
-        }
     }
     
     void play(const int64_t global_current_frame)
