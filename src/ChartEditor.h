@@ -7,8 +7,10 @@
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
+
 #include <godot_cpp/classes/v_slider.hpp>
 #include <godot_cpp/classes/h_slider.hpp>
+#include <godot_cpp/classes/check_box.hpp>
 
 #include "SceneManager.h"
 
@@ -40,6 +42,8 @@ private:
 
     godot::VSlider* pitch_slider { nullptr };
     godot::HSlider* position_slider { nullptr };
+    godot::CheckBox* click_checkbox { nullptr };
+
     double zoom { 200 };
 
 public:
@@ -57,6 +61,8 @@ public:
         pitch_slider->set_value(audio_engine_2->get_current_track_pitch());
         pitch_slider->set_position({10, 10});
         pitch_slider->set_size({10, 100});
+        pitch_slider->set_tooltip_text("changes the speed of the track");
+        pitch_slider->set_focus_mode(Control::FOCUS_NONE);
         pitch_slider->connect("value_changed", godot::Callable(this, "on_pitch_slider_changed"));
         add_child(pitch_slider);
         
@@ -67,8 +73,20 @@ public:
         position_slider->set_anchors_and_offsets_preset(Control::PRESET_CENTER_BOTTOM);
         position_slider->set_size({400, 10});
         position_slider->set_position({-200, -40});
+        position_slider->set_tooltip_text("scrubs through the track");
+        position_slider->set_focus_mode(Control::FOCUS_NONE);
         position_slider->connect("value_changed", godot::Callable(this, "on_position_slider_changed"));
         add_child(position_slider);
+        
+        click_checkbox = memnew(godot::CheckBox);
+        click_checkbox->set_text("click");
+        click_checkbox->set_anchors_and_offsets_preset(Control::PRESET_TOP_LEFT);
+        click_checkbox->set_size({20, 20});
+        click_checkbox->set_tooltip_text("whether or not to play a click sound when a beat happens");
+        click_checkbox->set_focus_mode(Control::FOCUS_NONE);
+        click_checkbox->set_pressed(audio_engine_2->play_click);
+        click_checkbox->connect("toggled", godot::Callable(this, "on_click_checkbox_changed"));
+        add_child(click_checkbox);
     }
     
     void _input(const godot::Ref<godot::InputEvent>& event) override
@@ -77,7 +95,7 @@ public:
         if( mouse_event.is_valid() && mouse_event->is_pressed() )
         {
             const int64_t scroll_speed_in_frames { 5000 };
-            const double zoom_speed { 20 };
+            const double zoom_speed { 20 };;
             const double zoom_min { 10 };
             const double zoom_max { 2000 };
             switch(mouse_event->get_button_index())
@@ -123,10 +141,13 @@ public:
         godot::Ref<godot::InputEventKey> key_event = event;
         if( key_event.is_valid() && key_event->is_pressed() && !key_event->is_echo() )
         {
+            const int64_t nudge_speed_in_frames { 500 };
+
             switch( key_event->get_physical_keycode() )
             {
                 case godot::KEY_ESCAPE:
                 {
+                    audio_engine_2->conductor.set_beats(ma_engine_get_time_in_pcm_frames(&audio_engine_2->engine), audio_engine_2->current_track->get_beats());
                     Scene::conjure_ctx(this)->scene_manager->pop_scene();
                     break;
                 }
@@ -141,19 +162,44 @@ public:
                 {
                     if( mode == MODE::beats )
                     {
-                        //audio_engine_2->current_track->set_beats(proposed_beats);
-                        //godot::ResourceSaver::get_singleton()->save(audio_engine_2->current_track);
+                        audio_engine_2->current_track->set_beats(proposed_beats);
+                        godot::ResourceSaver::get_singleton()->save(audio_engine_2->current_track);
                         
-                        //godot::print_line("[ChartEditor::_input] sent ", proposed_beats.size(), " proposed beast to current track '", audio_engine_2->get_current_track()->get_title(), "'!");
-                        godot::print_line("[ChartEditor::_input] beat saving disabled ...");
+                        godot::print_line("[ChartEditor::_input] sent ", proposed_beats.size(), " proposed beast to current track '", audio_engine_2->get_current_track()->get_title(), "'!");
                     }
                     
                     break;
                 }
-                case godot::KEY_BACKSPACE:
+                case godot::KEY_X:
                 {
                     if(audio_engine_2->conductor.next_beat_index >= 1)
                         proposed_beats = Track::delete_beat_at_index(proposed_beats, audio_engine_2->conductor.next_beat_index-1);
+                    
+                    audio_engine_2->conductor.set_beats(ma_engine_get_time_in_pcm_frames(&audio_engine_2->engine), proposed_beats);
+                    break;
+                }
+                case godot::KEY_M:
+                {
+                    int64_t local_current_frame = audio_engine_2->conductor.get_local_current_frame(ma_engine_get_time_in_pcm_frames(&audio_engine_2->engine));
+                    proposed_beats = Track::insert_beat_at_frame(proposed_beats, local_current_frame);
+
+                    audio_engine_2->conductor.set_beats(ma_engine_get_time_in_pcm_frames(&audio_engine_2->engine), proposed_beats);
+                    
+                    break;
+                }
+                case godot::KEY_COMMA:
+                {
+                    proposed_beats = Track::nudge_beat_at_index(proposed_beats, audio_engine_2->conductor.next_beat_index-1, -nudge_speed_in_frames);
+                    audio_engine_2->conductor.set_beats(ma_engine_get_time_in_pcm_frames(&audio_engine_2->engine), proposed_beats);
+
+                    break;
+                }
+                case godot::KEY_PERIOD:
+                {
+                    proposed_beats = Track::nudge_beat_at_index(proposed_beats, audio_engine_2->conductor.next_beat_index-1, nudge_speed_in_frames);
+                    audio_engine_2->conductor.set_beats(ma_engine_get_time_in_pcm_frames(&audio_engine_2->engine), proposed_beats);
+
+                    break;
                 }
                 
                 default: break;
@@ -254,11 +300,17 @@ public:
         audio_engine_2->set_current_track_progress_in_frames(static_cast<int64_t>(p_value));
     }
 
+    void on_click_checkbox_changed(bool p_toggle_mode)
+    {
+        audio_engine_2->play_click = p_toggle_mode;
+    }
+
 protected:
     static void _bind_methods()
     {
         godot::ClassDB::bind_method(godot::D_METHOD("on_pitch_slider_changed", "value"), &rhythm::ChartEditor::on_pitch_slider_changed);
         godot::ClassDB::bind_method(godot::D_METHOD("on_position_slider_changed", "value"), &rhythm::ChartEditor::on_position_slider_changed);
+        godot::ClassDB::bind_method(godot::D_METHOD("on_click_checkbox_changed", "toggled_on"), &rhythm::ChartEditor::on_click_checkbox_changed);
     }
 
 }; // ChartEditor

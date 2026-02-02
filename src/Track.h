@@ -163,6 +163,32 @@ public:
 
         return new_beats;
     }
+    
+    static godot::PackedInt64Array insert_beat_at_frame(const godot::PackedInt64Array& beats, int64_t local_frame)
+    {
+        const int64_t* start = beats.ptr();
+        const int64_t* end   = start + beats.size();
+
+        const int64_t* it = std::upper_bound(start, end, local_frame);
+
+        const int next_beat_index = static_cast<int>( it-start );
+        
+        if(next_beat_index - 1 >= 0 && local_frame - beats[next_beat_index-1] < minimum_recommended_beat_distance)
+        {
+            godot::print_line("[Track::insert_beat_at_frame] attempted to insert a beat @ frame ", local_frame, " however there exists a previous beat at index ", next_beat_index-1, " that is below the minimum recommended beat distance. skipping beat insert ...");
+            return beats;
+        }
+        if(next_beat_index < beats.size() && beats[next_beat_index] - local_frame < minimum_recommended_beat_distance)
+        {
+            godot::print_line("[Track::insert_beat_at_frame] attempted to insert a beat @ frame ", local_frame, " however there exists a next beat at index ", next_beat_index, " that is below the minimum recommended beat distance. skipping beat insert ...");
+            return beats;
+        }
+        
+        godot::PackedInt64Array new_beats = beats;
+        new_beats.insert(next_beat_index, local_frame);
+        
+        return new_beats;
+    }
 
     /* GETTERS & SETTERS */
 

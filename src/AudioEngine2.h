@@ -116,11 +116,14 @@ public:
     void _process(double delta) override
     {
         if(!current_track.is_valid() || !playing_track || !current_track->loaded) return;
-        if(get_current_track_progress_in_frames() == get_current_track_length_in_frames())
+        if(ma_sound_at_end(current_track->sound))
         {
             godot::print_line("[AudioEngine2::_process] song ended!");
+
             pause_current_track();
             conductor_positions.erase(current_track->AudioEngine2_sounds_index);
+            set_current_track_progress_in_frames(0);
+
             return;
         }
         
@@ -308,7 +311,7 @@ public:
         frame = (frame > get_current_track_length_in_frames()) ? get_current_track_length_in_frames() : frame;
         
         ma_sound_seek_to_pcm_frame(current_track->sound, (ma_uint64)frame);
-        conductor.seek(ma_engine_get_time_in_pcm_frames(&engine), frame); // again, this is a place where we are going off of the miniaudio read head for seeking ....
+        conductor.seek(ma_engine_get_time_in_pcm_frames(&engine), frame); // again, this is a place where we are going off of the miniaudio read head for seeking .... (though it seems to work fine ?)
         
         next_click_index = conductor.next_beat_index;
     }
