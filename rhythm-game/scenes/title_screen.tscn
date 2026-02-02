@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://cu5rlxojgswqw"]
+
+[ext_resource type="Material" uid="uid://dh4l0dp0escog" path="res://shaders/materials/title_screen_bg.tres" id="1_fgkus"]
+
+[node name="TitleScreen" type="Scene" unique_id=41387182]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1830783911]
+
+[node name="TitleScreen" type="TitleScreen" parent="CanvasLayer" unique_id=1970124867]
+bg_shader_material = ExtResource("1_fgkus")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2

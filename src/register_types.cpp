@@ -7,6 +7,7 @@
 #include "Observatory.h"
 #include "SceneManager.h"
 #include "Taiko2.h"
+#include "TitleScreen.h"
 
 // resources
 #include "Album.h"
@@ -31,6 +32,7 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     GDREGISTER_RUNTIME_CLASS(rhythm::Scene);
     GDREGISTER_RUNTIME_CLASS(rhythm::SceneManager);
     GDREGISTER_RUNTIME_CLASS(rhythm::Taiko2);
+    GDREGISTER_RUNTIME_CLASS(rhythm::TitleScreen);
     
     // register resources
     GDREGISTER_CLASS(rhythm::Album);

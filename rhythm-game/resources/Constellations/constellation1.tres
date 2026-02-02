@@ -2,7 +2,7 @@
 
 [ext_resource type="Track" uid="uid://dp8wdvrws8kyy" path="res://resources/Tracks/lovers_desk_speakers.tres" id="1_vjk6d"]
 [ext_resource type="Track" uid="uid://dacu4g7b40sy8" path="res://resources/Tracks/basement_wired_xm4.tres" id="2_h5uus"]
-[ext_resource type="Track" uid="uid://hhlg78pwowgc" path="res://resources/Tracks/harness_wired_xm4.tres" id="3_2poae"]
+[ext_resource type="Track" uid="uid://ble5e53f1tegs" path="res://resources/Tracks/harness_wired_xm4.tres" id="3_2poae"]
 [ext_resource type="Track" uid="uid://bne58xuxvbwfr" path="res://resources/Tracks/rule_desk_speakers.tres" id="3_h5uus"]
 
 [resource]
