@@ -6,82 +6,14 @@
 [ext_resource type="Material" uid="uid://cct8sav1iprll" path="res://shaders/materials/CRT.tres" id="5_lquwl"]
 [ext_resource type="Script" uid="uid://0yvhwm24n06y" path="res://fps_label.gd" id="6_7mycd"]
 
-[sub_resource type="Animation" id="Animation_h2yge"]
-resource_name = "G_wiggle"
-length = 30.0
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:G")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 30),
-"transitions": PackedFloat32Array(0.08246931, 1),
-"update": 0,
-"values": [Vector4(0, 1, 0, -1), Vector4(3, 3, -3, 3)]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_lquwl"]
-_data = {
-&"G_wiggle": SubResource("Animation_h2yge")
-}
-
-[sub_resource type="Animation" id="Animation_272bh"]
-length = 5.0
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("../AudioEngine2:current_track_pitch")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 5),
-"transitions": PackedFloat32Array(0.5, 1),
-"update": 0,
-"values": [0.5, 1.0]
-}
-
-[sub_resource type="Animation" id="Animation_7mycd"]
-resource_name = "pitch_rampup"
-length = 5.0
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("../AudioEngine2:current_track_pitch")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 5),
-"transitions": PackedFloat32Array(0.5, 1),
-"update": 0,
-"values": [0.5, 1.0]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_5vw27"]
-_data = {
-&"RESET": SubResource("Animation_272bh"),
-&"pitch_rampup": SubResource("Animation_7mycd")
-}
-
 [node name="Node" type="Node" unique_id=1431783181]
 
 [node name="AudioEngine2" type="AudioEngine2" parent="." unique_id=1791835464]
-current_track_pitch = 0.5
 click = ExtResource("2_1bvp3")
 
 [node name="SceneManager" type="SceneManager" parent="." unique_id=913746002]
 audio_engine_2_path = NodePath("../AudioEngine2")
-G = Vector4(0, 1, 0, -1)
 initial_scene = ExtResource("2_lquwl")
-
-[node name="G_wiggle" type="AnimationPlayer" parent="SceneManager" unique_id=83231317]
-libraries/ = SubResource("AnimationLibrary_lquwl")
-autoplay = &"G_wiggle"
-
-[node name="pitch_rampup" type="AnimationPlayer" parent="SceneManager" unique_id=1446118675]
-libraries/ = SubResource("AnimationLibrary_5vw27")
-autoplay = &"RESET"
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=217961613]
 
@@ -93,7 +25,6 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="CRT shader" type="ColorRect" parent="CanvasLayer" unique_id=1796200034]
-visible = false
 material = ExtResource("5_lquwl")
 anchors_preset = 15
 anchor_right = 1.0
@@ -102,6 +33,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Label" type="Label" parent="CanvasLayer" unique_id=589203298]
+visible = false
 offset_right = 40.0
 offset_bottom = 23.0
 text = "sfsdf"

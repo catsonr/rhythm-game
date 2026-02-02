@@ -5,6 +5,21 @@
 [ext_resource type="Constellation" uid="uid://od053yvm1luo" path="res://resources/Constellations/constellation1.tres" id="3_epj8e"]
 [ext_resource type="Theme" uid="uid://cdhi8rtxnqesl" path="res://themes/observatory_default_font.tres" id="4_2gdk4"]
 
+[sub_resource type="Animation" id="Animation_rvuaq"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [6.0]
+}
+
 [sub_resource type="Animation" id="Animation_2gdk4"]
 resource_name = "Observatory_scale"
 length = 6.0
@@ -21,25 +36,84 @@ tracks/0/keys = {
 "values": [40.0, 6.0]
 }
 
-[sub_resource type="Animation" id="Animation_rvuaq"]
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_vyuj5"]
+_data = {
+&"RESET": SubResource("Animation_rvuaq"),
+&"zoom_scale": SubResource("Animation_2gdk4")
+}
+
+[sub_resource type="Animation" id="Animation_vyuj5"]
 length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath(".:scale")
+tracks/0/path = NodePath(".:pitch")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [6.0]
+"values": [1.0]
 }
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_vyuj5"]
+[sub_resource type="Animation" id="Animation_ps6s8"]
+resource_name = "pitch_rampup"
+length = 5.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:pitch")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 5),
+"transitions": PackedFloat32Array(0.5, 1),
+"update": 0,
+"values": [0.5, 1.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_27s10"]
 _data = {
-&"Observatory_scale": SubResource("Animation_2gdk4"),
-&"RESET": SubResource("Animation_rvuaq")
+&"RESET": SubResource("Animation_vyuj5"),
+&"pitch_rampup": SubResource("Animation_ps6s8")
+}
+
+[sub_resource type="Animation" id="Animation_27s10"]
+resource_name = "G_wiggle"
+length = 30.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:G")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 30),
+"transitions": PackedFloat32Array(0.08246931, 1),
+"update": 0,
+"values": [Vector4(0, 1, 0, -1), Vector4(3, 3, -3, 3)]
+}
+
+[sub_resource type="Animation" id="Animation_wlaah"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:G")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector4(0, 0, 0, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_uo3h3"]
+_data = {
+&"G_wiggle": SubResource("Animation_27s10"),
+&"RESET": SubResource("Animation_wlaah")
 }
 
 [node name="Scene" type="Scene" unique_id=711940330]
@@ -56,6 +130,14 @@ offset_right = 400.0
 offset_bottom = 300.0
 theme = ExtResource("4_2gdk4")
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Camera2D/Observatory" unique_id=188951619]
+[node name="zoom_scale" type="AnimationPlayer" parent="Camera2D/Observatory" unique_id=188951619]
 libraries/ = SubResource("AnimationLibrary_vyuj5")
-autoplay = &"Observatory_scale"
+autoplay = &"zoom_scale"
+
+[node name="pitch_rampup" type="AnimationPlayer" parent="Camera2D/Observatory" unique_id=1808176657]
+libraries/ = SubResource("AnimationLibrary_27s10")
+autoplay = &"pitch_rampup"
+
+[node name="G_wiggle" type="AnimationPlayer" parent="Camera2D/Observatory" unique_id=1745220394]
+libraries/ = SubResource("AnimationLibrary_uo3h3")
+autoplay = &"G_wiggle"

@@ -184,6 +184,14 @@ public:
         godot::ClassDB::bind_method(godot::D_METHOD("get_current_constellation"), &rhythm::Observatory::get_current_constellation);
         godot::ClassDB::bind_method(godot::D_METHOD("set_current_constellation", "p_track"), &rhythm::Observatory::set_current_constellation);
         ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "current_constellation", godot::PROPERTY_HINT_RESOURCE_TYPE, "Constellation"), "set_current_constellation", "get_current_constellation");
+        
+        godot::ClassDB::bind_method(godot::D_METHOD("get_G"), &rhythm::Observatory::get_G);
+        godot::ClassDB::bind_method(godot::D_METHOD("set_G", "p_G"), &rhythm::Observatory::set_G);
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::VECTOR4, "G"), "set_G", "get_G");
+
+        godot::ClassDB::bind_method(godot::D_METHOD("get_pitch"), &rhythm::Observatory::get_pitch);
+        godot::ClassDB::bind_method(godot::D_METHOD("set_pitch", "p_pitch"), &rhythm::Observatory::set_pitch);
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::FLOAT, "pitch"), "set_pitch", "get_pitch");
     }
 
     void _ready() override
@@ -543,6 +551,49 @@ public:
     
     godot::Ref<rhythm::Constellation> get_current_constellation() const { return current_constellation; }
     void set_current_constellation(const godot::Ref<rhythm::Constellation>& p_current_constellation) { current_constellation = p_current_constellation; current_constellation->cache(); }
+    
+    /* CTX GETTERS & SETTERS (these are used to expose audio_engine_2 pitch and ctx G through Observatory so that they can be animated with AnimationPlayers) */
+    
+    godot::Vector4 get_G() const
+    {
+        CTX* ctx = Scene::conjure_ctx(this);
+        
+        if(!ctx)
+        {
+            godot::print_error("[Observatory::get_G] canont get G. failed to conjure ctx!");
+            return godot::Vector4();
+        }
+        
+        return ctx->G;
+    }
+    void set_G(const godot::Vector4& p_G)
+    {
+        CTX* ctx = Scene::conjure_ctx(this);
+        
+        if(!ctx) godot::print_error("[Observatory::set_G] canont set G. failed to conjure ctx!");
+        else ctx->G = p_G;
+    }
+    
+    float get_pitch() const
+    {
+        CTX* ctx = Scene::conjure_ctx(this);
+        
+        if(!ctx)
+        {
+            godot::print_error("[Observatory::get_pitch] canont get pitch. failed to conjure ctx!");
+            return 1.0;
+        }
+        
+        return ctx->audio_engine_2->get_current_track_pitch();
+    }
+    void set_pitch(const float p_pitch)
+    {
+        CTX* ctx = Scene::conjure_ctx(this);
+        
+        if(!ctx) godot::print_error("[Observatory::set_pitch] canont set pitch. failed to conjure ctx!");
+        else ctx->audio_engine_2->set_current_track_pitch(p_pitch);
+    }
+
 }; // Observatory
 
 } // rhythm

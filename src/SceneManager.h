@@ -41,7 +41,7 @@ protected:
     static void _bind_methods() {}
 
 public:
-    static CTX* conjure_ctx(godot::Node* node)
+    static CTX* conjure_ctx(const godot::Node* node)
     {
         if(!node) { godot::print_error("[Scene::conjure_ctx] cannot get the ctx of a null node!"); return nullptr; }
         
