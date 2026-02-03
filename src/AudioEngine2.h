@@ -158,23 +158,33 @@ public:
     
     /* PUBLIC METHODS */
     
-    bool load_sound(const godot::StringName& path)
+    bool load_sound(const godot::StringName& path, bool async=true, ma_sound* at=nullptr)
     {
-        sounds.emplace_back();
-        ma_sound& sound = sounds.back();
+        ma_sound* sound = at;
+
+        if( at == nullptr ) // if we're initializing a new sound
+        {
+            sounds.emplace_back();
+            sound = &sounds.back();
+        }
         
         godot::String abs_path = godot::ProjectSettings::get_singleton()->globalize_path(path);
         godot::CharString abs_path_charstring = abs_path.utf8();
 
-        const ma_uint32 LOAD_FLAGS =
-            MA_SOUND_FLAG_NO_SPATIALIZATION |
-            MA_SOUND_FLAG_DECODE
-            //MA_SOUND_FLAG_ASYNC
-        ;
+        // default to async loading, if you need to load the entire sound into memory upfront, use decode_current_track()
+        ma_uint32 LOAD_FLAGS = MA_SOUND_FLAG_NO_SPATIALIZATION;
+        if( async ) LOAD_FLAGS |= MA_SOUND_FLAG_ASYNC;
+        else
+        {
+            LOAD_FLAGS |= MA_SOUND_FLAG_DECODE;
+            godot::print_line("[AudioEngine2::load_sound] loading (decoding) sound in its entirety. (expect a lag spike!)");
+        }
 
-        if( ma_sound_init_from_file(&engine, abs_path_charstring.get_data(), LOAD_FLAGS, NULL, NULL, &sound) != MA_SUCCESS )
+        if( ma_sound_init_from_file(&engine, abs_path_charstring.get_data(), LOAD_FLAGS, NULL, NULL, sound) != MA_SUCCESS )
         {
             godot::print_error("[AudioEngine2::load_sound] unable to load ", abs_path, "!");
+            
+            if( at == nullptr ) sounds.pop_back();
             return false;
         }
         
@@ -201,6 +211,28 @@ public:
         audio->loaded = true;
 
         return true;
+    }
+    
+    void decode_current_track()
+    {
+        if( !current_track.is_valid() )
+        {
+            godot::print_error("[AudioEngine2::decode_current_track] cannot decode current track. a current track is not set!");
+            return;
+        }
+        
+        bool is_playing = playing_track;
+        int64_t global_current_time = ma_engine_get_time_in_pcm_frames(&engine);
+        pause_current_track();
+        
+        int64_t local_current_time = conductor.get_local_current_frame(global_current_time);
+        
+        if( current_track->loaded ) ma_sound_uninit(current_track->sound);
+        load_sound(current_track->get_file_path(), false, current_track->sound);
+        
+        set_current_track_progress_in_frames(local_current_time);
+        set_current_track_pitch(current_track_pitch);
+        if( is_playing ) play_current_track();
     }
     
     void play_current_track()

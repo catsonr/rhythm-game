@@ -51,7 +51,11 @@ public:
     {
         audio_engine_2 = Scene::conjure_ctx(this)->audio_engine_2;
         
-        if( audio_engine_2->current_track.is_valid() ) proposed_beats = audio_engine_2->current_track->get_beats();
+        if( audio_engine_2->current_track.is_valid() )
+        {
+            audio_engine_2->decode_current_track();
+            proposed_beats = audio_engine_2->current_track->get_beats();
+        }
         else godot::print_error("[ChartEditor::_ready] current track is not valid!");
         
         pitch_slider = memnew(godot::VSlider);
