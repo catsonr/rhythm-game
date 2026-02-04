@@ -221,6 +221,12 @@ public:
             return;
         }
         
+        if( current_track->decoded )
+        {
+            godot::print_line("[AudioEngine2::decode_current_track] '", current_track->get_title(), "' is already decoded. nothing to do!");
+            return;
+        }
+        
         bool is_playing = playing_track;
         int64_t global_current_time = ma_engine_get_time_in_pcm_frames(&engine);
         pause_current_track();
@@ -228,7 +234,7 @@ public:
         int64_t local_current_time = conductor.get_local_current_frame(global_current_time);
         
         if( current_track->loaded ) ma_sound_uninit(current_track->sound);
-        load_sound(current_track->get_file_path(), false, current_track->sound);
+        if( load_sound(current_track->get_file_path(), false, current_track->sound) ) current_track->decoded = true;
         
         set_current_track_progress_in_frames(local_current_time);
         set_current_track_pitch(current_track_pitch);
