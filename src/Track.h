@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <bitset>
 
 #include "Album.h"
 #include "Audio.h"
@@ -22,49 +23,102 @@ private:
     godot::PackedInt64Array beats; 
     
     // notes_packed is an int64_t array, where each Note struct is packed/serialized as:
-    // 0 x FFFFFFFF FFFF      FFFF
-    //     beat     numerator type
+    // 0 x FFFFFFFF 0FFF      FF   FF
+    //     beat     numerator type modifier
     // thus the order is chronological, i.e., later notes are greater than earlier ones
     //    this rule does break for notes that exist at the same time. though in that case, their difference in value is not significant 
     godot::PackedInt64Array notes_packed;
-    // pulses per quarter (note)
-    // this can be any value, though highly compisite numbers are obviously preferred
-    // 2520 has been chosen since it is the smallest integer with 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10 as its divisors
-    // meaning we can represent exact n-tuplets, for any 1-10 n :)
-public:
-    static const int PPQ = 2520;
 
+public:
     struct Note
     {
-        uint32_t beat; // which beat the note lies on
-        uint16_t numerator; // the numerator of numerator/PPQ, represents *where* on the beat the note lies
-        uint16_t type; // the type of note
+        // pulses per quarter (note)
+        // this can be any value, though highly compisite numbers are obviously preferred
+        // 2520 has been chosen since it is the smallest integer with 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10 as its divisors
+        // meaning we can represent exact n-tuplets, for any 1-10 n :)
+        static constexpr uint16_t PPQ = 2520;
 
-        double position; // the result of numerator/PPQ
-        
-        enum Type : uint16_t
+        uint32_t beat; // which beat the note lies on
+        uint16_t numerator : 12; // the numerator of numerator/PPQ, represents *where* on the beat the note lies
+
+        // NOTE: numerator is 16 bits wide. however, with PPQ=2520, we only need ceil( log_2(2520) ) = 12 bits
+        // thus the remaining four are currently unused
+        // WARN: their use will cause undefined behavior since it will change packed_value() 
+        uint16_t _reserved : 4;
+
+        uint8_t type; // the type of note
+        uint8_t modifier; // optional modifiers to the type, e.g., a hold note (Modifer::HOLD)
+
+
+        enum Type : uint8_t
         {
-            RIGHT = 0,
-            LEFT  = 1
+            R1 = 0x00,
+            R2 = 0x01,
+            R3 = 0x02,
+            R4 = 0x03,
+
+            L1 = 0x10,
+            L2 = 0x11,
+            L3 = 0x12,
+            L4 = 0x13
         }; // Type
+        
+        enum Modifier : uint8_t // 8 possible flags
+        {
+            NONE = 0b00000000,
+            HOLD = 0b00000001
+        }; // Modifer
+        
+        enum Mask : uint64_t
+        {
+            //                    | <-- unused!
+            BEAT      = 0xFFFFFFFF00000000,
+            NUMERATOR = 0x000000000FFF0000,
+            TYPE      = 0x000000000000FF00,
+            MODIFIER  = 0x00000000000000FF
+        }; // Mask
         
         explicit Note(uint64_t packed_value) :
             beat(packed_value >> 32),
-            numerator((packed_value >> 16) & 0xFFFF),
-            position(static_cast<double>(numerator) / static_cast<double>(PPQ)),
-            type(packed_value & 0xFFFF)
+            numerator((packed_value >> 16) & 0x0FFF),
+            _reserved(0),
+            type((packed_value >> 8) & 0xFF),
+            modifier(packed_value & 0xFF)
         {}
         
-        Note(uint32_t beat, uint16_t numerator, uint16_t type) :
+        Note(uint32_t beat, uint16_t numerator, uint8_t type, uint8_t modifier) :
             beat(beat),
             numerator(numerator),
-            position(static_cast<double>(numerator) / static_cast<double>(PPQ)),
-            type(type)
+            _reserved(0),
+            type(type),
+            modifier(modifier)
         {}
         
-        // returns the packed int value
-        uint64_t packed_value() const { return ((uint64_t)beat << 32) | ((uint64_t)numerator << 16) | ((uint64_t)type); }
+        /* Note operator overloads */
+
+        bool operator==(const Note& other) const { return packed_value() == other.packed_value(); }
+        bool operator<(const Note& other) const { return packed_value() < other.packed_value(); }
+
+        /* Note lemmas */
         
+        bool at_same_time(const Note& other) const
+        {
+            constexpr uint64_t TIME_MASK = Mask::BEAT | Mask::NUMERATOR;
+            return (packed_value() & TIME_MASK) == (other.packed_value() & TIME_MASK);
+        }
+        
+        // returns the result of numerator/PPQ, should be a value from [0.0, 1.0]
+        double get_position() const { return static_cast<double>(numerator) / PPQ; }
+
+        // performs the inverse of get_position(), i.e., converts a position to its closest numerator
+        // TODO: test if this returns good values for all n-tuplets
+        static uint16_t position_to_numerator(double position) { return std::round( PPQ*position ); }
+        
+        // returns the packed int value
+        uint64_t packed_value() const { return ((uint64_t)beat << 32) | ((uint64_t)numerator << 16) | ((uint64_t)type << 8) | ((uint64_t)modifier); }
+        
+        /* notes (std::vector) lemmas */
+
         std::vector<Note> static unpack(const godot::PackedInt64Array& array)
         {
             std::vector<Note> notes;
@@ -74,7 +128,7 @@ public:
             return notes;
         }
         
-        godot::PackedInt64Array static pack(const std::vector<Note> notes)
+        godot::PackedInt64Array static pack(const std::vector<Note>& notes)
         {
             godot::PackedInt64Array array;
 
@@ -83,7 +137,73 @@ public:
             return array;
         }
         
-        uint16_t static position_to_numerator(double position) { return PPQ*position; }
+        // returns the index of a note 'key' in notes if it exists -- return -1 otherwise
+        // this finds the exact match, including modifiers!
+        // TODO: optional ignore modifiers
+        static int32_t find_index(const std::vector<Note>& notes, const Note& key)
+        {
+            auto it = std::lower_bound(notes.begin(), notes.end(), key);
+            
+            if( it != notes.end() && *it == key ) return std::distance(notes.begin(), it);
+            
+            return -1;
+        }
+    
+        static bool has_notes_at_beat_position(const std::vector<Note>& notes, uint32_t beat, double position)
+        {
+            Note key { beat, Note::position_to_numerator(position), 0, 0 };
+            
+            auto it = std::lower_bound(notes.begin(), notes.end(), key);
+            
+            return it != notes.end() && it->at_same_time(key);
+        }
+        
+        static bool has_note(const std::vector<Note>& notes, const Note& key)
+        {
+            auto it = std::lower_bound(notes.begin(), notes.end(), key);
+            
+            return it != notes.end() && it->at_same_time(key) && it->type == key.type;
+        }
+        
+        //std::bitset<256> note_types(const std::vector<Note>& notes);
+        
+        /* notes (std::vector) operations */
+        
+        static std::vector<Note> remove_note(const std::vector<Note>& notes, const Note& key)
+        {
+            if( !has_note(notes, key) )
+            {
+                godot::print_line("[Track::Note::remove_note] no Note (type ", key.type, ") exists at ", key.beat, ":", key.get_position(), "! ignoring ...");
+                return notes;
+            }
+
+            int32_t beat_index = find_index(notes, key);
+            if( beat_index == -1 )
+            {
+                godot::print_error("[Track::Note::remove_note] tried to find Note (type ", key.type, ") @ ", key.beat, ":", key.get_position(), ", but Track::Note::find_index() returned -1! ignoring ...");
+                return notes;
+            }
+            
+            std::vector<Note> new_notes = notes;
+            new_notes.erase(new_notes.begin() + beat_index);
+            
+            return new_notes;
+        }
+        
+        static std::vector<Note> add_note(const std::vector<Note>& notes, const Note& key)
+        {
+            if( has_note(notes, key) )
+            {
+                godot::print_line("[Track::Note::remove_note] Note (type ", key.type, ") already exists at ", key.beat, ":", key.get_position(), "! ignoring ...");
+                return notes;
+            }
+            
+            std::vector<Note> new_notes = notes;
+            auto it = std::upper_bound(new_notes.begin(), new_notes.end(), key);
+            new_notes.insert(it, key);
+            
+            return new_notes;
+        }
     }; // Note
 
 protected:

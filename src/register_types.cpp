@@ -3,7 +3,8 @@
 // nodes
 #include "AudioEngine2.h"
 #include "AudioEngine2_Pause_Shader.h"
-#include "ChartEditor.h"
+#include "BeatEditor.h"
+#include "NoteEditor.h"
 #include "Observatory.h"
 #include "SceneManager.h"
 #include "Taiko2.h"
@@ -27,7 +28,8 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     // register nodes
     GDREGISTER_RUNTIME_CLASS(rhythm::AudioEngine2);
     GDREGISTER_RUNTIME_CLASS(rhythm::AudioEngine2_Pause_Shader);
-    GDREGISTER_RUNTIME_CLASS(rhythm::ChartEditor);
+    GDREGISTER_RUNTIME_CLASS(rhythm::BeatEditor);
+    GDREGISTER_RUNTIME_CLASS(rhythm::NoteEditor);
     GDREGISTER_RUNTIME_CLASS(rhythm::Observatory);
     GDREGISTER_RUNTIME_CLASS(rhythm::Scene);
     GDREGISTER_RUNTIME_CLASS(rhythm::SceneManager);

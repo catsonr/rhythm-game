@@ -52,7 +52,7 @@ public:
         for( const rhythm::Track::Note& note : notes )
         {
             int64_t dt    = beats[note.beat+1] - beats[note.beat];
-            int64_t frame = beats[note.beat] + static_cast<int64_t>( static_cast<double>(dt)*note.position );
+            int64_t frame = beats[note.beat] + static_cast<int64_t>( static_cast<double>(dt)*note.get_position() );
             
             note_frames.push_back(frame);
         }
@@ -246,7 +246,7 @@ public:
             float note_x;
             godot::Color color;
 
-            if(notes[i].type == rhythm::Track::Note::LEFT)
+            if(notes[i].type == rhythm::Track::Note::L1)
             {
                 note_x = w/2 - note_width;
                 color = L_color;

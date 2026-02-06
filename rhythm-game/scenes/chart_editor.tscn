@@ -1,16 +1,19 @@
 [gd_scene format=3 uid="uid://t1v6dh4j20vm"]
 
-[ext_resource type="Theme" uid="uid://bhwa6vypxfpw7" path="res://themes/chart_editor_default_font.tres" id="1_f4nd4"]
-
 [node name="Scene" type="Scene" unique_id=773916001]
 offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1987677889]
 
-[node name="ChartEditor" type="ChartEditor" parent="Camera2D" unique_id=1146359894]
-offset_left = -380.0
-offset_top = -277.0
-offset_right = 384.0
-offset_bottom = 289.0
-theme = ExtResource("1_f4nd4")
+[node name="BeatEditor" type="BeatEditor" parent="Camera2D" unique_id=168662951]
+offset_left = -369.0
+offset_top = -271.0
+offset_right = 380.0
+offset_bottom = -119.0
+
+[node name="NoteEditor" type="NoteEditor" parent="Camera2D" unique_id=436805025]
+offset_left = -354.0
+offset_top = -100.0
+offset_right = 366.0
+offset_bottom = 260.0
