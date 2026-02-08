@@ -2,6 +2,6 @@
 	path = godot-cpp
 	url = https://github.com/godotengine/godot-cpp.git
 	branch = 4.5
-[submodule "drogon-server/vendored/drogon"]
-	path = drogon-server/vendored/drogon
+[submodule "bbxxserver/vendored/drogon"]
+	path = bbxxserver/vendored/drogon
 	url = git@github.com:drogonframework/drogon.git
