@@ -1,7 +1,7 @@
 [gd_resource type="Constellation" format=3 uid="uid://od053yvm1luo"]
 
 [ext_resource type="Track" uid="uid://hr2yn7pplbsy" path="res://resources/Tracks/lovers_desk_speakers.tres" id="1_vjk6d"]
-[ext_resource type="Track" uid="uid://dnrkf7ykm7u8y" path="res://resources/Tracks/basement_wired_xm4.tres" id="2_h5uus"]
+[ext_resource type="Track" uid="uid://c4mtkdvja1e7n" path="res://resources/Tracks/basement_wired_xm4.tres" id="2_h5uus"]
 [ext_resource type="Track" uid="uid://bu30vb8ptiiox" path="res://resources/Tracks/harness_wired_xm4.tres" id="3_2poae"]
 [ext_resource type="Track" uid="uid://cft5aeootvand" path="res://resources/Tracks/rule_desk_speakers.tres" id="3_h5uus"]
 

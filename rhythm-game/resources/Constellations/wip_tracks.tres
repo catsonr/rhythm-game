@@ -1,0 +1,6 @@
+[gd_resource type="Constellation" format=3 uid="uid://dyvplnj3utsil"]
+
+[ext_resource type="Track" uid="uid://xie1es7aykvq" path="res://resources/Tracks/galaxy_desk_speakers.tres" id="1_ccr6h"]
+
+[resource]
+tracks = Array[Track]([ExtResource("1_ccr6h")])

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://tq7dju4488yu"]
 
 [ext_resource type="Audio" uid="uid://dnq6uads5qy54" path="res://resources/Audio/click.tres" id="2_1bvp3"]
-[ext_resource type="PackedScene" uid="uid://dd01cfxsp0sua" path="res://scenes/observatory.tscn" id="2_lquwl"]
+[ext_resource type="PackedScene" uid="uid://cu5rlxojgswqw" path="res://scenes/title_screen.tscn" id="2_lquwl"]
 [ext_resource type="Material" uid="uid://cfjls20sgqg8g" path="res://shaders/materials/audio_engine_2_pause_shader.tres" id="4_1bvp3"]
 [ext_resource type="Material" uid="uid://cct8sav1iprll" path="res://shaders/materials/CRT.tres" id="5_lquwl"]
 [ext_resource type="Script" uid="uid://0yvhwm24n06y" path="res://fps_label.gd" id="6_7mycd"]
@@ -25,13 +25,13 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="CRT shader" type="ColorRect" parent="CanvasLayer" unique_id=1796200034]
-visible = false
 material = ExtResource("5_lquwl")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
 [node name="Label" type="Label" parent="CanvasLayer" unique_id=589203298]
 visible = false

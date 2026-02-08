@@ -23,11 +23,13 @@ ShaderHotReloader="*uid://c25f4r5srn1sb"
 
 window/size/viewport_width=800
 window/size/viewport_height=600
+window/size/mode=3
 window/size/always_on_top=true
 window/size/window_width_override=1600
 window/size/window_height_override=1200
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/vsync/vsync_mode=0
 
 [editor_plugins]
 
@@ -38,3 +40,4 @@ enabled=PackedStringArray("res://addons/shader_hot_reload/plugin.cfg")
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
+viewport/hdr_2d=true

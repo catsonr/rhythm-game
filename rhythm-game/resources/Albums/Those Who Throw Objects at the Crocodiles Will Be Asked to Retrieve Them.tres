@@ -1,0 +1,9 @@
+[gd_resource type="Album" format=3 uid="uid://b8b82ryhiijg8"]
+
+[ext_resource type="Texture2D" uid="uid://dp2k8aqolb6mx" path="res://images/album-covers/Those Who Throw Objects at the Crocodiles Will Be Asked to Retrieve Them.jpg" id="1_uhlqc"]
+
+[resource]
+title = &"Those Who Throw Objects at the Crocodiles Will Be Asked to Retrieve Them"
+artist = &"Bruno Pernadas"
+release_year = 2016
+cover = ExtResource("1_uhlqc")

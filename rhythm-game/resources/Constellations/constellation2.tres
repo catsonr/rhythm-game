@@ -1,6 +1,0 @@
-[gd_resource type="Constellation" load_steps=2 format=3 uid="uid://he20i5avcpmc"]
-
-[ext_resource type="Track" uid="uid://ob4xcpywyngf" path="res://resources/Tracks/lovers_desk_speakers.tres" id="1_8b1sg"]
-
-[resource]
-tracks = Array[Track]([ExtResource("1_8b1sg"), ExtResource("1_8b1sg"), ExtResource("1_8b1sg"), ExtResource("1_8b1sg"), ExtResource("1_8b1sg"), ExtResource("1_8b1sg"), ExtResource("1_8b1sg"), ExtResource("1_8b1sg"), ExtResource("1_8b1sg"), ExtResource("1_8b1sg"), ExtResource("1_8b1sg"), ExtResource("1_8b1sg"), ExtResource("1_8b1sg"), ExtResource("1_8b1sg"), ExtResource("1_8b1sg"), ExtResource("1_8b1sg"), ExtResource("1_8b1sg"), ExtResource("1_8b1sg")])

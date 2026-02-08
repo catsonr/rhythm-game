@@ -1,6 +1,6 @@
-[gd_resource type="Track" format=3]
+[gd_resource type="Track" format=3 uid="uid://c4mtkdvja1e7n"]
 
-[ext_resource type="Album" path="res://resources/Albums/Apollo XXI.tres" id="1_5elo3"]
+[ext_resource type="Album" uid="uid://crjt8u1d7omcx" path="res://resources/Albums/Apollo XXI.tres" id="1_5elo3"]
 
 [resource]
 album = ExtResource("1_5elo3")
