@@ -45,6 +45,8 @@ int main()
         })
         .setAfterAcceptSockOptCallback([](int) {});
 
+    app().setClientMaxBodySize(20 * 1024*1024); // 20mb
+
     // Ask Drogon to listen on 127.0.0.1 port 8848. Drogon supports listening
     // on multiple IP addresses by adding multiple listeners. For example, if
     // you want the server also listen on 127.0.0.1 port 5555. Just add another

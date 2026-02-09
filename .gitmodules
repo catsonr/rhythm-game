@@ -5,3 +5,6 @@
 [submodule "bbxxserver/vendored/drogon"]
 	path = bbxxserver/vendored/drogon
 	url = git@github.com:drogonframework/drogon.git
+[submodule "bbxxserver/vendored/chromaprint"]
+	path = bbxxserver/vendored/chromaprint
+	url = https://github.com/acoustid/chromaprint.git

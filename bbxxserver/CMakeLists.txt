@@ -19,7 +19,7 @@ endif ()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_executable(${PROJECT_NAME} main.cc)
+add_executable(${PROJECT_NAME} main.cc miniaudio_implementation.cc)
 
 # ##############################################################################
 # If you include the drogon source code locally in your project, use this method
@@ -73,3 +73,12 @@ target_sources(${PROJECT_NAME}
 # ##############################################################################
 
 add_subdirectory(test)
+
+# END OF DROGON CMAKE STUFF
+
+
+
+# chromapaint
+add_subdirectory(vendored/chromaprint)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vendored/chromaprint/src)
+target_link_libraries(${PROJECT_NAME} PRIVATE chromaprint)
