@@ -47,8 +47,17 @@ int main()
         })
         .setAfterAcceptSockOptCallback([](int) {});
 
-    auto storage = rhythm::init_storage();
+    auto storage = server::init_storage();
     storage.sync_schema();
+    if( storage.count<server::Artist>() == 0 )
+    {
+        server::Artist a;
+        a.name = "Radiohead";
+        storage.insert(a);
+
+        a.name = "Aphex Twin";
+        storage.insert(a);
+    }
 
     app().setClientMaxBodySize(20 * 1024*1024); // 20mb
 
