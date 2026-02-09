@@ -17,7 +17,7 @@ struct Track : public Model
 {
     /* member variables */
     std::string title;
-    std::string chromaprint;
+    std::string fingerprint;
     
     /* foreign key */
     int album_id = Model::NULL_ID;

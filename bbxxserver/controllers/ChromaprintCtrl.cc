@@ -3,6 +3,35 @@
 #include <chromaprint.h>
 #include "miniaudio.h"
 
+static std::vector<uint32_t> decode_fingerprint(const std::string& fingerprint)
+{
+    uint32_t* raw_ptr = nullptr;
+    int raw_size = 0;
+    int algorithm = 0;
+
+    int result = chromaprint_decode_fingerprint(
+            fingerprint.c_str(),
+            fingerprint.size(),
+            &raw_ptr,
+            &raw_size,
+            &algorithm,
+            1
+    );
+    
+    if( result != 1 || raw_ptr == nullptr )
+    {
+        printf("[ChromaprintCtrl::decode_fingerprint] failed to decode fingerprint!");
+        return {};
+    }
+    
+    if( algorithm != CHROMAPRINT_ALGORITHM_TEST2 ) printf("[Chromaprint::decode_fingerprint] used algorithm %i ... (expected CHROMAPRINT_ALGORITHM_TEST2=1) ignoring ...", algorithm);
+    
+    std::vector<uint32_t> raw(raw_ptr, raw_ptr + raw_size);
+    chromaprint_dealloc(raw_ptr);
+    
+    return raw;
+}
+
 std::string ChromaprintCtrl::httpfile_to_fingerprint(const drogon::HttpFile& file)
 {
     ma_decoder decoder;
@@ -18,7 +47,7 @@ std::string ChromaprintCtrl::httpfile_to_fingerprint(const drogon::HttpFile& fil
     if( result != MA_SUCCESS )
     {
         printf("[ChromaprintCtrl::httpfile_to_fingerprint] ma_decoder_init_memory() failed!");
-        return "n/a :(";
+        return {};
     }
     
     ChromaprintContext* ctx = chromaprint_new(CHROMAPRINT_ALGORITHM_TEST2);
@@ -65,7 +94,7 @@ void ChromaprintCtrl::asyncHandleHttpRequest(const drogon::HttpRequestPtr& req, 
     if( parser.parse(req) != 0 )
     {
         drogon::HttpResponsePtr resp = drogon::HttpResponse::newHttpResponse(drogon::k400BadRequest, drogon::ContentType::CT_TEXT_HTML);
-        resp->setBody("[ChromaprintCtrl] failed to parse file upload!\n");
+        resp->setBody("[ChromaprintCtrl::asyncHandleHttpRequest] failed to parse file upload!\n");
         
         callback(resp);
         return;
@@ -76,19 +105,22 @@ void ChromaprintCtrl::asyncHandleHttpRequest(const drogon::HttpRequestPtr& req, 
     if( files.empty() )
     {
         drogon::HttpResponsePtr resp = drogon::HttpResponse::newHttpResponse(drogon::k400BadRequest, drogon::ContentType::CT_TEXT_HTML);
-        resp->setBody("[ChromaprintCtrl] no files uploaded!\n");
+        resp->setBody("[ChromaprintCtrl::asyncHandleHttpRequest] no files uploaded!\n");
+        
+        callback(resp);
+        return;
+    }
+    if( files.size() > 1 )
+    {
+        drogon::HttpResponsePtr resp = drogon::HttpResponse::newHttpResponse(drogon::k400BadRequest, drogon::ContentType::CT_TEXT_HTML);
+        resp->setBody("[ChromaprintCtrl::asyncHandleHttpRequest] more than one file uploaded!\n");
         
         callback(resp);
         return;
     }
     
-    std::string resp_string;
-    for(const drogon::HttpFile& file : files)
-    {
-        resp_string += file.getFileName() + " is " + std::to_string(file.fileLength()) + " bytes! has fingerprint of:\n\t" + httpfile_to_fingerprint(file) + "\n\n";
-    }
     drogon::HttpResponsePtr resp = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::ContentType::CT_TEXT_HTML);
-    resp->setBody(resp_string);
+    resp->setBody( httpfile_to_fingerprint(files[0]) );
     
     callback(resp);
 }
