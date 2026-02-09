@@ -11,6 +11,8 @@
 #include <drogon/drogon.h>
 using namespace drogon;
 
+#include "models/storage.h"
+
 int main()
 {
     // `registerHandler()` adds a handler to the desired path. The handler is
@@ -44,6 +46,9 @@ int main()
 #endif
         })
         .setAfterAcceptSockOptCallback([](int) {});
+
+    auto storage = rhythm::init_storage();
+    storage.sync_schema();
 
     app().setClientMaxBodySize(20 * 1024*1024); // 20mb
 

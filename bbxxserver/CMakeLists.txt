@@ -76,7 +76,9 @@ add_subdirectory(test)
 
 # END OF DROGON CMAKE STUFF
 
-
+# sqlite3 (assumed to already be installed)
+find_package(SQLite3 REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE sqlite3)
 
 # chromapaint
 add_subdirectory(vendored/chromaprint)
