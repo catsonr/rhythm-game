@@ -2,38 +2,39 @@
 
 #include <vector>
 #include <string>
+#include <optional>
 
 namespace server
 {
 
-static constexpr int NULL_ID = -1;
+static constexpr uint64_t NULL_ID = 0;
 
 struct Track
 {
     /* primary key */
-    int id = NULL_ID;
+    uint64_t id = NULL_ID;
 
     /* member variables */
     std::string title;
     std::string fingerprint;
     
     /* foreign key */
-    int album_id = NULL_ID;
+    uint64_t ALBUM_ID = NULL_ID;
 }; // Track
 
 struct Album
 {
     /* primary key */
-    int id = NULL_ID;
+    uint64_t id = NULL_ID;
     
     /* member variables */
     enum Type : uint8_t { SINGLE = 0, EP = 1, LP = 2 };
-    Type type;
+    uint type; // type_orm prefers int -- typecast to Album::Type for comparisons
     std::string title;
-    int release_year = 0, release_month = 0, release_day = 0;
+    std::optional<int> release_year = 0, release_month = 0, release_day = 0;
     
     /* foreign key */
-    int artist_id = NULL_ID;
+    uint64_t ARTIST_ID = NULL_ID;
 
     /* child objects */
     std::vector<Track> tracklist;
@@ -42,10 +43,10 @@ struct Album
 struct Artist
 {
     /* primary key */
-    int id = NULL_ID;
+    uint64_t id = NULL_ID;
     
     /* member variables */
-    std::string name;
+    std::string name; // UNIQUE!!!
     
     /* child objects */
     std::vector<Album> albums;

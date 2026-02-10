@@ -7,21 +7,12 @@
 
 #include "models.h"
 
-namespace sqlite_orm
-{
-    template<>
-    struct type_printer<server::Album::Type>
-    {
-        const std::string& print()
-        {
-            static const std::string res = "INTEGER";
-            return res;
-        }
-    };
-}
-
 namespace server
 {
+
+// determines how std::optional is serialized into json
+template <typename T>
+Json::Value value_or_null(const std::optional<T>& t) { return t.has_value() ? Json::Value(*t) : Json::Value::null; }
 
 inline auto init_storage()
 {
@@ -32,7 +23,7 @@ inline auto init_storage()
             make_column("id", &Artist::id, primary_key().autoincrement()),
 
             /* member variables */
-            make_column("name", &Artist::name)
+            make_column("name", &Artist::name, unique())
         ),
 
         make_table("albums",
@@ -47,8 +38,8 @@ inline auto init_storage()
             make_column("release_day", &Album::release_day),
 
             /* foreign key */
-            make_column("artist_id", &Album::artist_id),
-            foreign_key(&Album::artist_id).references(&Artist::id)
+            make_column("artist_id", &Album::ARTIST_ID),
+            foreign_key(&Album::ARTIST_ID).references(&Artist::id)
         ),
 
         make_table("tracks",
@@ -60,10 +51,12 @@ inline auto init_storage()
             make_column("fingerprint", &Track::fingerprint),
 
             /* foreign key */
-            make_column("album_id", &Track::album_id),
-            foreign_key(&Track::album_id).references(&Album::id)
+            make_column("album_id", &Track::ALBUM_ID),
+            foreign_key(&Track::ALBUM_ID).references(&Album::id)
         )
     );
 }
+
+using Storage = decltype( init_storage() );
 
 } // server

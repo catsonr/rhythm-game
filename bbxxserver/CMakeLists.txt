@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(bbxxserver CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 include(CheckIncludeFileCXX)
 
 check_include_file_cxx(any HAS_ANY)
