@@ -32,6 +32,7 @@ struct Album
     uint type; // type_orm prefers int -- typecast to Album::Type for comparisons
     std::string title;
     std::optional<int> release_year = 0, release_month = 0, release_day = 0;
+    std::optional<std::string> MBID; // https://musicbrainz.org/doc/MusicBrainz_Identifier
     
     /* foreign key */
     uint64_t ARTIST_ID = NULL_ID;
