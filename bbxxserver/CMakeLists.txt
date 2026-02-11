@@ -26,7 +26,7 @@ set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(BUILD_CTL OFF CACHE BOOL "" FORCE)
 
-add_executable(${PROJECT_NAME} main.cc miniaudio_implementation.cc)
+add_executable(${PROJECT_NAME} main.cc)
 
 # ##############################################################################
 # If you include the drogon source code locally in your project, use this method

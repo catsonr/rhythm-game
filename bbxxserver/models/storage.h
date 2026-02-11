@@ -36,6 +36,7 @@ inline auto init_storage()
             make_column("release_year", &Album::release_year),
             make_column("release_month", &Album::release_month),
             make_column("release_day", &Album::release_day),
+            // cover path
 
             /* foreign key */
             make_column("artist_id", &Album::ARTIST_ID),
@@ -54,6 +55,9 @@ inline auto init_storage()
             make_column("album_id", &Track::ALBUM_ID),
             foreign_key(&Track::ALBUM_ID).references(&Album::id)
         )
+
+        // charts
+        // users
     );
 }
 

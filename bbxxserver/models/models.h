@@ -3,11 +3,43 @@
 #include <vector>
 #include <string>
 #include <optional>
+#include <filesystem>
 
 namespace server
 {
 
 static constexpr uint64_t NULL_ID = 0;
+
+struct Artist
+{
+    /* primary key */
+    uint64_t id = NULL_ID;
+    
+    /* member variables */
+    std::string name; // UNIQUE!!!
+    // std::optional<Area> area; // see musicbrainz Area
+    
+    /* HAS CHILDREN Album */
+}; // Artist
+
+struct Album
+{
+    /* primary key */
+    uint64_t id = NULL_ID;
+    
+    /* member variables */
+    enum Type : uint8_t { SINGLE = 0, EP = 1, LP = 2 };
+    uint8_t type; // type_orm prefers int -- typecast to Album::Type for comparisons
+    std::string title;
+    std::optional<int> release_year = 0, release_month = 0, release_day = 0;
+    std::optional<std::string> releasegroup_MBID; // https://musicbrainz.org/doc/MusicBrainz_Identifier
+    std::optional<std::filesystem::path> cover_path;
+    
+    /* foreign key */
+    uint64_t ARTIST_ID = NULL_ID;
+    
+    /* HAS CHILDREN Track */
+}; // Album
 
 struct Track
 {
@@ -20,37 +52,37 @@ struct Track
     
     /* foreign key */
     uint64_t ALBUM_ID = NULL_ID;
+    
+    /* HAS CHILDREN Chart */
 }; // Track
 
-struct Album
+struct Chart
 {
     /* primary key */
     uint64_t id = NULL_ID;
     
     /* member variables */
-    enum Type : uint8_t { SINGLE = 0, EP = 1, LP = 2 };
-    uint type; // type_orm prefers int -- typecast to Album::Type for comparisons
-    std::string title;
-    std::optional<int> release_year = 0, release_month = 0, release_day = 0;
-    std::optional<std::string> MBID; // https://musicbrainz.org/doc/MusicBrainz_Identifier
+    // see Track.h
+    std::vector<uint64_t> beats;
+    std::vector<uint64_t> notes;
     
     /* foreign key */
-    uint64_t ARTIST_ID = NULL_ID;
+    uint64_t TRACK_ID = NULL_ID;
+    uint64_t USER_ID = NULL_ID;
+}; // Chart
 
-    /* child objects */
-    std::vector<Track> tracklist;
-}; // Album
-
-struct Artist
+struct User
 {
-    /* primary key */
+    /* primary key*/
     uint64_t id = NULL_ID;
     
     /* member variables */
-    std::string name; // UNIQUE!!!
+    std::string username; // UNIQUE!!
+    std::optional<std::string> email;
+    std::string password_hash;
+    // UserSettings user_settings;
     
-    /* child objects */
-    std::vector<Album> albums;
-}; // Artist
+    /* HAS CHILDREN Chart */
+}; // User
 
 } // server
