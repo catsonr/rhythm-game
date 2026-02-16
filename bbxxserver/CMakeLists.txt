@@ -94,3 +94,8 @@ set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
 add_subdirectory(vendored/chromaprint)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vendored/chromaprint/src)
 target_link_libraries(${PROJECT_NAME} PRIVATE chromaprint)
+
+# libbcrypt
+add_subdirectory(vendored/libbcrypt)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vendored/libbcrypt/include)
+target_link_libraries(${PROJECT_NAME} PRIVATE bcrypt)

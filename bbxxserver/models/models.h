@@ -93,4 +93,16 @@ struct User
     /* HAS CHILDREN Chart */
 }; // User
 
+struct UserSession
+{
+    /* primary key */
+    std::string uuid;
+    
+    /* member variables */
+    int64_t expire_time = 0; // unix time of expiration, in seconds since epoch
+    
+    /* foreign key */
+    uint64_t USER_ID = NULL_ID;
+}; // UserSession
+
 } // server

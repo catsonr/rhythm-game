@@ -107,6 +107,18 @@ inline auto init_storage()
             make_column("username", &User::username),
             make_column("email", &User::email),
             make_column("password_hash", &User::password_hash)
+        ),
+
+        make_table("user_sessions",
+            /* primary key */
+            make_column("uuid", &UserSession::uuid, primary_key()),
+
+            /* member variables */
+            make_column("expire_time", &UserSession::expire_time),
+
+            /* foreign key */
+            make_column("USER_ID", &UserSession::USER_ID),
+            foreign_key(&UserSession::USER_ID).references(&User::id)
         )
     );
 }
