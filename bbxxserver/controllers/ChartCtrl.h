@@ -10,7 +10,7 @@ public:
     METHOD_LIST_BEGIN
         ADD_METHOD_TO(ChartCtrl::get, "/charts/{id}", drogon::Get);
         ADD_METHOD_TO(ChartCtrl::get_all, "/charts", drogon::Get);
-        ADD_METHOD_TO(ChartCtrl::create, "/charts", drogon::Post);
+        ADD_METHOD_TO(ChartCtrl::create, "/charts", drogon::Post, "AuthFilter");
     METHOD_LIST_END
 
     void get(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback, int id)
@@ -78,10 +78,14 @@ public:
             callback(resp);
             return;
         }
-        if( !json_ptr->isMember("USER_ID") )
+        
+        uint64_t USER_ID = req->attributes()->get<uint64_t>("USER_ID");
+        // WARN: this only works because NULL_ID is convineintly the default value returned by get()!!!
+        // although, this will likely never be the case anways since AuthFilter ensures that we have a user
+        if( USER_ID == server::NULL_ID ) 
         {
             drogon::HttpResponsePtr resp = drogon::HttpResponse::newHttpResponse(drogon::k400BadRequest, drogon::ContentType::CT_TEXT_HTML);
-            resp->setBody("missing required field 'USER_ID'!");
+            resp->setBody("AuthFilter passed USER_ID but it is null!");
             
             callback(resp);
             return;
@@ -89,7 +93,7 @@ public:
         
         server::Chart chart;
         chart.TRACK_ID = (*json_ptr)["TRACK_ID"].asUInt64();
-        chart.USER_ID  = (*json_ptr)["USER_ID"].asUInt64();
+        chart.USER_ID = USER_ID;
         chart.beats = server::base64_to_vector_uint64( (*json_ptr)["beats"].asString() );
         chart.notes = server::base64_to_vector_uint64( (*json_ptr)["notes"].asString() );
 

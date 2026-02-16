@@ -103,6 +103,9 @@ struct UserSession
     
     /* foreign key */
     uint64_t USER_ID = NULL_ID;
+    
+    /* lemmas */
+    bool expired(const int64_t seconds_since_epoch) const { return seconds_since_epoch >= expire_time; }
 }; // UserSession
 
 } // server
