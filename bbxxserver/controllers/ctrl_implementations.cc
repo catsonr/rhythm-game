@@ -1,5 +1,6 @@
 #include "AlbumCtrl.h"
 #include "ArtistCtrl.h"
+#include "AuthCtrl.h"
 #include "ChartCtrl.h"
 #include "FpcalcCtrl.h"
 #include "TrackCtrl.h"
