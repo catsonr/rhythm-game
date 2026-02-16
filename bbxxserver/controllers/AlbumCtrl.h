@@ -46,7 +46,6 @@ public:
         std::vector<server::Album> albums = storage.get_all<server::Album>();
         
         Json::Value albums_json { Json::arrayValue };
-        
         for(const server::Album& album : albums)
         {
             Json::Value item;
@@ -107,7 +106,7 @@ public:
         server::Album album;
         album.type = static_cast<server::Album::Type>( (*json_ptr)["type"].asUInt() );
         album.title = (*json_ptr)["title"].asString();
-        // relese date values?
+        // TODO: hydrate relese date values?
         album.ARTIST_ID = (*json_ptr)["ARTIST_ID"].asUInt64();
         
         try

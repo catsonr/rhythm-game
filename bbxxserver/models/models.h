@@ -1,5 +1,14 @@
 #pragma once
 
+/*
+    bbxxserver/models/models.h is the single source of truth for what a beatboxx resource, be it a
+    Artist, Chart, User, etc., can possibly be
+    
+    from these structs, they can be rehydrated into actual runtime objects. see:
+    bbxxserver/models/storage.h for hydration into sqlite_orm, and
+    src/ for godot specific resources (e.g., Track.h)
+*/
+
 #include <vector>
 #include <string>
 #include <optional>
@@ -48,7 +57,6 @@ struct Track
 
     /* member variables */
     std::string title;
-    std::string fingerprint;
     
     /* foreign key */
     uint64_t ALBUM_ID = NULL_ID;
