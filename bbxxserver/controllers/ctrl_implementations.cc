@@ -5,3 +5,4 @@
 #include "FpcalcCtrl.h"
 #include "TrackCtrl.h"
 #include "UserCtrl.h"
+#include "UserWebSocketCtrl.h"

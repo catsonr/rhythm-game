@@ -30,18 +30,16 @@ struct AuthFilter : public drogon::HttpFilter<AuthFilter>
             std::string uuid = auth_header.substr(7);
             
             server::Storage storage = server::init_storage();
-            std::vector<server::UserSession> user_sessions = storage.get_all<server::UserSession>(
-                sqlite_orm::where(sqlite_orm::c(&server::UserSession::uuid) == uuid)
-            );
+            std::unique_ptr<server::UserSession> user_session_ptr = storage.get_pointer<server::UserSession>(uuid);
             
-            if( user_sessions.size() != 1 )
+            if( !user_session_ptr )
             {
                 drogon::HttpResponsePtr res = drogon::HttpResponse::newHttpResponse(drogon::k401Unauthorized, drogon::ContentType::CT_TEXT_HTML);
                 res->setBody("invalid uuid!");
                 fcb(res);
                 return;
             }
-            if( user_sessions[0].expired(trantor::Date::now().secondsSinceEpoch()) )
+            if( user_session_ptr->expired(trantor::Date::now().secondsSinceEpoch()) )
             {
                 drogon::HttpResponsePtr res = drogon::HttpResponse::newHttpResponse(drogon::k403Forbidden, drogon::ContentType::CT_TEXT_HTML);
                 res->setBody("uuid is expired!");
@@ -49,7 +47,7 @@ struct AuthFilter : public drogon::HttpFilter<AuthFilter>
                 return;
             }
             
-            req->attributes()->insert("USER_ID", user_sessions[0].USER_ID);
+            req->attributes()->insert("USER_ID", user_session_ptr->USER_ID);
 
             // passed!
             fccb();
