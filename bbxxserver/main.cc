@@ -47,16 +47,43 @@ int main()
         })
         .setAfterAcceptSockOptCallback([](int) {});
 
+    // populate db with some entires
     auto storage = server::init_storage();
     storage.sync_schema();
     if( storage.count<server::Artist>() == 0 )
     {
-        server::Artist a;
-        a.name = "Radiohead";
-        storage.insert(a);
-
-        a.name = "Aphex Twin";
-        storage.insert(a);
+        // artists
+        server::Artist artist;
+        artist.name = "Radiohead";
+        storage.insert(artist); // artist 1
+        artist.name = "Aphex Twin";
+        storage.insert(artist); // artist 2
+        
+        // albums
+        server::Album album;
+        album.title = "The Bends";
+        album.type = server::Album::Type::LP;
+        album.ARTIST_ID = 1;
+        storage.insert(album); // album 1
+        album.title = "Selected Ambient Works 85-92";
+        album.type = server::Album::Type::LP;
+        album.ARTIST_ID = 2;
+        storage.insert(album); // album 2
+        
+        // tracks
+        server::Track track;
+        track.title = "Just";
+        track.ALBUM_ID = 1;
+        storage.insert(track); // track 1
+        track.title = "My Iron Lung";
+        track.ALBUM_ID = 1;
+        storage.insert(track); // track 2
+        track.title = "Xtal";
+        track.ALBUM_ID = 2;
+        storage.insert(track); // track 3
+        track.title = "Pulsewidth";
+        track.ALBUM_ID = 2;
+        storage.insert(track); // track 4
     }
 
     app().setClientMaxBodySize(20 * 1024*1024); // 20mb
@@ -65,6 +92,6 @@ int main()
     // on multiple IP addresses by adding multiple listeners. For example, if
     // you want the server also listen on 127.0.0.1 port 5555. Just add another
     // line of addListener("127.0.0.1", 5555)
-    LOG_INFO << "server running on 127.0.0.1:3939";
-    app().addListener("127.0.0.1", 3939).run();
+    LOG_INFO << "server running on 0.0.0.0:3939";
+    app().addListener("0.0.0.0", 3939).run();
 }

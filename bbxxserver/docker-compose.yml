@@ -1,0 +1,24 @@
+services:
+  bbxxserver:
+    container_name: bbxxserver
+    build: .
+    image: bbxxserver:latest
+    restart: unless-stopped
+    ports:
+      - "3939:3939"
+    networks:
+      - bbxxnetwork
+
+  tunnel:
+    container_name: cloudflared
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    command: tunnel --no-autoupdate run
+    networks:
+      - bbxxnetwork
+
+networks:
+  bbxxnetwork:
+    driver: bridge

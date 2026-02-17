@@ -1,0 +1,7 @@
+.vscode
+.DS_Store
+.env
+
+.git/
+build/
+uploads/
