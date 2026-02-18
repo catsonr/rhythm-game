@@ -35,7 +35,7 @@ private:
 
     public: Conductor conductor; private:
     godot::Ref<rhythm::Audio> click;
-    public: bool play_click { true }; private:
+    public: bool play_click { false }; private:
     int next_click_index { 0 };
     int64_t click_latency { 2000 };
     // used to keep track of where Conductor was when playing a Track, so that it can be switched back to that position

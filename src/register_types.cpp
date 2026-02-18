@@ -7,6 +7,7 @@
 #include "NoteEditor.h"
 #include "Observatory.h"
 #include "SceneManager.h"
+#include "ServerClient.h"
 #include "Taiko2.h"
 #include "TitleScreen.h"
 
@@ -14,6 +15,7 @@
 #include "Album.h"
 #include "Audio.h"
 #include "Track.h"
+#include "UserSession.h"
 
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
@@ -33,6 +35,7 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     GDREGISTER_RUNTIME_CLASS(rhythm::Observatory);
     GDREGISTER_RUNTIME_CLASS(rhythm::Scene);
     GDREGISTER_RUNTIME_CLASS(rhythm::SceneManager);
+    GDREGISTER_RUNTIME_CLASS(rhythm::ServerClient);
     GDREGISTER_RUNTIME_CLASS(rhythm::Taiko2);
     GDREGISTER_RUNTIME_CLASS(rhythm::TitleScreen);
     
@@ -41,6 +44,7 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     GDREGISTER_CLASS(rhythm::Audio);
     GDREGISTER_CLASS(rhythm::Constellation);
     GDREGISTER_CLASS(rhythm::Track);
+    GDREGISTER_CLASS(rhythm::UserSession);
 }
 
 void uninitialize_example_module(ModuleInitializationLevel p_level)
