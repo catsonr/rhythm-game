@@ -1,0 +1,6 @@
+<h1>hello from home view!</h1>
+
+<%c++ std::string host = @@.get<std::string>("host"); %>
+<%c++if( !host.empty() ) {%>
+        <h2>host is: [[ host ]]</h2>
+<%c++}%>

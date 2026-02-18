@@ -5,6 +5,8 @@
 #include <godot_cpp/classes/line_edit.hpp>
 #include <godot_cpp/classes/button.hpp>
 
+#include "SceneManager.h"
+
 namespace rhythm
 {
 
@@ -13,14 +15,17 @@ struct UserSessionFactory : public godot::Control
     GDCLASS(UserSessionFactory, Control)
 
 private:
-    godot::VBoxContainer* login_vbox;
-    godot::LineEdit* username_lineedit;
-    godot::LineEdit* password_lineedit;
-    godot::Button* login_button;
+    BXApi* bxapi { nullptr };
+    godot::VBoxContainer* login_vbox { nullptr };
+    godot::LineEdit* username_lineedit { nullptr };
+    godot::LineEdit* password_lineedit { nullptr };
+    godot::Button* login_button { nullptr };
 
 public:
     void _ready() override
     {
+        bxapi = Scene::conjure_ctx(this)->bxapi;
+
         login_vbox = memnew(godot::VBoxContainer);
         add_child(login_vbox);
         
@@ -52,6 +57,8 @@ public:
     {
         godot::String username = username_lineedit->get_text();
         godot::String password = password_lineedit->get_text();
+        
+        bxapi->ping();
     }
     
     /* GETTERS & SETTERS */

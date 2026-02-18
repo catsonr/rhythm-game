@@ -117,18 +117,22 @@ public:
     void _ready() override
     {
         // audio engine 2 stuff
-
         if( audio_engine_2_path.is_empty() ) { godot::print_error("[SceneManager::_ready] a NodePath to AudioEngine2 has not been set. please set one in the inspector!"); return; }
-        
-        godot::Node* node_2 = get_node_or_null(audio_engine_2_path);
-        AudioEngine2* audio_engine_2 = godot::Object::cast_to<rhythm::AudioEngine2>(node_2);
-        
-        if( !audio_engine_2 ) { godot::print_error("[SceneManager::_ready] a path to AudioEngine2 has been set, but is it not an AudioEngine2!"); return; }
+        godot::Node* audio_engine_2_node = get_node_or_null(audio_engine_2_path);
+        AudioEngine2* audio_engine_2 = godot::Object::cast_to<rhythm::AudioEngine2>(audio_engine_2_node);
+        if( !audio_engine_2 ) { godot::print_error("[SceneManager::_ready] a path to AudioEngine2 has been set, but is it not a rhythm::AudioEngine2!"); return; }
         
         ctx.audio_engine_2 = audio_engine_2;
         
+        // bxapi stuff
+        if( bxapi_path.is_empty() ) { godot::print_error("[SceneManager::_ready] a NodePath to BXApi has not been set. please set one in the inspector!"); return; }
+        godot::Node* bxapi_node = get_node_or_null(bxapi_path);
+        BXApi* bxapi = godot::Object::cast_to<rhythm::BXApi>(bxapi_node);
+        if( !bxapi ) { godot::print_error("[SceneManager::_ready] a path to BXApi has been set, but is it not a rhythm::BXApi!"); return; }
+        
+        ctx.bxapi = bxapi;
+        
         // initial scene stuff
-
         if(initial_scene.is_valid()) push_scene(initial_scene, true);
         else godot::print_line("[SceneManager::_ready] no initial scene is set... nothing to do!");
         

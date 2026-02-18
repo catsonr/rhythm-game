@@ -8,9 +8,9 @@ class UserCtrl : public drogon::HttpController<UserCtrl>
 {
 public:
     METHOD_LIST_BEGIN
-        ADD_METHOD_TO(UserCtrl::get, "/users/{id}", drogon::Get);
-        ADD_METHOD_TO(UserCtrl::get_all, "/users", drogon::Get);
-        ADD_METHOD_TO(UserCtrl::create, "/users", drogon::Post);
+        ADD_METHOD_TO(UserCtrl::get, "/users/{id}", drogon::Get, "ApiFilter");
+        ADD_METHOD_TO(UserCtrl::get_all, "/users", drogon::Get, "ApiFilter");
+        ADD_METHOD_TO(UserCtrl::create, "/users", drogon::Post, "ApiFilter");
     METHOD_LIST_END
 
     void get(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback, int id)

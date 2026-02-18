@@ -74,7 +74,7 @@ class UserWebSocketCtrl : public drogon::WebSocketController<UserWebSocketCtrl>
 {
 public:
     WS_PATH_LIST_BEGIN
-        WS_PATH_ADD("/ws", "AuthFilter");
+        WS_PATH_ADD("/ws", "AuthFilter", "ApiFilter");
     WS_PATH_LIST_END
 
     void handleNewMessage(const drogon::WebSocketConnectionPtr &, std::string &&, const drogon::WebSocketMessageType &) override

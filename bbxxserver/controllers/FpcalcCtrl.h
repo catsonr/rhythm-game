@@ -10,7 +10,7 @@ class FpcalcCtrl : public drogon::HttpSimpleController<FpcalcCtrl>
 {
 public:
     PATH_LIST_BEGIN
-        PATH_ADD("/fpcalc", drogon::Post);
+        PATH_ADD("/fpcalc", drogon::Post, "ApiFilter");
     PATH_LIST_END
 
     std::string execute(const std::string& command)

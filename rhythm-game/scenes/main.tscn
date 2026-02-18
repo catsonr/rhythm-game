@@ -43,9 +43,3 @@ offset_right = 40.0
 offset_bottom = 23.0
 text = "sfsdf"
 script = ExtResource("6_7mycd")
-
-[node name="UserSessionFactory" type="UserSessionFactory" parent="CanvasLayer" unique_id=1662795478]
-offset_left = 165.0
-offset_top = 119.0
-offset_right = 499.0
-offset_bottom = 277.0

@@ -8,9 +8,9 @@ class AlbumCtrl : public drogon::HttpController<AlbumCtrl>
 {
 public:
     METHOD_LIST_BEGIN
-        ADD_METHOD_TO(AlbumCtrl::get, "/albums/{id}", drogon::Get);
-        ADD_METHOD_TO(AlbumCtrl::get_all, "/albums", drogon::Get);
-        ADD_METHOD_TO(AlbumCtrl::create, "/albums", drogon::Post);
+        ADD_METHOD_TO(AlbumCtrl::get, "/albums/{id}", drogon::Get, "ApiFilter");
+        ADD_METHOD_TO(AlbumCtrl::get_all, "/albums", drogon::Get, "ApiFilter");
+        ADD_METHOD_TO(AlbumCtrl::create, "/albums", drogon::Post, "ApiFilter");
     METHOD_LIST_END
 
     void get(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback, int id)

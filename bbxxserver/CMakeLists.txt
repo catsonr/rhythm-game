@@ -24,7 +24,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # disable unnecessary drogon targets
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
-set(BUILD_CTL OFF CACHE BOOL "" FORCE)
+#set(BUILD_CTL OFF CACHE BOOL "" FORCE)
 
 add_executable(${PROJECT_NAME} main.cc)
 
@@ -87,13 +87,6 @@ target_sources(${PROJECT_NAME}
 # sqlite3 (assumed to already be installed)
 find_package(SQLite3 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE sqlite3)
-
-# chromapaint
-#set(BUILD_TOOLS OFF CACHE BOOL "" FORCE)
-#set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
-#add_subdirectory(vendored/chromaprint)
-#target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vendored/chromaprint/src)
-#target_link_libraries(${PROJECT_NAME} PRIVATE chromaprint)
 
 # libbcrypt
 add_subdirectory(vendored/libbcrypt)

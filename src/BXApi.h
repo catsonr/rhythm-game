@@ -31,6 +31,24 @@ public:
         websocket_peer.instantiate();
     }
 
+    void _process(double delta) override
+    {
+        websocket_peer->poll();
+
+        godot::WebSocketPeer::State websocket_peer_state = websocket_peer->get_ready_state();
+        if( websocket_peer_state == godot::WebSocketPeer::STATE_OPEN )
+        {
+            if( websocket_peer->get_available_packet_count() > 0 ) godot::print_line("[BXApi::_process] recieved packet(s) from bbxxserver!");
+
+            while( websocket_peer->get_available_packet_count() > 0 )
+            {
+                godot::String packet = websocket_peer->get_packet().get_string_from_utf8();
+                godot::print_line("[BXApi::_process] ws://api.beatboxx.org/ says: " + packet);
+            }
+        }
+        //else godot::print_error("[BXApi::_process] websocket state: " + godot::String::num_uint64(websocket_peer_state));
+    }
+
     void join_lobby()
     {
         if( user_session.is_null() )
@@ -50,16 +68,9 @@ public:
     
     void ping()
     {
-        if( user_session.is_null() )
-        {
-            godot::print_error("[BXApi::ping] cannot ping. no user session set!");
-            return;
-        }
-        
-        godot::Error e = ping_http_request->request("http://api.beatboxx.org/", {}, godot::HTTPClient::METHOD_GET);
+        godot::Error e = ping_http_request->request("http://beatboxx.org/", {}, godot::HTTPClient::METHOD_GET);
         if( e != godot::OK ) godot::print_error("[BXApi::ping] request() returned an error: " + godot::String::num_int64(e));
     }
-    
     void ping_response(int p_result, int p_response_code, const godot::PackedStringArray& p_headers, const godot::PackedByteArray& p_body)
     {
         if( p_response_code == 530 )
@@ -67,25 +78,7 @@ public:
             godot::print_error("[BXApi::ping_response] bbxxserver responded with status code 530. (is the server running?)");
             return;
         }
-        godot::print_line( "[BXApi::ping_response] http://api.beatboxx.org/ says: " + p_body.get_string_from_utf8() + "\twith status code: " + godot::String::num_uint64(p_response_code));
-    }
-    
-    void _process(double delta) override
-    {
-        websocket_peer->poll();
-
-        godot::WebSocketPeer::State websocket_peer_state = websocket_peer->get_ready_state();
-        if( websocket_peer_state == godot::WebSocketPeer::STATE_OPEN )
-        {
-            if( websocket_peer->get_available_packet_count() > 0 ) godot::print_line("[BXApi::_process] recieved packet(s) from bbxxserver!");
-
-            while( websocket_peer->get_available_packet_count() > 0 )
-            {
-                godot::String packet = websocket_peer->get_packet().get_string_from_utf8();
-                godot::print_line("[BXApi::_process] ws://api.beatboxx.org/ says: " + packet);
-            }
-        }
-        //else godot::print_error("[BXApi::_process] websocket state: " + godot::String::num_uint64(websocket_peer_state));
+        godot::print_line( "[BXApi::ping_response] http://beatboxx.org/ says: " + p_body.get_string_from_utf8() + "\n\twith status code: " + godot::String::num_uint64(p_response_code));
     }
     
 protected:

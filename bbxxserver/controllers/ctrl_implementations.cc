@@ -3,6 +3,7 @@
 #include "AuthCtrl.h"
 #include "ChartCtrl.h"
 #include "FpcalcCtrl.h"
+#include "HomeViewCtrl.h"
 #include "TrackCtrl.h"
 #include "UserCtrl.h"
 #include "UserWebSocketCtrl.h"

@@ -8,9 +8,9 @@ class ChartCtrl : public drogon::HttpController<ChartCtrl>
 {
 public:
     METHOD_LIST_BEGIN
-        ADD_METHOD_TO(ChartCtrl::get, "/charts/{id}", drogon::Get);
-        ADD_METHOD_TO(ChartCtrl::get_all, "/charts", drogon::Get);
-        ADD_METHOD_TO(ChartCtrl::create, "/charts", drogon::Post, "AuthFilter");
+        ADD_METHOD_TO(ChartCtrl::get, "/charts/{id}", drogon::Get, "ApiFilter");
+        ADD_METHOD_TO(ChartCtrl::get_all, "/charts", drogon::Get, "ApiFilter");
+        ADD_METHOD_TO(ChartCtrl::create, "/charts", drogon::Post, "ApiFilter", "AuthFilter");
     METHOD_LIST_END
 
     void get(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback, int id)
