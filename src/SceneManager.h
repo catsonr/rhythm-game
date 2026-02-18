@@ -5,8 +5,8 @@
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
 
+#include "BXApi.h"
 #include "AudioEngine2.h"
-#include "ServerClient.h"
 
 namespace rhythm
 {
@@ -21,7 +21,7 @@ struct CTX
 {
     SceneManager* scene_manager;
     AudioEngine2* audio_engine_2 { nullptr };
-    ServerClient* server_client { nullptr };
+    BXApi* bxapi { nullptr };
     godot::Vector4 G { 3, 0, 0, 3 };
 }; // CTX
 
@@ -86,7 +86,7 @@ struct SceneManager : public godot::Node
 
 private:
     godot::NodePath audio_engine_2_path;
-    godot::NodePath server_client_path;
+    godot::NodePath bxapi_path;
     CTX ctx; // this is THE global context!
 
     godot::Ref<godot::PackedScene> initial_scene;
@@ -100,9 +100,9 @@ protected:
         godot::ClassDB::bind_method(godot::D_METHOD("set_audio_engine_2_path", "p_audio_engine_2_path"), &rhythm::SceneManager::set_audio_engine_2_path);
         ADD_PROPERTY(godot::PropertyInfo(godot::Variant::NODE_PATH, "audio_engine_2_path"), "set_audio_engine_2_path", "get_audio_engine_2_path");
 
-        godot::ClassDB::bind_method(godot::D_METHOD("get_server_client_path"), &rhythm::SceneManager::get_server_client_path);
-        godot::ClassDB::bind_method(godot::D_METHOD("set_server_client_path", "p_server_client_path"), &rhythm::SceneManager::set_server_client_path);
-        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::NODE_PATH, "server_client_path"), "set_server_client_path", "get_server_client_path");
+        godot::ClassDB::bind_method(godot::D_METHOD("get_bxapi_path"), &rhythm::SceneManager::get_bxapi_path);
+        godot::ClassDB::bind_method(godot::D_METHOD("set_bxapi_path", "p_bxapi_path"), &rhythm::SceneManager::set_bxapi_path);
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::NODE_PATH, "bxapi_path"), "set_bxapi_path", "get_bxapi_path");
 
         godot::ClassDB::bind_method(godot::D_METHOD("get_G"), &rhythm::SceneManager::get_G);
         godot::ClassDB::bind_method(godot::D_METHOD("set_G", "p_G"), &rhythm::SceneManager::set_G);
@@ -189,8 +189,8 @@ public:
     godot::NodePath get_audio_engine_2_path() const { return audio_engine_2_path; }
     void set_audio_engine_2_path(const godot::NodePath& p_audio_engine_2_path) { audio_engine_2_path = p_audio_engine_2_path; }
 
-    godot::NodePath get_server_client_path() const { return server_client_path; }
-    void set_server_client_path(const godot::NodePath& p_server_client_path) { server_client_path = p_server_client_path; }
+    godot::NodePath get_bxapi_path() const { return bxapi_path; }
+    void set_bxapi_path(const godot::NodePath& p_bxapi_path) { bxapi_path = p_bxapi_path; }
     
     godot::Vector4 get_G() const { return ctx.G; }
     void set_G(const godot::Vector4& p_G) { ctx.G = p_G; }

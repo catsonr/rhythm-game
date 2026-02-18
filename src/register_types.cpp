@@ -4,12 +4,13 @@
 #include "AudioEngine2.h"
 #include "AudioEngine2_Pause_Shader.h"
 #include "BeatEditor.h"
+#include "BXApi.h"
 #include "NoteEditor.h"
 #include "Observatory.h"
 #include "SceneManager.h"
-#include "ServerClient.h"
 #include "Taiko2.h"
 #include "TitleScreen.h"
+#include "UserSessionFactory.h"
 
 // resources
 #include "Album.h"
@@ -31,13 +32,14 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     GDREGISTER_RUNTIME_CLASS(rhythm::AudioEngine2);
     GDREGISTER_RUNTIME_CLASS(rhythm::AudioEngine2_Pause_Shader);
     GDREGISTER_RUNTIME_CLASS(rhythm::BeatEditor);
+    GDREGISTER_RUNTIME_CLASS(rhythm::BXApi);
     GDREGISTER_RUNTIME_CLASS(rhythm::NoteEditor);
     GDREGISTER_RUNTIME_CLASS(rhythm::Observatory);
     GDREGISTER_RUNTIME_CLASS(rhythm::Scene);
     GDREGISTER_RUNTIME_CLASS(rhythm::SceneManager);
-    GDREGISTER_RUNTIME_CLASS(rhythm::ServerClient);
     GDREGISTER_RUNTIME_CLASS(rhythm::Taiko2);
     GDREGISTER_RUNTIME_CLASS(rhythm::TitleScreen);
+    GDREGISTER_RUNTIME_CLASS(rhythm::UserSessionFactory);
     
     // register resources
     GDREGISTER_CLASS(rhythm::Album);

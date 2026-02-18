@@ -2,7 +2,6 @@
 
 [ext_resource type="Audio" uid="uid://dnq6uads5qy54" path="res://resources/Audio/click.tres" id="2_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://dd01cfxsp0sua" path="res://scenes/observatory.tscn" id="2_tbgi4"]
-[ext_resource type="UserSession" uid="uid://diambhgkt4a0u" path="res://resources/new_user_session.tres" id="3_tefeu"]
 [ext_resource type="Material" uid="uid://cfjls20sgqg8g" path="res://shaders/materials/audio_engine_2_pause_shader.tres" id="4_1bvp3"]
 [ext_resource type="Material" uid="uid://cct8sav1iprll" path="res://shaders/materials/CRT.tres" id="5_lquwl"]
 [ext_resource type="Script" uid="uid://0yvhwm24n06y" path="res://fps_label.gd" id="6_7mycd"]
@@ -12,19 +11,14 @@
 [node name="AudioEngine2" type="AudioEngine2" parent="." unique_id=1791835464]
 click = ExtResource("2_1bvp3")
 
+[node name="BXApi" type="BXApi" parent="." unique_id=1393844708]
+
 [node name="SceneManager" type="SceneManager" parent="." unique_id=913746002]
 audio_engine_2_path = NodePath("../AudioEngine2")
-server_client_path = NodePath("../CanvasLayer/ServerClient")
+bxapi_path = NodePath("../BXApi")
 initial_scene = ExtResource("2_tbgi4")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=217961613]
-
-[node name="ServerClient" type="ServerClient" parent="CanvasLayer" unique_id=195453674]
-user_session = ExtResource("3_tefeu")
-offset_left = 537.0
-offset_top = 24.0
-offset_right = 761.0
-offset_bottom = 572.0
 
 [node name="AudioEngine2_Pause_Shader" type="AudioEngine2_Pause_Shader" parent="CanvasLayer" unique_id=1135987157]
 audio_engine_2_path = NodePath("../../AudioEngine2")
@@ -49,3 +43,9 @@ offset_right = 40.0
 offset_bottom = 23.0
 text = "sfsdf"
 script = ExtResource("6_7mycd")
+
+[node name="UserSessionFactory" type="UserSessionFactory" parent="CanvasLayer" unique_id=1662795478]
+offset_left = 165.0
+offset_top = 119.0
+offset_right = 499.0
+offset_bottom = 277.0
