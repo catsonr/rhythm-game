@@ -1,6 +1,35 @@
-<h1>hello from home view!</h1>
-
-<%c++ std::string host = @@.get<std::string>("host"); %>
-<%c++if( !host.empty() ) {%>
-        <h2>host is: [[ host ]]</h2>
-<%c++}%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>BEATBOXX.org</title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="https://unpkg.com/@sakun/system.css" />
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        a {
+            color: #000;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="window" style="width:30rem;">
+        <div class="title-bar"> 
+            <h1 class="title">BEATBOXX Home</h1>
+        </div>
+        <div class="separator"></div>
+        
+        <div class="window-pane">
+            hello world! welcome to the home page for <b>BEATBOXX</b>!
+            <br><br>
+            for download or development, please see <a href="https://github.com/catsonr/rhythm-game">github.com/catsonr/rhythm-game</a>
+            <br><br>
+            this site is still a work in progress, so stay tuned!
+        </div>
+    </div>
+</body>
+</html>
