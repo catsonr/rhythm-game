@@ -13,3 +13,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="LoginWindow" type="LoginWindow" parent="CanvasLayer" unique_id=1659593011]
+offset_left = 53.0
+offset_top = 58.0
+offset_right = 225.0
+offset_bottom = 486.0

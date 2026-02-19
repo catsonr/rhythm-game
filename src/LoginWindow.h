@@ -10,9 +10,9 @@
 namespace rhythm
 {
 
-struct UserSessionFactory : public godot::Control
+struct LoginWindow : public godot::Control
 {
-    GDCLASS(UserSessionFactory, Control)
+    GDCLASS(LoginWindow, Control)
 
 private:
     BXApi* bxapi { nullptr };
@@ -36,11 +36,12 @@ public:
 
         password_lineedit = memnew(godot::LineEdit);
         password_lineedit->set_placeholder("password");
+        password_lineedit->set_secret(true);
         login_vbox->add_child(password_lineedit);
         
         login_button = memnew(godot::Button);
         login_button->set_text("log in!");
-        login_button->connect("pressed", callable_mp(this, &UserSessionFactory::login_button_pressed));
+        login_button->connect("pressed", callable_mp(this, &LoginWindow::login_button_pressed));
         login_vbox->add_child(login_button);
     }
 
@@ -58,13 +59,13 @@ public:
         godot::String username = username_lineedit->get_text();
         godot::String password = password_lineedit->get_text();
         
-        bxapi->ping();
+        if( !username.is_empty() && !password.is_empty() ) bxapi->login(username, password);
     }
     
     /* GETTERS & SETTERS */
 
 protected:
     static void _bind_methods() {}
-}; // UserSessionFactory
+}; // LoginWindow
 
 } // rhythm

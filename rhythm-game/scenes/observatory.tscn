@@ -141,11 +141,3 @@ autoplay = &"pitch_rampup"
 [node name="G_wiggle" type="AnimationPlayer" parent="Camera2D/Observatory" unique_id=1745220394]
 libraries/ = SubResource("AnimationLibrary_uo3h3")
 autoplay = &"G_wiggle"
-
-[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=289013845]
-
-[node name="UserSessionFactory" type="UserSessionFactory" parent="CanvasLayer" unique_id=311443206]
-offset_left = 624.0
-offset_top = 66.0
-offset_right = 767.0
-offset_bottom = 497.0
