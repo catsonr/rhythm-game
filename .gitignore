@@ -8,7 +8,6 @@ Godot.app
 .DS_Store
 
 build/
-demo/
 
 # rhythm game
 rhythm-game/bin/
