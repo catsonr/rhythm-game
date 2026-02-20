@@ -9,6 +9,7 @@
 #include <map>
 
 #include "miniaudio.h"
+#include "ma_vfs_godot.h"
 
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
@@ -25,6 +26,7 @@ struct AudioEngine2 : public godot::Node
 
 private:
     public: ma_engine engine; private:
+    ma_vfs_godot_struct ma_vfs_godot; // see ma_vfs_godot.h
     std::list<ma_sound> sounds;
     
     float volume { 1.0 };
@@ -89,7 +91,10 @@ public:
     void _ready() override
     {
         // miniaudio
-        if( ma_engine_init(NULL, &engine) != MA_SUCCESS )
+        ma_engine_config engine_config = ma_engine_config_init();
+        engine_config.pResourceManagerVFS = (ma_vfs*)&ma_vfs_godot;
+
+        if( ma_engine_init(&engine_config, &engine) != MA_SUCCESS )
         {
             godot::print_error("[AudioEngine2::_ready] failed to initialize miniaudio engine!");
             return;
@@ -168,8 +173,7 @@ public:
             sound = &sounds.back();
         }
         
-        godot::String abs_path = godot::ProjectSettings::get_singleton()->globalize_path(path);
-        godot::CharString abs_path_charstring = abs_path.utf8();
+        godot::CharString path_charstring = godot::String(path).utf8();
 
         // default to async loading, if you need to load the entire sound into memory upfront, use decode_current_track()
         ma_uint32 LOAD_FLAGS = MA_SOUND_FLAG_NO_SPATIALIZATION;
@@ -180,9 +184,9 @@ public:
             godot::print_line("[AudioEngine2::load_sound] loading (decoding) sound in its entirety. (expect a lag spike!)");
         }
 
-        if( ma_sound_init_from_file(&engine, abs_path_charstring.get_data(), LOAD_FLAGS, NULL, NULL, sound) != MA_SUCCESS )
+        if( ma_sound_init_from_file(&engine, path_charstring.get_data(), LOAD_FLAGS, NULL, NULL, sound) != MA_SUCCESS )
         {
-            godot::print_error("[AudioEngine2::load_sound] unable to load ", abs_path, "!");
+            godot::print_error("[AudioEngine2::load_sound] unable to load ", path, "!");
             
             if( at == nullptr ) sounds.pop_back();
             return false;
