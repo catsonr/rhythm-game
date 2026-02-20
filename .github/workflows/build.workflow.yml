@@ -177,9 +177,9 @@ jobs:
         run: |
           mkdir -p release/bin/
           cp -r artifacts/build-*/* release/bin/
-          cd release && zip -r ../beatboxx-gdextension.zip .
-          cd artifacts/game-windows && zip -r ../../BEATBOXX-windows.zip . && cd ../..
-          cd artifacts/game-linux   && tar -czvf ../../BEATBOXX-linux.tar.gz . && cd ../..
+          ( cd release && zip -r ../beatboxx-gdextension.zip . )
+          ( cd artifacts/game-windows && zip -r ../../BEATBOXX-windows.zip . && cd ../.. )
+          ( cd artifacts/game-linux   && tar -czvf ../../BEATBOXX-linux.tar.gz . && cd ../.. )
           cp artifacts/game-macos/BEATBOXX.zip ./BEATBOXX-macos.zip
 
       - name: Create github release
