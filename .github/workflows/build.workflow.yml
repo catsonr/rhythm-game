@@ -1,6 +1,6 @@
 # taken from:
 # https://neogeek.dev/talks/building-a-godot-plugin-with-gdextension/#19
-# and slightly modified w help from gemini
+# and slightly modified w help from gemini, including a full executable export after the libbeatboxx compilation
 
 name: Build Godot Plugin
 
@@ -103,8 +103,59 @@ jobs:
           path: rhythm-game/bin/
           retention-days: 1
 
-  create-release:
+  export-game:
     needs: build-plugin
+    runs-on: ubuntu-latest
+
+    steps:
+        - name: Check out repository
+          uses: actions/checkout@v4.2.2
+
+        - name: Download compiled gdextension binaries 
+          uses: actions/download-artifact@v4.2.1
+          with:
+            path: artifacts
+          
+        - name: Move gdextension binaries into project
+          run: |
+            mkdir -p rhythm-game/bin/
+            cp -r artifacts/*/* rhythm-game/bin
+        
+        - name: Setup headless Godot
+          uses: chickensoft-games/setup-godot@v2
+          with:
+            version: 4.6.1
+            use-dotnet: false
+            include-templates: true
+        
+        - name: Export games!
+          working-directory: rhythm-game
+          run: |
+            mkdir -p exports/windows exports/linux exports/macos
+            godot --headless --export-release "Windows Desktop" exports/windows/BEATBOXX.exe
+            godot --headless --export-release "Linux" exports/linux/BEATBOXX.x86_64
+            godot --headless --export-release "macOS" exports/macos/BEATBOXX.zip
+        
+        - name: Upload Windows export
+          uses: actions/upload-artifact@v4.6.2
+          with:
+            name: game-windows
+            path: rhythm-game/exports/windows/
+        
+        - name: Upload Linux export
+          uses: actions/upload-artifact@v4.6.2
+          with:
+            name: game-linux
+            path: rhythm-game/exports/linux/
+        
+        - name: Upload MacOS export
+          uses: actions/upload-artifact@v4.6.2
+          with:
+            name: game-macos
+            path: rhythm-game/exports/macos/
+
+  create-release:
+    needs: export-game
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
 
@@ -125,9 +176,11 @@ jobs:
       - name: Move artifacts to release directory
         run: |
           mkdir -p release/bin/
-          cp -r artifacts/*/* release/bin/
-          cp rhythm-game/beatboxx.gdextension release/
+          cp -r artifacts/build-*/* release/bin/
           cd release && zip -r ../beatboxx-gdextension.zip .
+          cd artifacts/game-windows && zip -r ../../BEATBOXX-windows.zip . && cd ../..
+          cd artifacts/game-linux   && tar -czvf ../../BEATBOXX-linux.tar.gz . && cd ../..
+          cp artifacts/game-macos/BEATBOXX.zip ./BEATBOXX-macos.zip
 
       - name: Create github release
         uses: softprops/action-gh-release@v1
@@ -138,5 +191,8 @@ jobs:
             prerelease: false
             files: |
                 beatboxx-gdextension.zip
+                BEATBOXX-windows.zip
+                BEATBOXX-linux.tar.gz
+                BEATBOXX-macos.zip
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
