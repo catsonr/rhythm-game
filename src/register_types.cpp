@@ -34,7 +34,6 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     GDREGISTER_RUNTIME_CLASS(rhythm::AudioEngine2_Pause_Shader);
     GDREGISTER_RUNTIME_CLASS(rhythm::BeatEditor);
     GDREGISTER_RUNTIME_CLASS(rhythm::BXApi);
-    GDREGISTER_RUNTIME_CLASS(rhythm::DSPGraph);
     GDREGISTER_RUNTIME_CLASS(rhythm::LoginWindow);
     GDREGISTER_RUNTIME_CLASS(rhythm::NoteEditor);
     GDREGISTER_RUNTIME_CLASS(rhythm::Observatory);
@@ -43,8 +42,10 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     GDREGISTER_RUNTIME_CLASS(rhythm::Taiko2);
     GDREGISTER_RUNTIME_CLASS(rhythm::TitleScreen);
     
-    // register graph nodes
+    // register DSP graph nodes
+    GDREGISTER_RUNTIME_CLASS(rhythm::DSPGraph);
     GDREGISTER_RUNTIME_CLASS(rhythm::dsp::EnvelopeNode::EnvelopeGraphNode);
+    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::LowPassFilterNode::LowPassFilterGraphNode);
     GDREGISTER_RUNTIME_CLASS(rhythm::dsp::OscillatorNode::OscillatorGraphNode);
     GDREGISTER_RUNTIME_CLASS(rhythm::dsp::OutputGraphNode);
     

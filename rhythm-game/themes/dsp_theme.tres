@@ -1,0 +1,6 @@
+[gd_resource type="Theme" format=3 uid="uid://bx66k3sapjg1j"]
+
+[ext_resource type="FontFile" uid="uid://ces0cy66dn554" path="res://fonts/FantasqueSansMono-Regular.ttf" id="1_btt0t"]
+
+[resource]
+default_font = ExtResource("1_btt0t")

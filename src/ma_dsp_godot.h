@@ -41,7 +41,7 @@ struct OscillatorNode
             label->set_text("out");
             add_child(label);
             
-            set_slot(0, false, 0, godot::Color(1, 1, 1), true, 0, godot::Color(1, 1, 0));
+            set_slot(0, false, 0, godot::Color(1, 0, 1), true, 0, godot::Color(0, 1, 1));
         }
         
         OscillatorNode* get_oscillator_node() const { return oscillator_node; }
@@ -195,7 +195,19 @@ struct EnvelopeNode
             label->set_text("in / out");
             add_child(label);
             
-            set_slot(0, true, 0, godot::Color(1, 1, 0), true, 0, godot::Color(1, 1, 0));
+            set_slot(0, true, 0, godot::Color(1, 0, 1), true, 0, godot::Color(0, 1, 1));
+        }
+        
+        void _process(double delta) override
+        {
+            queue_redraw();
+        }
+        
+        void _draw() override
+        {
+            godot::Vector2 size = get_size();
+            
+            if( envelope_node ) draw_rect({ 0, 0, size.x, size.y }, { 0, 0, static_cast<real_t>(envelope_node->current_amplitude), 1});
         }
 
         EnvelopeNode* get_envelope_node() const { return envelope_node; }
@@ -206,15 +218,58 @@ struct EnvelopeNode
     }; // EnvelopeGraphNode
 }; // EnvelopeNode
 
+struct LowPassFilterNode
+{
+    ma_lpf_node node;
+    
+    double cutoff = 200;
+
+    ma_result init(ma_engine* p_engine)
+    {
+        ma_uint32 channels = 2;
+        
+        ma_lpf_node_config node_config = ma_lpf_node_config_init(2, p_engine->sampleRate, cutoff, 4);
+        return ma_lpf_node_init(ma_engine_get_node_graph(p_engine), &node_config, nullptr, &node);
+    }
+
+    struct LowPassFilterGraphNode : public godot::GraphNode
+    {
+        GDCLASS(LowPassFilterGraphNode, godot::GraphNode)
+            
+    private:
+        LowPassFilterNode* lowpassfilter_node;
+    
+    public:
+        void _ready() override
+        {
+            set_title("low pass filter");
+            
+            godot::Label* label = memnew(godot::Label);
+            label->set_text("in / out");
+            add_child(label);
+            
+            set_slot(0, true, 0, godot::Color(1, 0, 1), true, 0, godot::Color(0, 1, 1));
+        }
+        
+        LowPassFilterNode* get_lowpassfilter_node() const { return lowpassfilter_node; }
+        void set_lowpassfilter_node(LowPassFilterNode* p_lowpassfilter_node) { lowpassfilter_node = p_lowpassfilter_node; }
+        
+    protected:
+        static void _bind_methods() {}
+    }; // LowPassFilterGraphNode
+}; // LowPassFilterNode
+
 struct Voice
 {
     OscillatorNode oscillator;
     EnvelopeNode envelope;
+    LowPassFilterNode lowpassfilter;
 
     ma_result init(ma_engine* p_engine)
     {
         oscillator.init(p_engine);
         envelope.init(p_engine);
+        lowpassfilter.init(p_engine);
         
         return MA_SUCCESS;
     }
@@ -233,7 +288,7 @@ public:
         label->set_text("in");
         add_child(label);
         
-        set_slot(0, true, 0, godot::Color(1, 1, 0), false, 0, godot::Color(1, 1, 1));
+        set_slot(0, true, 0, godot::Color(1, 0, 1), false, 0, godot::Color(0, 1, 1));
     }
 
 protected:

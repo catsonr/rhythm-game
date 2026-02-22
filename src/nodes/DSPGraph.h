@@ -38,6 +38,9 @@ public:
 
             rhythm::dsp::EnvelopeNode::EnvelopeGraphNode* env = godot::Object::cast_to<rhythm::dsp::EnvelopeNode::EnvelopeGraphNode>(child);
             if( env ) env->set_envelope_node(&voice->envelope);
+
+            rhythm::dsp::LowPassFilterNode::LowPassFilterGraphNode* lpf = godot::Object::cast_to<rhythm::dsp::LowPassFilterNode::LowPassFilterGraphNode>(child);
+            if( lpf ) lpf->set_lowpassfilter_node(&voice->lowpassfilter);
         }
     }
 
@@ -90,6 +93,9 @@ public:
 
         rhythm::dsp::EnvelopeNode::EnvelopeGraphNode* env = godot::Object::cast_to<rhythm::dsp::EnvelopeNode::EnvelopeGraphNode>(node);
         if( env ) return (ma_node*)&env->get_envelope_node()->node;
+
+        rhythm::dsp::LowPassFilterNode::LowPassFilterGraphNode* lpf = godot::Object::cast_to<rhythm::dsp::LowPassFilterNode::LowPassFilterGraphNode>(node);
+        if( lpf ) return (ma_node*)&lpf->get_lowpassfilter_node()->node;
 
         rhythm::dsp::OutputGraphNode* out = godot::Object::cast_to<rhythm::dsp::OutputGraphNode>(node);
         if( out ) return ma_engine_get_endpoint( &Scene::conjure_ctx(this)->audio_engine_2->engine );
