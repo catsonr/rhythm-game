@@ -1,0 +1,35 @@
+[gd_scene format=3 uid="uid://b76i5soxsqfhg"]
+
+[node name="Scene" type="Scene" unique_id=258822360]
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1396795021]
+
+[node name="DSPGraph" type="DSPGraph" parent="Camera2D" unique_id=2039690826]
+offset_left = -384.0
+offset_top = -282.0
+offset_right = 377.0
+offset_bottom = 274.0
+
+[node name="OscillatorGraphNode" type="OscillatorGraphNode" parent="Camera2D/DSPGraph" unique_id=1899815834]
+layout_mode = 0
+offset_right = 70.0
+offset_bottom = 55.0
+mouse_filter = 1
+
+[node name="EnvelopeGraphNode" type="EnvelopeGraphNode" parent="Camera2D/DSPGraph" unique_id=1350806267]
+layout_mode = 0
+offset_left = 55.0
+offset_top = 123.0
+offset_right = 250.0
+offset_bottom = 178.0
+mouse_filter = 1
+position_offset = Vector2(55, 123)
+
+[node name="OutputGraphNode" type="OutputGraphNode" parent="Camera2D/DSPGraph" unique_id=988567935]
+layout_mode = 0
+offset_left = 247.0
+offset_top = 203.0
+offset_right = 335.0
+offset_bottom = 258.0
+mouse_filter = 1
+position_offset = Vector2(247, 203)

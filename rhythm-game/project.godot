@@ -23,7 +23,6 @@ ShaderHotReloader="*uid://c25f4r5srn1sb"
 
 window/size/viewport_width=800
 window/size/viewport_height=600
-window/size/mode=3
 window/size/always_on_top=true
 window/size/window_width_override=1600
 window/size/window_height_override=1200
