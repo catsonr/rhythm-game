@@ -5,6 +5,7 @@
 #include <godot_cpp/classes/graph_edit.hpp>
 
 #include "SceneManager.h"
+#include "ma_dsp_godot.h"
 
 namespace rhythm
 {
@@ -14,6 +15,9 @@ struct DSPGraph : public godot::GraphEdit
     GDCLASS(DSPGraph, GraphEdit)
 
 private:
+    rhythm::dsp::EnvelopeNode envelope;
+    rhythm::dsp::FilterNode filter;
+    rhythm::dsp::OscillatorNode oscillator;
 
 public:
     void _ready() override
@@ -26,7 +30,10 @@ public:
         connect("connection_request", godot::Callable(this, "on_connection_request"));
         connect("disconnection_request", godot::Callable(this, "on_disconnection_request"));
         
-        rhythm::dsp::Voice* voice = &Scene::conjure_ctx(this)->audio_engine_2->voice;
+        ma_engine& engine = Scene::conjure_ctx(this)->audio_engine_2->engine;
+        envelope.init(&engine);
+        filter.init(&engine);
+        oscillator.init(&engine);
         
         godot::TypedArray<godot::Node> children = get_children();
         for(int i = 0; i < children.size(); i++)
@@ -34,13 +41,13 @@ public:
             godot::Node* child = godot::Object::cast_to<godot::Node>(children[i]);
             
             rhythm::dsp::OscillatorNode::OscillatorGraphNode* osc = godot::Object::cast_to<rhythm::dsp::OscillatorNode::OscillatorGraphNode>(child);
-            if( osc ) osc->set_oscillator_node(&voice->oscillator);
+            if( osc ) osc->set_oscillator_node(&oscillator);
 
             rhythm::dsp::EnvelopeNode::EnvelopeGraphNode* env = godot::Object::cast_to<rhythm::dsp::EnvelopeNode::EnvelopeGraphNode>(child);
-            if( env ) env->set_envelope_node(&voice->envelope);
+            if( env ) env->set_envelope_node(&envelope);
 
-            rhythm::dsp::LowPassFilterNode::LowPassFilterGraphNode* lpf = godot::Object::cast_to<rhythm::dsp::LowPassFilterNode::LowPassFilterGraphNode>(child);
-            if( lpf ) lpf->set_lowpassfilter_node(&voice->lowpassfilter);
+            rhythm::dsp::FilterNode::FilterGraphNode* fil = godot::Object::cast_to<rhythm::dsp::FilterNode::FilterGraphNode>(child);
+            if( fil ) fil->set_filter_node(&filter);
         }
     }
 
@@ -53,8 +60,7 @@ public:
             {
                 case godot::KEY_SPACE:
                 {
-                    Scene::conjure_ctx(this)->audio_engine_2->voice.envelope.play();
-                    
+                    envelope.play();
                     break;
                 }
                 
@@ -67,8 +73,7 @@ public:
             {
                 case godot::KEY_SPACE:
                 {
-                    Scene::conjure_ctx(this)->audio_engine_2->voice.envelope.stop();
-                    
+                    envelope.stop();
                     break;
                 }
                 default: break;
@@ -94,8 +99,8 @@ public:
         rhythm::dsp::EnvelopeNode::EnvelopeGraphNode* env = godot::Object::cast_to<rhythm::dsp::EnvelopeNode::EnvelopeGraphNode>(node);
         if( env ) return (ma_node*)&env->get_envelope_node()->node;
 
-        rhythm::dsp::LowPassFilterNode::LowPassFilterGraphNode* lpf = godot::Object::cast_to<rhythm::dsp::LowPassFilterNode::LowPassFilterGraphNode>(node);
-        if( lpf ) return (ma_node*)&lpf->get_lowpassfilter_node()->node;
+        rhythm::dsp::FilterNode::FilterGraphNode* fil = godot::Object::cast_to<rhythm::dsp::FilterNode::FilterGraphNode>(node);
+        if( fil ) return (ma_node*)&fil->get_filter_node()->node;
 
         rhythm::dsp::OutputGraphNode* out = godot::Object::cast_to<rhythm::dsp::OutputGraphNode>(node);
         if( out ) return ma_engine_get_endpoint( &Scene::conjure_ctx(this)->audio_engine_2->engine );

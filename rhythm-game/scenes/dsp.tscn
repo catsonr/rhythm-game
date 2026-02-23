@@ -40,11 +40,11 @@ offset_bottom = 308.0
 mouse_filter = 1
 position_offset = Vector2(632, 253)
 
-[node name="LowPassFilterGraphNode" type="LowPassFilterGraphNode" parent="Camera2D/DSPGraph" unique_id=1860374638]
+[node name="FilterGraphNode" type="FilterGraphNode" parent="Camera2D/DSPGraph" unique_id=1720461907]
 layout_mode = 0
-offset_left = 216.0
-offset_top = 398.0
-offset_right = 304.0
-offset_bottom = 453.0
+offset_left = 218.0
+offset_top = 368.0
+offset_right = 325.0
+offset_bottom = 417.0
 mouse_filter = 1
-position_offset = Vector2(216, 398)
+position_offset = Vector2(218, 368)

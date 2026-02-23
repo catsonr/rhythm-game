@@ -10,7 +10,6 @@
 
 #include "miniaudio.h"
 #include "ma_vfs_godot.h"
-#include "ma_dsp_godot.h"
 
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
@@ -44,8 +43,6 @@ private:
     // used to keep track of where Conductor was when playing a Track, so that it can be switched back to that position
     // key is the AudioEngine_sounds_index (see Audio.h), and value is the last frame in local time (see Conductor.h)
     std::map<int, int64_t> conductor_positions;
-    
-    public: dsp::Voice voice; private:
 
 protected:
     static void _bind_methods()
@@ -117,9 +114,6 @@ public:
             
             godot::print_line("[AudioEngine2::_ready] initialized with track '", current_track->get_title(), "' @ pitch = ", current_track_pitch);
         }
-        
-        // voice
-        voice.init(&engine);
 
         godot::print_line("[AudioEngine2::_ready] miniaudio initialized : )");
     }

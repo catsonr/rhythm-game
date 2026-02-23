@@ -45,7 +45,7 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     // register DSP graph nodes
     GDREGISTER_RUNTIME_CLASS(rhythm::DSPGraph);
     GDREGISTER_RUNTIME_CLASS(rhythm::dsp::EnvelopeNode::EnvelopeGraphNode);
-    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::LowPassFilterNode::LowPassFilterGraphNode);
+    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::FilterNode::FilterGraphNode);
     GDREGISTER_RUNTIME_CLASS(rhythm::dsp::OscillatorNode::OscillatorGraphNode);
     GDREGISTER_RUNTIME_CLASS(rhythm::dsp::OutputGraphNode);
     
