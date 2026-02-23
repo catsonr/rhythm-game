@@ -7,7 +7,10 @@
 #include "SceneManager.h"
 #include "ma_dsp_godot.h"
 
-namespace rhythm
+#include "Oscillator.h"
+#include "Output.h"
+
+namespace rhythm::dsp
 {
 
 struct DSPGraph : public godot::GraphEdit
@@ -15,9 +18,11 @@ struct DSPGraph : public godot::GraphEdit
     GDCLASS(DSPGraph, GraphEdit)
 
 private:
-    rhythm::dsp::EnvelopeNode envelope;
-    rhythm::dsp::FilterNode filter;
-    rhythm::dsp::OscillatorNode oscillator;
+    rhythm::dsp::OscillatorNode oscillator_node;
+    rhythm::dsp::OscillatorGraphNode* oscillator_graph_node { nullptr };
+
+    rhythm::dsp::OutputNode output_node;
+    rhythm::dsp::OutputGraphNode* output_graph_node { nullptr };
 
 public:
     void _ready() override
@@ -31,24 +36,16 @@ public:
         connect("disconnection_request", godot::Callable(this, "on_disconnection_request"));
         
         ma_engine& engine = Scene::conjure_ctx(this)->audio_engine_2->engine;
-        envelope.init(&engine);
-        filter.init(&engine);
-        oscillator.init(&engine);
         
-        godot::TypedArray<godot::Node> children = get_children();
-        for(int i = 0; i < children.size(); i++)
-        {
-            godot::Node* child = godot::Object::cast_to<godot::Node>(children[i]);
-            
-            rhythm::dsp::OscillatorNode::OscillatorGraphNode* osc = godot::Object::cast_to<rhythm::dsp::OscillatorNode::OscillatorGraphNode>(child);
-            if( osc ) osc->set_oscillator_node(&oscillator);
-
-            rhythm::dsp::EnvelopeNode::EnvelopeGraphNode* env = godot::Object::cast_to<rhythm::dsp::EnvelopeNode::EnvelopeGraphNode>(child);
-            if( env ) env->set_envelope_node(&envelope);
-
-            rhythm::dsp::FilterNode::FilterGraphNode* fil = godot::Object::cast_to<rhythm::dsp::FilterNode::FilterGraphNode>(child);
-            if( fil ) fil->set_filter_node(&filter);
-        }
+        oscillator_node.init(&engine);
+        oscillator_graph_node = memnew(rhythm::dsp::OscillatorGraphNode);
+        oscillator_graph_node->set_dsp_node(&oscillator_node);
+        add_child(oscillator_graph_node);
+        
+        output_node.init(&engine);
+        output_graph_node = memnew(rhythm::dsp::OutputGraphNode);
+        output_graph_node->set_dsp_node(&output_node);
+        add_child(output_graph_node);
     }
 
     void _input(const godot::Ref<godot::InputEvent>& event) override
@@ -60,7 +57,7 @@ public:
             {
                 case godot::KEY_SPACE:
                 {
-                    envelope.play();
+                    //envelope.play();
                     break;
                 }
                 
@@ -73,7 +70,7 @@ public:
             {
                 case godot::KEY_SPACE:
                 {
-                    envelope.stop();
+                    //envelope.stop();
                     break;
                 }
                 default: break;
@@ -81,31 +78,37 @@ public:
         }
     }
     
-    void _draw() override
-    {
-        godot::Vector2 size = get_size();
-
-        draw_rect({ 0, 0, size.x, size.y }, {0, 0, 0, 0.5});
-    }
-    
     ma_node* get_ma_node(const godot::StringName& node_name)
     {
-        godot::Node* node = get_node<godot::Node>(godot::NodePath(node_name));
-        if( !node ) return nullptr;
-
-        rhythm::dsp::OscillatorNode::OscillatorGraphNode* osc = godot::Object::cast_to<rhythm::dsp::OscillatorNode::OscillatorGraphNode>(node);
-        if( osc ) return (ma_node*)&osc->get_oscillator_node()->node;
-
-        rhythm::dsp::EnvelopeNode::EnvelopeGraphNode* env = godot::Object::cast_to<rhythm::dsp::EnvelopeNode::EnvelopeGraphNode>(node);
-        if( env ) return (ma_node*)&env->get_envelope_node()->node;
-
-        rhythm::dsp::FilterNode::FilterGraphNode* fil = godot::Object::cast_to<rhythm::dsp::FilterNode::FilterGraphNode>(node);
-        if( fil ) return (ma_node*)&fil->get_filter_node()->node;
-
-        rhythm::dsp::OutputGraphNode* out = godot::Object::cast_to<rhythm::dsp::OutputGraphNode>(node);
-        if( out ) return ma_engine_get_endpoint( &Scene::conjure_ctx(this)->audio_engine_2->engine );
+        godot::Node* node = get_node_or_null(godot::NodePath(node_name));
+        if( !node )
+        {
+            godot::print_error("[DSPGraph::get_ma_node] node '" + node_name + "' is null!");
+            return nullptr;
+        }
         
-        return nullptr;
+        rhythm::dsp::DSPGraphNode* graph_node = godot::Object::cast_to<rhythm::dsp::DSPGraphNode>(node);
+        if( !graph_node )
+        {
+            godot::print_error("[DSPGraph::get_ma_node] node '" + node_name + "' is not a rhythm::dsp::DSPGraphNode!");
+            return nullptr;
+        }
+        
+        rhythm::dsp::DSPNode* dsp_node = graph_node->get_dsp_node();
+        if( !dsp_node )
+        {
+            godot::print_error("[DSPGraph::get_ma_node] node '" + node_name + "' is a rhythm::dsp::DSPGraphNode, but has no rhythm::dsp::DSPNode dsp_node!");
+            return nullptr;
+        }
+        
+        ma_node* ma_node = dsp_node->get_ma_node();
+        if( !ma_node )
+        {
+            godot::print_error("[DSPGraph::get_ma_node] node '" + node_name + "' has a rhythm::dsp::DSPNode dsp_node, but dsp_node has no ma_node!");
+            return nullptr;
+        }
+        
+        return ma_node;
     }
     
     void on_connection_request(const godot::StringName& from_node, int from_port, const godot::StringName& to_node, int to_port)
@@ -138,4 +141,4 @@ protected:
     }
 }; // DSPGraph
 
-} // rhythm
+} // rhythm::dsp

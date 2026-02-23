@@ -17,6 +17,8 @@
 #include <cassert>
 #include <cmath>
 
+#include <godot_cpp/variant/string.hpp>
+
 #define MA_PI_D M_PI
 #define MA_ASSERT assert
 #define ma_sind std::sin

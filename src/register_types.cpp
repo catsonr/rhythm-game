@@ -5,13 +5,17 @@
 #include "AudioEngine2_Pause_Shader.h"
 #include "BeatEditor.h"
 #include "BXApi.h"
-#include "DSPGraph.h"
 #include "LoginWindow.h"
 #include "NoteEditor.h"
 #include "Observatory.h"
 #include "SceneManager.h"
 #include "Taiko2.h"
 #include "TitleScreen.h"
+
+// dsp nodes
+#include "nodes/dsp/DSPGraph.h"
+#include "nodes/dsp/Oscillator.h"
+#include "nodes/dsp/Output.h"
 
 // resources
 #include "Album.h"
@@ -43,10 +47,9 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     GDREGISTER_RUNTIME_CLASS(rhythm::TitleScreen);
     
     // register DSP graph nodes
-    GDREGISTER_RUNTIME_CLASS(rhythm::DSPGraph);
-    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::EnvelopeNode::EnvelopeGraphNode);
-    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::FilterNode::FilterGraphNode);
-    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::OscillatorNode::OscillatorGraphNode);
+    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::DSPGraph);
+    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::DSPGraphNode);
+    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::OscillatorGraphNode);
     GDREGISTER_RUNTIME_CLASS(rhythm::dsp::OutputGraphNode);
     
     // register resources
