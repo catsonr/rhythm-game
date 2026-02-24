@@ -55,6 +55,19 @@ public:
                     
                     break;
                 }
+                // really lazy way of getting into dsp graph, but it works for now
+                // i guess the observatory one is lazy too...
+                case KEY_D:
+                {
+                    
+                    godot::Ref<godot::PackedScene> dsp_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/dsp.tscn");
+                    if( dsp_scene.is_valid() ) Scene::conjure_ctx(this)->scene_manager->push_scene(dsp_scene, false);
+                    else godot::print_error("[TitleScreen::_input] failed to load dsp scene ...");
+                    
+                    set_visible(false);
+                    
+                    break;
+                }
                 
                 default: break;
             }
