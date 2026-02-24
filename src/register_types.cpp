@@ -14,6 +14,7 @@
 
 // dsp nodes
 #include "nodes/dsp/DSPGraph.h"
+#include "nodes/dsp/Multiplier.h"
 #include "nodes/dsp/Oscillator.h"
 #include "nodes/dsp/Output.h"
 
@@ -49,6 +50,7 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     // register DSP graph nodes
     GDREGISTER_RUNTIME_CLASS(rhythm::dsp::DSPGraph);
     GDREGISTER_RUNTIME_CLASS(rhythm::dsp::DSPGraphNode);
+    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::MultiplierGraphNode);
     GDREGISTER_RUNTIME_CLASS(rhythm::dsp::OscillatorGraphNode);
     GDREGISTER_RUNTIME_CLASS(rhythm::dsp::OutputGraphNode);
     

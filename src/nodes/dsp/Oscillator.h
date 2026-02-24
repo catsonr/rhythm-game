@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 #include "ma_dsp_godot.h"
 
 #include <godot_cpp/classes/label.hpp>
@@ -28,8 +30,8 @@ struct OscillatorNode : public DSPNode
     oscillator_node node;
     
     ma_waveform_type type { ma_waveform_type_sine };
-    double frequency { 440.0 }; // INPUT 0
-    double amplitude { 0.5 }; // INPUT 1
+    std::atomic<double> frequency { 440.0 }; // INPUT 0
+    std::atomic<double> amplitude { 0.5 }; // INPUT 1
     
     ma_result init(ma_engine* p_engine) override
     {
@@ -67,13 +69,11 @@ struct OscillatorNode : public DSPNode
     }
     void set_frequency(double p_frequency)
     {
-        frequency = p_frequency;
-        ma_waveform_set_frequency(&waveform, frequency);
+        frequency.store( p_frequency, std::memory_order_relaxed );
     }
     void set_amplitude(double p_amplitude)
     {
-        amplitude = p_amplitude;
-        ma_waveform_set_amplitude(&waveform, amplitude);
+        amplitude.store( p_amplitude, std::memory_order_relaxed );
     }
 }; // OscillatorNode
 
@@ -141,12 +141,12 @@ public:
     {
         if( !dsp_node ) return;
         
-        const double frequency = ((OscillatorNode*)dsp_node)->frequency;
-        frequency_slider->set_value(frequency);
+        const double frequency = ((OscillatorNode*)dsp_node)->frequency.load(std::memory_order_relaxed);
+        frequency_slider->set_value_no_signal(frequency);
         frequency_label->set_text(godot::String::num_real( frequency ));
 
-        const double amplitude = ((OscillatorNode*)dsp_node)->amplitude;
-        amplitude_slider->set_value(amplitude);
+        const double amplitude = ((OscillatorNode*)dsp_node)->amplitude.load(std::memory_order_relaxed);
+        amplitude_slider->set_value_no_signal(amplitude);
         amplitude_label->set_text(godot::String::num_real( amplitude ));
     }
     
@@ -171,13 +171,12 @@ public:
     }
 
 protected:
-    static void _bind_methods() {} // not being inherited from dsp::DSPGraphNode (??)
+    static void _bind_methods() {}
 }; // OscillatorGraphNode
 
 inline void oscillator_node::process(ma_node* pNode, const float** ppFramesIn, ma_uint32* pFrameCountIn, float** ppFramesOut, ma_uint32* pFrameCountOut)
 {
-    oscillator_node* ma_node = (oscillator_node*)pNode;
-    OscillatorNode* dsp_node = ma_node->parent;
+    OscillatorNode* dsp_node = ((oscillator_node*)pNode)->parent;
     
     float* out = ppFramesOut[0];
     const float* frequency_in = ppFramesIn[0];
@@ -185,18 +184,23 @@ inline void oscillator_node::process(ma_node* pNode, const float** ppFramesIn, m
     
     const ma_uint32 channels = 2;
     
+    const double current_frequency = dsp_node->frequency.load(std::memory_order_relaxed);
+    const double current_amplitude = dsp_node->amplitude.load(std::memory_order_relaxed);
+    
     // add frequency input
     for(ma_uint32 i = 0; i < *pFrameCountOut; i++)
     {
-        // ignores R channel of frequency (intended behavior)
+        double frequency = current_frequency;
         if( frequency_in )
-            ma_waveform_set_frequency(&dsp_node->waveform, dsp_node->frequency + frequency_in[i*channels]*100.); 
-
-        ma_waveform_read_pcm_frames(&dsp_node->waveform, &out[i*channels], 1, nullptr);
+            frequency += frequency_in[i*channels];
+        ma_waveform_set_frequency(&dsp_node->waveform, frequency);
         
+        double amplitude = current_amplitude;
         if( amplitude_in )
-            for(int c = 0; c < channels; c++)
-                out[i*channels + c] *= (1.0 + amplitude_in[i*channels + c]);
+            amplitude *= (1 + amplitude_in[i*channels]);
+        ma_waveform_set_amplitude(&dsp_node->waveform, amplitude);
+        
+        ma_waveform_read_pcm_frames(&dsp_node->waveform, &out[i*channels], 1, nullptr);
     }
     
 }

@@ -7,6 +7,7 @@
 #include "SceneManager.h"
 #include "ma_dsp_godot.h"
 
+#include "Multiplier.h"
 #include "Oscillator.h"
 #include "Output.h"
 
@@ -18,6 +19,9 @@ struct DSPGraph : public godot::GraphEdit
     GDCLASS(DSPGraph, GraphEdit)
 
 private:
+    rhythm::dsp::MultiplierNode multiplier_node;
+    rhythm::dsp::MultiplierGraphNode* multiplier_graph_node { nullptr };
+
     rhythm::dsp::OscillatorNode oscillator_node;
     rhythm::dsp::OscillatorGraphNode* oscillator_graph_node { nullptr };
 
@@ -39,6 +43,11 @@ public:
         connect("disconnection_request", godot::Callable(this, "on_disconnection_request"));
         
         ma_engine& engine = Scene::conjure_ctx(this)->audio_engine_2->engine;
+        
+        multiplier_node.init(&engine);
+        multiplier_graph_node = memnew(rhythm::dsp::MultiplierGraphNode);
+        multiplier_graph_node->set_dsp_node(&multiplier_node);
+        add_child(multiplier_graph_node);
         
         oscillator_node_2.init(&engine);
         oscillator_graph_node_2 = memnew(rhythm::dsp::OscillatorGraphNode);
