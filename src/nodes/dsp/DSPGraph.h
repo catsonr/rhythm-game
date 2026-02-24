@@ -21,6 +21,9 @@ private:
     rhythm::dsp::OscillatorNode oscillator_node;
     rhythm::dsp::OscillatorGraphNode* oscillator_graph_node { nullptr };
 
+    rhythm::dsp::OscillatorNode oscillator_node_2;
+    rhythm::dsp::OscillatorGraphNode* oscillator_graph_node_2 { nullptr };
+
     rhythm::dsp::OutputNode output_node;
     rhythm::dsp::OutputGraphNode* output_graph_node { nullptr };
 
@@ -37,6 +40,11 @@ public:
         
         ma_engine& engine = Scene::conjure_ctx(this)->audio_engine_2->engine;
         
+        oscillator_node_2.init(&engine);
+        oscillator_graph_node_2 = memnew(rhythm::dsp::OscillatorGraphNode);
+        oscillator_graph_node_2->set_dsp_node(&oscillator_node_2);
+        add_child(oscillator_graph_node_2);
+
         oscillator_node.init(&engine);
         oscillator_graph_node = memnew(rhythm::dsp::OscillatorGraphNode);
         oscillator_graph_node->set_dsp_node(&oscillator_node);
