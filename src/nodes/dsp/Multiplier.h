@@ -20,7 +20,7 @@ struct multiplier_node
     
     static void process(ma_node* pNode, const float** ppFramesIn, ma_uint32* pFrameCountIn, float** ppFramesOut, ma_uint32* pFrameCountOut);
     
-    static inline ma_node_vtable vtable { process, nullptr, 1, 1, MA_NODE_FLAG_CONTINUOUS_PROCESSING };
+    static inline ma_node_vtable vtable { process, nullptr, 2, 1, MA_NODE_FLAG_CONTINUOUS_PROCESSING };
 }; // multiplier_node
 
 struct MultiplierNode : public DSPNode
@@ -35,7 +35,7 @@ struct MultiplierNode : public DSPNode
         
         node.parent = this;
         
-        ma_uint32 input_channels[1] { channels };
+        ma_uint32 input_channels[2] { channels, channels };
         ma_uint32 output_channels[1] { channels };
         
         ma_node_config node_config = ma_node_config_init();
@@ -72,13 +72,17 @@ public:
         set_title("multiplier");
         
         set_slot(0, true, 0, dsp::in_color, true, 0, dsp::out_color);
+        godot::Label* label = memnew(godot::Label);
+        label->set_text("in / out");
+        add_child(label);
         
+        set_slot(1, true, 0, dsp::in_color,false, 0, dsp::out_color);
         godot::HBoxContainer* multiplier_hboxcontainer = memnew(godot::HBoxContainer);
         multiplier_slider = memnew(godot::HSlider);
         multiplier_slider->set_h_size_flags(godot::Control::SIZE_EXPAND_FILL);
         multiplier_slider->set_custom_minimum_size({60, 0});
-        multiplier_slider->set_min(0);
-        multiplier_slider->set_max(2000);
+        multiplier_slider->set_min(-200);
+        multiplier_slider->set_max(200);
         multiplier_slider->set_step(1);
         multiplier_slider->connect("value_changed", callable_mp(this, &MultiplierGraphNode::multiplier_slider_value_changed));
         multiplier_hboxcontainer->add_child(multiplier_slider);
@@ -115,14 +119,21 @@ inline void multiplier_node::process(ma_node* pNode, const float** ppFramesIn, m
     const float* in = ppFramesIn[0];
     float* out = ppFramesOut[0];
     
+    const float* multiplier_in = ppFramesIn[1];
+    
     const ma_uint32 channels = 2;
 
     const double current_multiplier = dsp_node->multiplier.load(std::memory_order_relaxed);
     
-    for(ma_uint32 i = 0; i < *pFrameCountOut * channels; i++)
-    {
-        out[i] = in ? in[i]*current_multiplier : 0;
-    }
+    if( in && multiplier_in )
+        for(ma_uint32 i = 0; i < *pFrameCountOut * channels; i++)
+            out[i] = (in[i] + multiplier_in[i]) * current_multiplier;
+    else if( in )
+        for(ma_uint32 i = 0; i < *pFrameCountOut * channels; i++)
+            out[i] = in[i] * current_multiplier;
+    else
+        for(ma_uint32 i = 0; i < *pFrameCountOut * channels; i++)
+            out[i] = 0;
 }
 
 } // rhythm::dsp

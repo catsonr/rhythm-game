@@ -19,17 +19,15 @@ struct DSPGraph : public godot::GraphEdit
     GDCLASS(DSPGraph, GraphEdit)
 
 private:
-    rhythm::dsp::MultiplierNode multiplier_node;
-    rhythm::dsp::MultiplierGraphNode* multiplier_graph_node { nullptr };
-
-    rhythm::dsp::OscillatorNode oscillator_node;
-    rhythm::dsp::OscillatorGraphNode* oscillator_graph_node { nullptr };
-
-    rhythm::dsp::OscillatorNode oscillator_node_2;
-    rhythm::dsp::OscillatorGraphNode* oscillator_graph_node_2 { nullptr };
-
-    rhythm::dsp::OutputNode output_node;
-    rhythm::dsp::OutputGraphNode* output_graph_node { nullptr };
+    dsp::OutputNode output_node;
+    dsp::OutputGraphNode* output_graph_node { nullptr };
+    
+    // dont really like this, and once we are saving patches this should def change / will probably have to change
+    std::vector<dsp::DSPNode*> dsp_nodes;
+    ~DSPGraph()
+    {
+        for( const DSPNode* node : dsp_nodes ) delete node;
+    }
 
 public:
     void _ready() override
@@ -44,20 +42,17 @@ public:
         
         ma_engine& engine = Scene::conjure_ctx(this)->audio_engine_2->engine;
         
-        multiplier_node.init(&engine);
-        multiplier_graph_node = memnew(rhythm::dsp::MultiplierGraphNode);
-        multiplier_graph_node->set_dsp_node(&multiplier_node);
-        add_child(multiplier_graph_node);
-        
-        oscillator_node_2.init(&engine);
-        oscillator_graph_node_2 = memnew(rhythm::dsp::OscillatorGraphNode);
-        oscillator_graph_node_2->set_dsp_node(&oscillator_node_2);
-        add_child(oscillator_graph_node_2);
+        godot::HBoxContainer* hboxcontainer = get_menu_hbox();
 
-        oscillator_node.init(&engine);
-        oscillator_graph_node = memnew(rhythm::dsp::OscillatorGraphNode);
-        oscillator_graph_node->set_dsp_node(&oscillator_node);
-        add_child(oscillator_graph_node);
+        godot::Button* multiplier_button = memnew(godot::Button);
+        multiplier_button->set_text("add multiplier");
+        multiplier_button->connect("pressed", callable_mp(this, &DSPGraph::spawn_multiplier));
+        hboxcontainer->add_child(multiplier_button);
+
+        godot::Button* oscillator_button = memnew(godot::Button);
+        oscillator_button->set_text("add oscillator");
+        oscillator_button->connect("pressed", callable_mp(this, &DSPGraph::spawn_oscillator));
+        hboxcontainer->add_child(oscillator_button);
         
         output_node.init(&engine);
         output_graph_node = memnew(rhythm::dsp::OutputGraphNode);
@@ -104,14 +99,14 @@ public:
             return nullptr;
         }
         
-        rhythm::dsp::DSPGraphNode* graph_node = godot::Object::cast_to<rhythm::dsp::DSPGraphNode>(node);
+        dsp::DSPGraphNode* graph_node = godot::Object::cast_to<rhythm::dsp::DSPGraphNode>(node);
         if( !graph_node )
         {
             godot::print_error("[DSPGraph::get_ma_node] node '" + node_name + "' is not a rhythm::dsp::DSPGraphNode!");
             return nullptr;
         }
         
-        rhythm::dsp::DSPNode* dsp_node = graph_node->get_dsp_node();
+        dsp::DSPNode* dsp_node = graph_node->get_dsp_node();
         if( !dsp_node )
         {
             godot::print_error("[DSPGraph::get_ma_node] node '" + node_name + "' is a rhythm::dsp::DSPGraphNode, but has no rhythm::dsp::DSPNode dsp_node!");
@@ -149,6 +144,27 @@ public:
             disconnect_node(from_node, from_port, to_node, to_port);
         }
     }
+    
+    template<typename DSPNodeType, typename DSPGraphNodeType>
+    void spawn_node()
+    {
+        ma_engine& engine = Scene::conjure_ctx(this)->audio_engine_2->engine;
+        
+        // create new dsp node
+        DSPNodeType* node = new DSPNodeType();
+        node->init(&engine);
+        dsp_nodes.push_back(node);
+        
+        // create corresponding dsp graph node
+        DSPGraphNodeType* graph_node = memnew(DSPGraphNodeType);
+        graph_node->set_dsp_node(node);
+        graph_node->set_position_offset(get_scroll_offset() + 0.5*get_size());
+        add_child(graph_node);
+    }
+    
+    // non-template wrapper functions to be called by godot
+    void spawn_multiplier() { spawn_node<MultiplierNode, MultiplierGraphNode>(); }
+    void spawn_oscillator() { spawn_node<OscillatorNode, OscillatorGraphNode>(); }
 
 protected:
     static void _bind_methods()
