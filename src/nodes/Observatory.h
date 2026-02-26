@@ -196,8 +196,8 @@ public:
 
     void _ready() override
     {
-        audio_engine_2 = Scene::conjure_ctx(this)->audio_engine_2;
-        G = &Scene::conjure_ctx(this)->G;
+        audio_engine_2 = BXCTX::get().audio_engine_2;
+        G = &BXCTX::get().G;
         
         background_shader = memnew(godot::ColorRect);
         background_shader->set_name("background_shader");
@@ -228,6 +228,7 @@ public:
             audio_engine_2->set_current_track(current_constellation->tracks[selected_track_index]);
             audio_engine_2->play_current_track();
         }
+        else godot::print_error("[Observatory::current_constellation] no constellation set! ignoring ...");
     }
     
     void _input(const godot::Ref<godot::InputEvent>& event) override
@@ -278,7 +279,7 @@ public:
                         godot::Ref<godot::PackedScene> chart_editor_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/chart_editor.tscn");
                         if( chart_editor_scene.is_valid() )
                         {
-                            Scene::conjure_ctx(this)->scene_manager->push_scene(chart_editor_scene, false);
+                            BXCTX::get().scene_manager->push_scene(chart_editor_scene, false);
                         }
                         else godot::print_line("[Observatory::_input] failed to load chart editor ...");
 
@@ -289,7 +290,7 @@ public:
                     
                     if( taiko_scene.is_valid() )
                     {
-                        Scene::conjure_ctx(this)->scene_manager->push_scene(taiko_scene, false);
+                        BXCTX::get().scene_manager->push_scene(taiko_scene, false);
                     }
                     else godot::print_line("[Observatory::_input] failed to load taiko ...");
                     
@@ -554,45 +555,17 @@ public:
     
     /* CTX GETTERS & SETTERS (these are used to expose audio_engine_2 pitch and ctx G through Observatory so that they can be animated with AnimationPlayers) */
     
-    godot::Vector4 get_G() const
-    {
-        CTX* ctx = Scene::conjure_ctx(this);
-        
-        if(!ctx)
-        {
-            godot::print_error("[Observatory::get_G] canont get G. failed to conjure ctx!");
-            return godot::Vector4();
-        }
-        
-        return ctx->G;
-    }
-    void set_G(const godot::Vector4& p_G)
-    {
-        CTX* ctx = Scene::conjure_ctx(this);
-        
-        if(!ctx) godot::print_error("[Observatory::set_G] canont set G. failed to conjure ctx!");
-        else ctx->G = p_G;
-    }
+    godot::Vector4 get_G() const { return BXCTX::get().G; }
+    void set_G(const godot::Vector4& p_G) { BXCTX::get().G = p_G; }
     
+    // WARN: need default value even if audio engine is null
+    // this is fine.... since get_pitch and set_pitch only exist to animte with AnimationPlayer anways
     float get_pitch() const
     {
-        CTX* ctx = Scene::conjure_ctx(this);
-        
-        if(!ctx)
-        {
-            godot::print_error("[Observatory::get_pitch] canont get pitch. failed to conjure ctx!");
-            return 1.0;
-        }
-        
-        return ctx->audio_engine_2->get_current_track_pitch();
+        if( !BXCTX::get().audio_engine_2 ) return 1.0;
+        return BXCTX::get().audio_engine_2->get_current_track_pitch();
     }
-    void set_pitch(const float p_pitch)
-    {
-        CTX* ctx = Scene::conjure_ctx(this);
-        
-        if(!ctx) godot::print_error("[Observatory::set_pitch] canont set pitch. failed to conjure ctx!");
-        else ctx->audio_engine_2->set_current_track_pitch(p_pitch);
-    }
+    void set_pitch(const float p_pitch) { BXCTX::get().audio_engine_2->set_current_track_pitch(p_pitch); }
 
 }; // Observatory
 

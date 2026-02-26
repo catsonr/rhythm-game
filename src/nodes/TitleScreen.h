@@ -48,7 +48,7 @@ public:
                 case KEY_ENTER:
                 {
                     godot::Ref<godot::PackedScene> observatory_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/observatory.tscn");
-                    if( observatory_scene.is_valid() ) Scene::conjure_ctx(this)->scene_manager->push_scene(observatory_scene, false);
+                    if( observatory_scene.is_valid() ) BXCTX::get().scene_manager->push_scene(observatory_scene, false);
                     else godot::print_error("[TitleScreen::_input] failed to load observatory scene ...");
                     
                     set_visible(false);
@@ -61,7 +61,7 @@ public:
                 {
                     
                     godot::Ref<godot::PackedScene> dsp_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/dsp.tscn");
-                    if( dsp_scene.is_valid() ) Scene::conjure_ctx(this)->scene_manager->push_scene(dsp_scene, false);
+                    if( dsp_scene.is_valid() ) BXCTX::get().scene_manager->push_scene(dsp_scene, false);
                     else godot::print_error("[TitleScreen::_input] failed to load dsp scene ...");
                     
                     set_visible(false);

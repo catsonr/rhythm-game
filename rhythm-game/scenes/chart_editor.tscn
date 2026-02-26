@@ -1,8 +1,6 @@
 [gd_scene format=3 uid="uid://t1v6dh4j20vm"]
 
-[node name="Scene" type="Scene" unique_id=773916001]
-offset_right = 40.0
-offset_bottom = 40.0
+[node name="Node" type="Node" unique_id=279815454]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1987677889]
 

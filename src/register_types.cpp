@@ -43,7 +43,6 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     GDREGISTER_RUNTIME_CLASS(rhythm::LoginWindow);
     GDREGISTER_RUNTIME_CLASS(rhythm::NoteEditor);
     GDREGISTER_RUNTIME_CLASS(rhythm::Observatory);
-    GDREGISTER_RUNTIME_CLASS(rhythm::Scene);
     GDREGISTER_RUNTIME_CLASS(rhythm::SceneManager);
     GDREGISTER_RUNTIME_CLASS(rhythm::Taiko2);
     GDREGISTER_RUNTIME_CLASS(rhythm::TitleScreen);

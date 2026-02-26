@@ -40,7 +40,7 @@ public:
         connect("connection_request", callable_mp(this, &DSPGraphEdit::on_connection_request));
         connect("disconnection_request", callable_mp(this, &DSPGraphEdit::on_disconnection_request));
         
-        ma_engine& engine = Scene::conjure_ctx(this)->audio_engine_2->engine;
+        ma_engine& engine = BXCTX::get().audio_engine_2->engine;
         
         godot::HBoxContainer* hboxcontainer = get_menu_hbox();
 
@@ -148,7 +148,7 @@ public:
     template<typename DSPNodeType, typename DSPGraphEditNodeType>
     void spawn_node()
     {
-        ma_engine& engine = Scene::conjure_ctx(this)->audio_engine_2->engine;
+        ma_engine& engine = BXCTX::get().audio_engine_2->engine;
         
         // create new dsp node
         DSPNodeType* node = new DSPNodeType();

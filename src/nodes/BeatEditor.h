@@ -49,7 +49,7 @@ private:
 public:
     void _ready() override
     {
-        audio_engine_2 = Scene::conjure_ctx(this)->audio_engine_2;
+        audio_engine_2 = BXCTX::get().audio_engine_2;
         
         if( audio_engine_2->current_track.is_valid() )
         {
@@ -153,7 +153,7 @@ public:
                 case godot::KEY_ESCAPE:
                 {
                     audio_engine_2->conductor.set_beats(ma_engine_get_time_in_pcm_frames(&audio_engine_2->engine), audio_engine_2->current_track->get_beats());
-                    Scene::conjure_ctx(this)->scene_manager->pop_scene();
+                    BXCTX::get().scene_manager->pop_scene();
                     break;
                 }
                 case godot::KEY_SPACE:

@@ -41,7 +41,7 @@ public:
     {
         set_clip_contents(true);
 
-        audio_engine_2 = Scene::conjure_ctx(this)->audio_engine_2;
+        audio_engine_2 = BXCTX::get().audio_engine_2;
         
         track = audio_engine_2->get_current_track();
         godot::print_line("[Taiko2::_ready] starting w current track '" + track->get_title() + "'!");
@@ -87,7 +87,7 @@ public:
             {
                 case godot::KEY_BACKSPACE:
                 {
-                    Scene::conjure_ctx(this)->scene_manager->pop_scene();
+                    BXCTX::get().scene_manager->pop_scene();
                     break;
                 }
                 case godot::KEY_SPACE:

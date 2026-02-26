@@ -24,7 +24,7 @@ private:
 public:
     void _ready() override
     {
-        bxapi = Scene::conjure_ctx(this)->bxapi;
+        bxapi = BXCTX::get().bxapi;
 
         login_vbox = memnew(godot::VBoxContainer);
         add_child(login_vbox);

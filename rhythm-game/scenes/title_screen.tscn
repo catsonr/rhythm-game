@@ -2,7 +2,7 @@
 
 [ext_resource type="Material" uid="uid://dh4l0dp0escog" path="res://shaders/materials/title_screen_bg.tres" id="1_fgkus"]
 
-[node name="TitleScreen" type="Scene" unique_id=41387182]
+[node name="Node" type="Node" unique_id=1293167386]
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1830783911]
 

@@ -52,7 +52,7 @@ private:
 public:
     void _ready() override
     {
-        audio_engine_2 = Scene::conjure_ctx(this)->audio_engine_2;
+        audio_engine_2 = BXCTX::get().audio_engine_2;
         
         if( audio_engine_2->current_track.is_valid() )
         {
