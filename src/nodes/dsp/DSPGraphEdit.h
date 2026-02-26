@@ -14,9 +14,9 @@
 namespace rhythm::dsp
 {
 
-struct DSPGraph : public godot::GraphEdit
+struct DSPGraphEdit : public godot::GraphEdit
 {
-    GDCLASS(DSPGraph, GraphEdit)
+    GDCLASS(DSPGraphEdit, GraphEdit)
 
 private:
     dsp::OutputNode output_node;
@@ -24,7 +24,7 @@ private:
     
     // dont really like this, and once we are saving patches this should def change / will probably have to change
     std::vector<dsp::DSPNode*> dsp_nodes;
-    ~DSPGraph()
+    ~DSPGraphEdit()
     {
         for( const DSPNode* node : dsp_nodes ) delete node;
     }
@@ -37,8 +37,8 @@ public:
         set_show_arrange_button(false);
         set_show_grid_buttons(false);
 
-        connect("connection_request", godot::Callable(this, "on_connection_request"));
-        connect("disconnection_request", godot::Callable(this, "on_disconnection_request"));
+        connect("connection_request", callable_mp(this, &DSPGraphEdit::on_connection_request));
+        connect("disconnection_request", callable_mp(this, &DSPGraphEdit::on_disconnection_request));
         
         ma_engine& engine = Scene::conjure_ctx(this)->audio_engine_2->engine;
         
@@ -46,12 +46,12 @@ public:
 
         godot::Button* multiplier_button = memnew(godot::Button);
         multiplier_button->set_text("add multiplier");
-        multiplier_button->connect("pressed", callable_mp(this, &DSPGraph::spawn_multiplier));
+        multiplier_button->connect("pressed", callable_mp(this, &DSPGraphEdit::spawn_multiplier));
         hboxcontainer->add_child(multiplier_button);
 
         godot::Button* oscillator_button = memnew(godot::Button);
         oscillator_button->set_text("add oscillator");
-        oscillator_button->connect("pressed", callable_mp(this, &DSPGraph::spawn_oscillator));
+        oscillator_button->connect("pressed", callable_mp(this, &DSPGraphEdit::spawn_oscillator));
         hboxcontainer->add_child(oscillator_button);
         
         output_node.init(&engine);
@@ -95,28 +95,28 @@ public:
         godot::Node* node = get_node_or_null(godot::NodePath(node_name));
         if( !node )
         {
-            godot::print_error("[DSPGraph::get_ma_node] node '" + node_name + "' is null!");
+            godot::print_error("[DSPGraphEdit::get_ma_node] node '" + node_name + "' is null!");
             return nullptr;
         }
         
         dsp::DSPGraphNode* graph_node = godot::Object::cast_to<rhythm::dsp::DSPGraphNode>(node);
         if( !graph_node )
         {
-            godot::print_error("[DSPGraph::get_ma_node] node '" + node_name + "' is not a rhythm::dsp::DSPGraphNode!");
+            godot::print_error("[DSPGraphEdit::get_ma_node] node '" + node_name + "' is not a rhythm::dsp::DSPGraphEditNode!");
             return nullptr;
         }
         
         dsp::DSPNode* dsp_node = graph_node->get_dsp_node();
         if( !dsp_node )
         {
-            godot::print_error("[DSPGraph::get_ma_node] node '" + node_name + "' is a rhythm::dsp::DSPGraphNode, but has no rhythm::dsp::DSPNode dsp_node!");
+            godot::print_error("[DSPGraphEdit::get_ma_node] node '" + node_name + "' is a rhythm::dsp::DSPGraphEditNode, but has no rhythm::dsp::DSPNode dsp_node!");
             return nullptr;
         }
         
         ma_node* ma_node = dsp_node->get_ma_node();
         if( !ma_node )
         {
-            godot::print_error("[DSPGraph::get_ma_node] node '" + node_name + "' has a rhythm::dsp::DSPNode dsp_node, but dsp_node has no ma_node!");
+            godot::print_error("[DSPGraphEdit::get_ma_node] node '" + node_name + "' has a rhythm::dsp::DSPNode dsp_node, but dsp_node has no ma_node!");
             return nullptr;
         }
         
@@ -145,7 +145,7 @@ public:
         }
     }
     
-    template<typename DSPNodeType, typename DSPGraphNodeType>
+    template<typename DSPNodeType, typename DSPGraphEditNodeType>
     void spawn_node()
     {
         ma_engine& engine = Scene::conjure_ctx(this)->audio_engine_2->engine;
@@ -156,7 +156,7 @@ public:
         dsp_nodes.push_back(node);
         
         // create corresponding dsp graph node
-        DSPGraphNodeType* graph_node = memnew(DSPGraphNodeType);
+        DSPGraphEditNodeType* graph_node = memnew(DSPGraphEditNodeType);
         graph_node->set_dsp_node(node);
         graph_node->set_position_offset(get_scroll_offset() + 0.5*get_size());
         add_child(graph_node);
@@ -169,9 +169,9 @@ public:
 protected:
     static void _bind_methods()
     {
-        godot::ClassDB::bind_method(godot::D_METHOD("on_connection_request", "from_node", "from_port", "to_node", "to_port"), &DSPGraph::on_connection_request);
-        godot::ClassDB::bind_method(godot::D_METHOD("on_disconnection_request", "from_node", "from_port", "to_node", "to_port"), &DSPGraph::on_disconnection_request);
+        godot::ClassDB::bind_method(godot::D_METHOD("on_connection_request", "from_node", "from_port", "to_node", "to_port"), &DSPGraphEdit::on_connection_request);
+        godot::ClassDB::bind_method(godot::D_METHOD("on_disconnection_request", "from_node", "from_port", "to_node", "to_port"), &DSPGraphEdit::on_disconnection_request);
     }
-}; // DSPGraph
+}; // DSPGraphEdit
 
 } // rhythm::dsp

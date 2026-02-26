@@ -1,14 +1,12 @@
 [gd_scene format=3 uid="uid://b76i5soxsqfhg"]
 
-[ext_resource type="Theme" uid="uid://bx66k3sapjg1j" path="res://themes/dsp_theme.tres" id="1_pi36y"]
-
 [node name="Scene" type="Scene" unique_id=258822360]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1396795021]
 
-[node name="DSPGraph" type="DSPGraph" parent="Camera2D" unique_id=2039690826]
-offset_left = -384.0
-offset_top = -282.0
-offset_right = 377.0
-offset_bottom = 274.0
-theme = ExtResource("1_pi36y")
+[node name="DSPGraphEdit" type="DSPGraphEdit" parent="Camera2D" unique_id=215252477]
+offset_left = -400.0
+offset_top = -300.0
+offset_right = 400.0
+offset_bottom = 300.0
+scroll_offset = Vector2(-50, -152)
