@@ -5,7 +5,7 @@
 #include <godot_cpp/classes/line_edit.hpp>
 #include <godot_cpp/classes/button.hpp>
 
-#include "SceneManager.h"
+#include "nodes/sm/SceneMachine.h"
 
 namespace rhythm
 {

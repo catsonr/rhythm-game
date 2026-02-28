@@ -3,7 +3,6 @@
 [ext_resource type="Track" uid="uid://behedd25vk1kg" path="res://resources/Tracks/lovers_desk_speakers.tres" id="1_vjk6d"]
 [ext_resource type="Track" uid="uid://c4mtkdvja1e7n" path="res://resources/Tracks/basement_wired_xm4.tres" id="2_h5uus"]
 [ext_resource type="Track" uid="uid://bs1mot2ju741p" path="res://resources/Tracks/harness_wired_xm4.tres" id="3_2poae"]
-[ext_resource type="Track" uid="uid://cft5aeootvand" path="res://resources/Tracks/rule_desk_speakers.tres" id="3_h5uus"]
 
 [resource]
-tracks = Array[Track]([ExtResource("1_vjk6d"), ExtResource("2_h5uus"), ExtResource("3_2poae"), ExtResource("3_h5uus")])
+tracks = Array[Track]([ExtResource("1_vjk6d"), ExtResource("2_h5uus"), ExtResource("3_2poae")])

@@ -14,7 +14,8 @@
 #include <godot_cpp/classes/h_slider.hpp>
 #include <godot_cpp/classes/check_box.hpp>
 
-#include "SceneManager.h"
+#include "nodes/sm/SceneMachine.h"
+#include "nodes/AudioEngine2.h"
 
 namespace rhythm
 {
@@ -150,10 +151,11 @@ public:
 
             switch( key_event->get_physical_keycode() )
             {
-                case godot::KEY_ESCAPE:
+                case godot::KEY_BACKSPACE:
                 {
                     audio_engine_2->conductor.set_beats(ma_engine_get_time_in_pcm_frames(&audio_engine_2->engine), audio_engine_2->current_track->get_beats());
-                    BXCTX::get().scene_manager->pop_scene();
+                    sm::SceneMachine* sm = sm::BXScene::get_machine(this);
+                    if( sm ) sm->pop_scene();
                     break;
                 }
                 case godot::KEY_SPACE:
@@ -269,7 +271,7 @@ public:
                 draw_rect({ next_beat_rect_pos.x, next_beat_rect_pos.y, next_beat_rect_size.x, next_beat_rect_size.y }, beats_highlight_color);
 
                 draw_line({(float)beat_x, h/2 - beat_line_height - current_beat_height_increase}, {(float)beat_x, h/2 + beat_line_height + current_beat_height_increase}, beats_color, 2.5);
-                draw_string(get_theme_default_font(), { (float)beat_x, h/2 + beat_line_height + current_beat_height_increase }, godot::String::num_int64(i), HORIZONTAL_ALIGNMENT_CENTER);
+                draw_string(get_theme_default_font(), { (float)beat_x, h/2 + beat_line_height + current_beat_height_increase }, godot::String::num_int64(i), godot::HORIZONTAL_ALIGNMENT_CENTER);
             }
             else draw_line({(float)beat_x, h/2 - beat_line_height }, {(float)beat_x, h/2 + beat_line_height }, beats_color, 1.5);
 

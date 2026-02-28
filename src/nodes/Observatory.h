@@ -9,11 +9,17 @@
 #include <godot_cpp/classes/image_texture.hpp>
 #include <godot_cpp/classes/rich_text_label.hpp>
 #include <godot_cpp/classes/input.hpp>
+#include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/input_event_mouse.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 
-#include "SceneManager.h"
+#include "BXCTX.h"
+#include "nodes/sm/SceneMachine.h"
+
+#include "nodes/AudioEngine2.h"
+#include "resources/Track.h"
+#include "resources/Album.h"
 
 namespace rhythm
 {
@@ -171,11 +177,11 @@ public:
     {
         godot::ClassDB::bind_method(godot::D_METHOD("get_background_shader_material"), &rhythm::Observatory::get_background_shader_material);
         godot::ClassDB::bind_method(godot::D_METHOD("set_background_shader_material", "p_background_shader_material"), &rhythm::Observatory::set_background_shader_material);
-        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "background_shader_material", PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_background_shader_material", "get_background_shader_material");
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "background_shader_material", godot::PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_background_shader_material", "get_background_shader_material");
 
         godot::ClassDB::bind_method(godot::D_METHOD("get_adjacency_shader_material"), &rhythm::Observatory::get_adjacency_shader_material);
         godot::ClassDB::bind_method(godot::D_METHOD("set_adjacency_shader_material", "p_adjacency_shader_material"), &rhythm::Observatory::set_adjacency_shader_material);
-        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "adjacency_shader_material", PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_adjacency_shader_material", "get_adjacency_shader_material");
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "adjacency_shader_material", godot::PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_adjacency_shader_material", "get_adjacency_shader_material");
 
         godot::ClassDB::bind_method(godot::D_METHOD("get_scale"), &rhythm::Observatory::get_scale);
         godot::ClassDB::bind_method(godot::D_METHOD("set_scale", "p_scale"), &rhythm::Observatory::set_scale);
@@ -279,7 +285,8 @@ public:
                         godot::Ref<godot::PackedScene> chart_editor_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/chart_editor.tscn");
                         if( chart_editor_scene.is_valid() )
                         {
-                            BXCTX::get().scene_manager->push_scene(chart_editor_scene, false);
+                            sm::SceneMachine* sm = sm::BXScene::get_machine(this);
+                            if( sm ) sm->push_scene(chart_editor_scene);
                         }
                         else godot::print_line("[Observatory::_input] failed to load chart editor ...");
 
@@ -290,22 +297,26 @@ public:
                     
                     if( taiko_scene.is_valid() )
                     {
-                        BXCTX::get().scene_manager->push_scene(taiko_scene, false);
+                        sm::SceneMachine* sm = sm::BXScene::get_machine(this);
+                        if( sm ) sm->push_scene(taiko_scene);
                     }
                     else godot::print_line("[Observatory::_input] failed to load taiko ...");
                     
                     break;
                 }
-                
-                default: break;
-            }
-        }
-        else if(key_event.is_valid() && key_event->is_released())
-        {
-            switch(key_event->get_physical_keycode())
-            {
-                case godot::KEY_J:
+                case godot::KEY_ESCAPE:
                 {
+                    godot::Ref<godot::PackedScene> title_screen_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/title_screen.tscn");
+                    if( title_screen_scene.is_valid() )
+                    {
+                        sm::SceneMachine* sm = sm::BXScene::get_machine(this);
+                        if( sm )
+                        {
+                            audio_engine_2->pause_current_track();
+                            sm->enter_scene(title_screen_scene);
+                        }
+                    }
+
                     break;
                 }
                 
@@ -565,7 +576,11 @@ public:
         if( !BXCTX::get().audio_engine_2 ) return 1.0;
         return BXCTX::get().audio_engine_2->get_current_track_pitch();
     }
-    void set_pitch(const float p_pitch) { BXCTX::get().audio_engine_2->set_current_track_pitch(p_pitch); }
+    void set_pitch(const float p_pitch)
+    {
+        if( !BXCTX::get().audio_engine_2 ) return;
+        BXCTX::get().audio_engine_2->set_current_track_pitch(p_pitch);
+    }
 
 }; // Observatory
 

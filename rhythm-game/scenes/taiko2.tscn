@@ -2,7 +2,7 @@
 
 [ext_resource type="Theme" uid="uid://c0tisnkem074e" path="res://themes/taiko2_default_font.tres" id="1_agyfk"]
 
-[node name="Node" type="Node" unique_id=1802059820]
+[node name="BXScene" type="BXScene" unique_id=1476989756]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=879758574]
 

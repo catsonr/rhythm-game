@@ -8,7 +8,6 @@
 #include "LoginWindow.h"
 #include "NoteEditor.h"
 #include "Observatory.h"
-#include "SceneManager.h"
 #include "Taiko2.h"
 #include "TitleScreen.h"
 
@@ -18,6 +17,10 @@
 #include "nodes/dsp/Multiplier.h"
 #include "nodes/dsp/Oscillator.h"
 #include "nodes/dsp/Output.h"
+
+// sm nodes
+#include "nodes/sm/BXScene.h"
+#include "nodes/sm/SceneMachine.h"
 
 // resources
 #include "Album.h"
@@ -43,17 +46,20 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     GDREGISTER_RUNTIME_CLASS(rhythm::LoginWindow);
     GDREGISTER_RUNTIME_CLASS(rhythm::NoteEditor);
     GDREGISTER_RUNTIME_CLASS(rhythm::Observatory);
-    GDREGISTER_RUNTIME_CLASS(rhythm::SceneManager);
     GDREGISTER_RUNTIME_CLASS(rhythm::Taiko2);
     GDREGISTER_RUNTIME_CLASS(rhythm::TitleScreen);
     
     // register DSP graph nodes
     GDREGISTER_RUNTIME_CLASS(rhythm::dsp::DSPGraphEdit);
-    //GDREGISTER_RUNTIME_CLASS(rhythm::dsp::DSPGraphEditor);
+    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::DSPGraphEditor);
     GDREGISTER_RUNTIME_CLASS(rhythm::dsp::DSPGraphNode);
     GDREGISTER_RUNTIME_CLASS(rhythm::dsp::MultiplierGraphNode);
     GDREGISTER_RUNTIME_CLASS(rhythm::dsp::OscillatorGraphNode);
     GDREGISTER_RUNTIME_CLASS(rhythm::dsp::OutputGraphNode);
+    
+    // register SM nodes
+    GDREGISTER_RUNTIME_CLASS(rhythm::sm::BXScene);
+    GDREGISTER_RUNTIME_CLASS(rhythm::sm::SceneMachine);
     
     // register resources
     GDREGISTER_CLASS(rhythm::Album);

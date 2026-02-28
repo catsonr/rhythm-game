@@ -4,9 +4,15 @@
 #include <algorithm>
 
 #include <godot_cpp/classes/control.hpp>
+#include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/input_event_mouse_motion.hpp>
+#include <godot_cpp/classes/input_event_mouse_button.hpp>
+#include <godot_cpp/classes/resource_saver.hpp>
 
-#include "SceneManager.h"
+#include "nodes/AudioEngine2.h"
+#include "nodes/sm/SceneMachine.h"
+
+#include "resources/Track.h"
 
 namespace rhythm
 {

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://t1v6dh4j20vm"]
 
-[node name="Node" type="Node" unique_id=279815454]
+[node name="BXScene" type="BXScene" unique_id=618131487]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1987677889]
 

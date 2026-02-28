@@ -4,8 +4,13 @@
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/rich_text_label.hpp>
+#include <godot_cpp/classes/input_event_key.hpp>
 
-#include "SceneManager.h"
+#include "BXCTX.h"
+#include "nodes/sm/SceneMachine.h"
+#include "nodes/AudioEngine2.h"
+
+#include "resources/Track.h"
 
 namespace rhythm
 {
@@ -87,7 +92,8 @@ public:
             {
                 case godot::KEY_BACKSPACE:
                 {
-                    BXCTX::get().scene_manager->pop_scene();
+                    sm::SceneMachine* sm = sm::BXScene::get_machine(this);
+                    if( sm ) sm->pop_scene();
                     break;
                 }
                 case godot::KEY_SPACE:

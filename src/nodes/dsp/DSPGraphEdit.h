@@ -4,9 +4,9 @@
 #include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/graph_edit.hpp>
 
-#include "SceneManager.h"
-#include "ma_dsp_godot.h"
+#include "nodes/sm/SceneMachine.h"
 
+#include "ma_dsp_godot.h"
 #include "Multiplier.h"
 #include "Oscillator.h"
 #include "Output.h"

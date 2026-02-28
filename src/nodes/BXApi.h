@@ -4,7 +4,9 @@
 #include <godot_cpp/classes/web_socket_peer.hpp>
 #include <godot_cpp/classes/json.hpp>
 
-#include "SceneManager.h"
+#include "BXCTX.h"
+#include "nodes/sm/SceneMachine.h"
+
 #include "UserSession.h"
 
 namespace rhythm
@@ -38,6 +40,9 @@ public:
         websocket_peer.instantiate();
         
         user_session.instantiate();
+        
+        // and finally, set BXCTX
+        BXCTX::get().bxapi = this;
     }
 
     void _process(double delta) override

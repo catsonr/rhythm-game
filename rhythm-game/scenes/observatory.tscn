@@ -116,7 +116,7 @@ _data = {
 &"RESET": SubResource("Animation_wlaah")
 }
 
-[node name="Node" type="Node" unique_id=1729835355]
+[node name="BXScene" type="BXScene" unique_id=156898662]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1342612827]
 

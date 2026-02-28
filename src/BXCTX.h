@@ -2,17 +2,15 @@
 
 #include <godot_cpp/variant/vector4.hpp>
 
-#include "BXApi.h"
-#include "AudioEngine2.h"
-
 namespace rhythm
 {
 
-struct SceneManager; // forward declare for BXCTX
+// forward declarations
+struct AudioEngine2;
+struct BXApi;
 
 struct BXCTX
 {
-    SceneManager* scene_manager { nullptr };
     AudioEngine2* audio_engine_2 { nullptr };
     BXApi* bxapi { nullptr };
 

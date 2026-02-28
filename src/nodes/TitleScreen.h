@@ -5,7 +5,7 @@
 #include <godot_cpp/classes/shader_material.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 
-#include "SceneManager.h"
+#include "nodes/sm/SceneMachine.h"
 
 namespace rhythm
 {
@@ -48,23 +48,22 @@ public:
                 case KEY_ENTER:
                 {
                     godot::Ref<godot::PackedScene> observatory_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/observatory.tscn");
-                    if( observatory_scene.is_valid() ) BXCTX::get().scene_manager->push_scene(observatory_scene, false);
-                    else godot::print_error("[TitleScreen::_input] failed to load observatory scene ...");
-                    
-                    set_visible(false);
+                    if( observatory_scene.is_valid() )
+                    {
+                        sm::SceneMachine* sm = sm::BXScene::get_machine(this);
+                        if( sm ) sm->enter_scene(observatory_scene);
+                    }
                     
                     break;
                 }
-                // really lazy way of getting into dsp graph, but it works for now
-                // i guess the observatory one is lazy too...
                 case KEY_D:
                 {
-                    
                     godot::Ref<godot::PackedScene> dsp_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/dsp.tscn");
-                    if( dsp_scene.is_valid() ) BXCTX::get().scene_manager->push_scene(dsp_scene, false);
-                    else godot::print_error("[TitleScreen::_input] failed to load dsp scene ...");
-                    
-                    set_visible(false);
+                    if( dsp_scene.is_valid() )
+                    {
+                        sm::SceneMachine* sm = sm::BXScene::get_machine(this);
+                        if( sm ) sm->enter_scene(dsp_scene);
+                    }
                     
                     break;
                 }

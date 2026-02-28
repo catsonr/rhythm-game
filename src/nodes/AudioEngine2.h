@@ -14,6 +14,7 @@
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
 
+#include "BXCTX.h"
 #include "Track.h"
 #include "Conductor.h"
 
@@ -115,7 +116,8 @@ public:
             godot::print_line("[AudioEngine2::_ready] initialized with track '", current_track->get_title(), "' @ pitch = ", current_track_pitch);
         }
 
-        godot::print_line("[AudioEngine2::_ready] miniaudio initialized : )");
+        // and finally, set BXCTX
+        BXCTX::get().audio_engine_2 = this;
     }
     
     void _process(double delta) override
