@@ -1,34 +1,23 @@
 #pragma once
 
-#include <godot_cpp/classes/control.hpp>
-#include <godot_cpp/classes/color_rect.hpp>
-#include <godot_cpp/classes/shader_material.hpp>
-#include <godot_cpp/classes/resource_loader.hpp>
-
 #include "nodes/sm/SceneMachine.h"
 
-namespace rhythm
+namespace rhythm::sm
 {
 
-struct TitleScreen : public godot::Control
+struct TitleScreen : public sm::BXScene
 {
-    GDCLASS(TitleScreen, Control)
+    GDCLASS(TitleScreen, sm::BXScene)
 
 private:
     godot::ColorRect* bg_shader { nullptr };
     godot::Ref<godot::ShaderMaterial> bg_shader_material;
 
-protected:
-    static void _bind_methods()
-    {
-        godot::ClassDB::bind_method(godot::D_METHOD("get_bg_shader_material"), &rhythm::TitleScreen::get_bg_shader_material);
-        godot::ClassDB::bind_method(godot::D_METHOD("set_bg_shader_material", "p_bg_shader_material"), &rhythm::TitleScreen::set_bg_shader_material);
-        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "bg_shader_material", PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_bg_shader_material", "get_bg_shader_material");
-    }
-
 public:
     void _ready() override
     {
+        set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
+
         bg_shader = memnew(godot::ColorRect);
         bg_shader->set_name("bg_shader");
         bg_shader->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
@@ -84,6 +73,14 @@ public:
 
     godot::Ref<godot::ShaderMaterial> get_bg_shader_material() const { return bg_shader_material; }
     void set_bg_shader_material(const godot::Ref<godot::ShaderMaterial>& p_bg_shader_material) { bg_shader_material = p_bg_shader_material; }
+
+protected:
+    static void _bind_methods()
+    {
+        godot::ClassDB::bind_method(godot::D_METHOD("get_bg_shader_material"), &TitleScreen::get_bg_shader_material);
+        godot::ClassDB::bind_method(godot::D_METHOD("set_bg_shader_material", "p_bg_shader_material"), &TitleScreen::set_bg_shader_material);
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "bg_shader_material", PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_bg_shader_material", "get_bg_shader_material");
+    }
 }; // TitleScreen
 
-} // rhythm
+} // rhythm::sm

@@ -1,6 +1,12 @@
 #include "register_types.h"
 
-// nodes
+/* godot::Resource !*/
+#include "Album.h"
+#include "Audio.h"
+#include "Track.h"
+#include "UserSession.h"
+
+/* godot::Node !*/
 #include "AudioEngine2.h"
 #include "AudioEngine2_Pause_Shader.h"
 #include "BeatEditor.h"
@@ -9,36 +15,42 @@
 #include "NoteEditor.h"
 #include "Observatory.h"
 #include "Taiko2.h"
-#include "TitleScreen.h"
 
-// dsp nodes
+/* DSP ( digital signal processing! ) */
 #include "nodes/dsp/DSPGraphEdit.h"
 #include "nodes/dsp/DSPGraphEditor.h"
 #include "nodes/dsp/Multiplier.h"
 #include "nodes/dsp/Oscillator.h"
 #include "nodes/dsp/Output.h"
 
-// sm nodes
+/* SM ( scene machine! ) */
 #include "nodes/sm/BXScene.h"
 #include "nodes/sm/SceneMachine.h"
+#include "nodes/sm/TitleScreen.h"
 
-// resources
-#include "Album.h"
-#include "Audio.h"
-#include "Track.h"
-#include "UserSession.h"
-
+/* godot !*/
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
 using namespace godot;
 
-void initialize_example_module(ModuleInitializationLevel p_level)
+void inline register_nodes()
 {
-    if(p_level != MODULE_INITIALIZATION_LEVEL_SCENE) return;
+    /* DSP */
+    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::DSPGraphEdit);
+    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::DSPGraphEditor);
+    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::DSPGraphNode);
+    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::MultiplierGraphNode);
+    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::OscillatorGraphNode);
+    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::OutputGraphNode);
     
-    // register nodes
+    /* SM */
+    GDREGISTER_RUNTIME_CLASS(rhythm::sm::BXScene);
+    GDREGISTER_RUNTIME_CLASS(rhythm::sm::SceneMachine);
+    GDREGISTER_RUNTIME_CLASS(rhythm::sm::TitleScreen);
+    
+    /* godot::Node */
     GDREGISTER_RUNTIME_CLASS(rhythm::AudioEngine2);
     GDREGISTER_RUNTIME_CLASS(rhythm::AudioEngine2_Pause_Shader);
     GDREGISTER_RUNTIME_CLASS(rhythm::BeatEditor);
@@ -47,21 +59,10 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     GDREGISTER_RUNTIME_CLASS(rhythm::NoteEditor);
     GDREGISTER_RUNTIME_CLASS(rhythm::Observatory);
     GDREGISTER_RUNTIME_CLASS(rhythm::Taiko2);
-    GDREGISTER_RUNTIME_CLASS(rhythm::TitleScreen);
-    
-    // register DSP graph nodes
-    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::DSPGraphEdit);
-    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::DSPGraphEditor);
-    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::DSPGraphNode);
-    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::MultiplierGraphNode);
-    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::OscillatorGraphNode);
-    GDREGISTER_RUNTIME_CLASS(rhythm::dsp::OutputGraphNode);
-    
-    // register SM nodes
-    GDREGISTER_RUNTIME_CLASS(rhythm::sm::BXScene);
-    GDREGISTER_RUNTIME_CLASS(rhythm::sm::SceneMachine);
-    
-    // register resources
+}
+
+void inline register_resources()
+{
     GDREGISTER_CLASS(rhythm::Album);
     GDREGISTER_CLASS(rhythm::Audio);
     GDREGISTER_CLASS(rhythm::Constellation);
@@ -69,7 +70,15 @@ void initialize_example_module(ModuleInitializationLevel p_level)
     GDREGISTER_CLASS(rhythm::UserSession);
 }
 
-void uninitialize_example_module(ModuleInitializationLevel p_level)
+void initialize_beatboxx_module(ModuleInitializationLevel p_level)
+{
+    if(p_level != MODULE_INITIALIZATION_LEVEL_SCENE) return;
+    
+    register_resources();
+    register_nodes();
+}
+
+void uninitialize_beatboxx_module(ModuleInitializationLevel p_level)
 {
     if(p_level != MODULE_INITIALIZATION_LEVEL_SCENE) return;
 }
@@ -80,8 +89,8 @@ extern "C"
     {
         GDExtensionBinding::InitObject init_obj(p_get_proc_address, p_library, r_initialization);
         
-        init_obj.register_initializer(initialize_example_module);
-        init_obj.register_terminator(uninitialize_example_module);
+        init_obj.register_initializer(initialize_beatboxx_module);
+        init_obj.register_terminator(uninitialize_beatboxx_module);
         init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SCENE);
         
         return init_obj.init();

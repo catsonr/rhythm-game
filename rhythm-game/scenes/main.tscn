@@ -36,7 +36,7 @@ text = "[pulse][wave]main scene![/wave][/pulse]"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="SceneMachine" type="SceneMachine" parent="." unique_id=2107676424]
+[node name="MainSceneMachine (the SceneMachine for main dot tscn)" type="SceneMachine" parent="." unique_id=2107676424]
 initial_scene = ExtResource("3_o6xl0")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=217961613]

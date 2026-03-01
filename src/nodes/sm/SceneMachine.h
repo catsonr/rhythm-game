@@ -72,6 +72,9 @@ private:
 public:
     void _ready() override
     {
+        // tell the scene machine (and all thus its children) to take the entire screen by default
+        set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
+
         // mount the initial scene
         if( initial_scene.is_valid() ) enter_scene(initial_scene);
         else godot::print_line("[SceneMachine::_ready] no initial scene. nothing to do!");
