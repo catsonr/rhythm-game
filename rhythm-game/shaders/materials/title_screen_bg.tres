@@ -1,7 +1,8 @@
 [gd_resource type="ShaderMaterial" format=3 uid="uid://dh4l0dp0escog"]
 
-[ext_resource type="Shader" uid="uid://bhdde1rf30ruv" path="res://shaders/title_screen_bg.gdshader" id="1_xwl86"]
+[ext_resource type="Shader" uid="uid://ddo4kyo3l8ya" path="res://shaders/title_screen_bg.gdshader" id="1_xwl86"]
 
 [resource]
 shader = ExtResource("1_xwl86")
-shader_parameter/mouse_dist_from_center = Vector2(0, 0)
+shader_parameter/size = Vector2(800, 600)
+shader_parameter/mouse = Vector2(0, 0)

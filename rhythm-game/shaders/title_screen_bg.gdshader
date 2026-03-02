@@ -1,46 +1,41 @@
 shader_type canvas_item;
+//render_mode blend_mul;
 
-uniform vec2 mouse_dist_from_center = vec2(0); // [-0.5, 0.5]^2
+uniform vec2 size  = vec2(800, 600);
+uniform vec2 mouse = vec2(0);
 
-// vec2 variables with the suffix _C are complex numbers; not vectors
+#define t (TIME/4.)
 
-vec2 f(vec2 z_C, vec2 c_C)
+// the function to be graphed
+float f(float x) { return sin(x); }
+
+// draws the function f
+float graph(vec2 uv) {
+    float d = abs( f(uv.x+t) - uv.y ); // the distance from uv to the graph
+
+    return d <= 1. ? 1. : 0.; // return 1 if d is small enough
+}
+
+void fragment()
 {
-	float a = z_C.x;
-	float b = z_C.y;
+	vec2 uv = vec2(UV.x, 1.-UV.y); // [0, 1]
+	uv = (uv - 0.5) * (size / size.y);
 
-	return vec2(
-		tan(a*a) - sin(b*b) + c_C.x,
-		2.*a*b + c_C.y
+	uv.y *= 3.;
+	uv.x *= 2.;
+
+	uv += mouse * 0.5;
+	
+	uv *= mat2(
+		vec2(1, 0),
+		vec2(0.5, 1)
 	);
-}
 
-vec3 julia(vec2 uv, vec2 c_C)
-{
-	const int iterations  = 10;
-	const float max_value = 30.;
-	const float max_value_squared = max_value * max_value;
-	
-	vec2 z_C = uv;
-	for(int i = 0; i < iterations; i++)
-	{
-		z_C = f(z_C, c_C);
-		if( dot(z_C, z_C) > max_value_squared ) return vec3(float(i)/float(iterations)); // diverged!
-	}
-	
-	return vec3(1);
-}
+	float l = cos(t)*cos(t)*sin(t)*.5;
 
-void fragment() {
-	vec2 uv = vec2(UV.x, 1.-UV.y);
-	uv -= 0.5;
-	uv *= 0.12;
-	
-	float t = TIME/360.;
-	vec2 c_C = vec2(sin(t), cos(t))/20. + vec2(0.41, 0);
-	
-	uv += mouse_dist_from_center * 0.002;
-	c_C += mouse_dist_from_center * 0.00002;
-
-	COLOR = vec4(julia(uv, c_C) - 0.4, 1);
+	COLOR = vec4(
+		graph(uv),
+		graph(uv + l + mouse.x*.2),
+		graph(uv - l + mouse.y*.2),
+	1);
 }

@@ -1,0 +1,7 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://cic4bb8asqkhy"]
+
+[ext_resource type="Shader" uid="uid://cv2srtlsmvou6" path="res://shaders/old_title_screen_bg.gdshader" id="1_lufm3"]
+
+[resource]
+shader = ExtResource("1_lufm3")
+shader_parameter/mouse_dist_from_center = Vector2(0, 0)

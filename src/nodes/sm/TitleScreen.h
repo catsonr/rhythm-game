@@ -1,5 +1,10 @@
 #pragma once
 
+#include <godot_cpp/classes/color_rect.hpp>
+#include <godot_cpp/classes/shader_material.hpp>
+#include <godot_cpp/classes/input_event_key.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
+
 #include "nodes/sm/SceneMachine.h"
 
 namespace rhythm::sm
@@ -21,7 +26,7 @@ public:
         bg_shader = memnew(godot::ColorRect);
         bg_shader->set_name("bg_shader");
         bg_shader->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
-        bg_shader->set_draw_behind_parent(true);
+        //bg_shader->set_draw_behind_parent(true);
         if( bg_shader_material.is_valid() ) bg_shader->set_material(bg_shader_material);
         else godot::print_error("[TitleScreen::_ready] invalid bg shader material. please set one in the inspector!");
         add_child(bg_shader);
@@ -34,7 +39,7 @@ public:
         {
             switch( key_event->get_physical_keycode() )
             {
-                case KEY_ENTER:
+                case godot::KEY_ENTER:
                 {
                     godot::Ref<godot::PackedScene> observatory_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/observatory.tscn");
                     if( observatory_scene.is_valid() )
@@ -45,7 +50,7 @@ public:
                     
                     break;
                 }
-                case KEY_D:
+                case godot::KEY_D:
                 {
                     godot::Ref<godot::PackedScene> dsp_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/dsp.tscn");
                     if( dsp_scene.is_valid() )
@@ -65,10 +70,13 @@ public:
     void _process(double delta) override
     {
         godot::Vector2 size = get_size();
-        godot::Vector2 mouse = get_local_mouse_position();
-        godot::Vector2 mouse_dist_from_center = (mouse - 0.5*size) / size;
+        godot::Vector2 mouse = ( get_local_mouse_position() - 0.5*size ) / size;
+        mouse.y = -mouse.y;
         
-        if( bg_shader_material.is_valid() ) bg_shader_material->set_shader_parameter("mouse_dist_from_center", mouse_dist_from_center);
+        if( !bg_shader_material.is_valid() ) return;
+
+        bg_shader_material->set_shader_parameter("size", size);
+        bg_shader_material->set_shader_parameter("mouse", mouse);
     }
 
     godot::Ref<godot::ShaderMaterial> get_bg_shader_material() const { return bg_shader_material; }
@@ -79,7 +87,7 @@ protected:
     {
         godot::ClassDB::bind_method(godot::D_METHOD("get_bg_shader_material"), &TitleScreen::get_bg_shader_material);
         godot::ClassDB::bind_method(godot::D_METHOD("set_bg_shader_material", "p_bg_shader_material"), &TitleScreen::set_bg_shader_material);
-        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "bg_shader_material", PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_bg_shader_material", "get_bg_shader_material");
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "bg_shader_material", godot::PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_bg_shader_material", "get_bg_shader_material");
     }
 }; // TitleScreen
 
