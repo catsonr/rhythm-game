@@ -19,7 +19,7 @@
    enter and exit are called when SceneMachine assumes and leaves the state, respectively
    pause and resume are for when other scenes are pushed and popped from the pushdown stack, respectively
 
-   and transition_in and transition_out are umimplemented
+   for your BXScene to have special behavior during transitions, override the transition_in and/or transition_out methods
    
    there is also set_machine, which is called by whichever SceneMachine created the scene, where
    that machine passes itself
@@ -112,8 +112,8 @@ public:
         //godot::print_line("[BXScene::resume] '" + name + "' resumed, visible and processing!");
     }
     
-    void transition_in(const Transition& trans);
-    void transition_out(const Transition& trans);
+    virtual void transition_in(const Transition& trans) {}
+    virtual void transition_out(const Transition& trans) {}
 
 protected:
     static void _bind_methods() {}

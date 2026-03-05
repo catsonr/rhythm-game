@@ -24,9 +24,18 @@
 namespace rhythm::sm
 {
 
+/*
+    Transition represents shared state between current_scene and next_scene
+    
+    scenes will be considered "transitioning" so long as t < 1.0
+    once t >= 1.0, SceneMachine will exit current_scene and replace it with next_scene
+*/
 struct Transition
 {
-    godot::Ref<sm::BXScene> current, next;
+    Transition() = delete;
+    Transition(BXScene* next_scene) : next_scene(next_scene) {}
+
+    BXScene* next_scene { nullptr };
     double t { 0.0 };
 }; // Transition
 
@@ -40,10 +49,20 @@ private:
     BXScene* current_scene { nullptr };
 
     std::stack<BXScene*> stack;
+    Transition trans { nullptr };
+
+    /*
+        lemma
+
+        SceneMachine is transitioning if its Transition member has next_scene set
+    */
+    bool transitioning() const { return trans.next_scene != nullptr; }
     
     /* 
-       if there are no scenes on the stack, then the "previous scene" is the current scene
-       otherwise previous is the top of the stack
+        lemma
+
+        if there are no scenes on the stack, then the "previous scene" is the current scene
+        otherwise previous is the top of the stack
     */
     BXScene* get_previous_scene() const { return stack.empty() ? current_scene : stack.top(); }
 
@@ -78,6 +97,21 @@ public:
         // mount the initial scene
         if( initial_scene.is_valid() ) enter_scene(initial_scene);
         else godot::print_line("[SceneMachine::_ready] no initial scene. nothing to do!");
+    }
+
+    void _process(double delta) override
+    {
+        if( !transitioning() ) return;
+
+        // NOTE: for now, SceneMachine will drive the transition
+        // this means that all transitions are 1 second long, with linear interpolation!
+        // TODO: use godot::Tween (?)
+        trans.t += delta;
+
+        current_scene->transition_out(trans);
+        trans.next_scene->transition_in(trans);
+
+        if( trans.t >= 1.0 ) transition_finish();
     }
     
     /*
@@ -120,6 +154,46 @@ public:
         current_scene = nullptr;
         
         //godot::print_line("[SceneMachine::exit_scene] bxscene '" + name + "' exited!");
+    }
+    
+    /*
+       begins a Transition to p_scene
+
+       by default, p_scene will be drawn on top of (and processed after) current_scene. to reverse
+       this, set behind=true
+    */
+    void transition_scene(godot::Ref<godot::PackedScene> p_scene, bool behind=false)
+    {
+        if( !current_scene ) return;
+
+        BXScene* next_scene = instantiate_scene(p_scene);
+        if( !next_scene ) { godot::print_error("[SceneMachine::transition_scene] failed to instantiate p_scene! ignoring ..."); return; }
+        
+        trans = Transition(next_scene);
+        
+        next_scene->set_machine(this);
+        add_child(next_scene);
+        next_scene->enter();
+        if( behind ) move_child(next_scene, current_scene->get_index());
+        
+        godot::print_line("[SceneMachine::transition_scene] beginnning transition ...");
+    }
+    
+    /*
+        exists current_scene and replaces it with next_scene, completing the transition
+    */
+    void transition_finish()
+    {
+        if( !transitioning() ) return;
+        
+        exit_scene();
+        
+        current_scene = trans.next_scene;
+        current_scene->enter();
+
+        trans = Transition(nullptr);
+        
+        godot::print_line("[SceneMachine::transition_finish] finished transition!");
     }
     
     /*

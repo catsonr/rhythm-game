@@ -63,9 +63,9 @@ void fragment() {
 	1);
 	
 	// red bg  -> larger id.x
-	COLOR.r += G_id.x/10.;
+	//COLOR.r += G_id.x/10.;
 	// blue bg -> larger id.y
-	COLOR.b += G_id.y/10.;
+	//COLOR.b += G_id.y/10.;
 	
 	// draw grid lines for standard basis (debug)
 	uv_std = fract(uv_std);

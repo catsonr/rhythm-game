@@ -18,6 +18,9 @@ private:
     godot::ColorRect* bg_shader { nullptr };
     godot::Ref<godot::ShaderMaterial> bg_shader_material;
 
+    godot::ColorRect* cross_texture_shader { nullptr };
+    godot::Ref<godot::ShaderMaterial> cross_texture_shader_material;
+
 public:
     void _ready() override
     {
@@ -30,6 +33,14 @@ public:
         if( bg_shader_material.is_valid() ) bg_shader->set_material(bg_shader_material);
         else godot::print_error("[TitleScreen::_ready] invalid bg shader material. please set one in the inspector!");
         add_child(bg_shader);
+
+        cross_texture_shader = memnew(godot::ColorRect);
+        cross_texture_shader->set_name("cross_texture_shader");
+        cross_texture_shader->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
+        //cross_texture_shader->set_draw_behind_parent(true);
+        if( cross_texture_shader_material.is_valid() ) cross_texture_shader->set_material(cross_texture_shader_material);
+        else godot::print_error("[TitleScreen::_ready] invalid cross_texture shader material. please set one in the inspector!");
+        add_child(cross_texture_shader);
     }
     
     void _input(const godot::Ref<godot::InputEvent>& event) override
@@ -56,7 +67,7 @@ public:
                     if( dsp_scene.is_valid() )
                     {
                         sm::SceneMachine* sm = sm::BXScene::get_machine(this);
-                        if( sm ) sm->enter_scene(dsp_scene);
+                        if( sm ) sm->transition_scene(dsp_scene);
                     }
                     
                     break;
@@ -77,10 +88,17 @@ public:
 
         bg_shader_material->set_shader_parameter("size", size);
         bg_shader_material->set_shader_parameter("mouse", mouse);
+        
+        if( !cross_texture_shader_material.is_valid() ) return; 
+
+        cross_texture_shader_material->set_shader_parameter("size", size);
     }
 
     godot::Ref<godot::ShaderMaterial> get_bg_shader_material() const { return bg_shader_material; }
     void set_bg_shader_material(const godot::Ref<godot::ShaderMaterial>& p_bg_shader_material) { bg_shader_material = p_bg_shader_material; }
+
+    godot::Ref<godot::ShaderMaterial> get_cross_texture_shader_material() const { return cross_texture_shader_material; }
+    void set_cross_texture_shader_material(const godot::Ref<godot::ShaderMaterial>& p_cross_texture_shader_material) { cross_texture_shader_material = p_cross_texture_shader_material; }
 
 protected:
     static void _bind_methods()
@@ -88,6 +106,10 @@ protected:
         godot::ClassDB::bind_method(godot::D_METHOD("get_bg_shader_material"), &TitleScreen::get_bg_shader_material);
         godot::ClassDB::bind_method(godot::D_METHOD("set_bg_shader_material", "p_bg_shader_material"), &TitleScreen::set_bg_shader_material);
         ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "bg_shader_material", godot::PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_bg_shader_material", "get_bg_shader_material");
+
+        godot::ClassDB::bind_method(godot::D_METHOD("get_cross_texture_shader_material"), &TitleScreen::get_cross_texture_shader_material);
+        godot::ClassDB::bind_method(godot::D_METHOD("set_cross_texture_shader_material", "p_cross_texture_shader_material"), &TitleScreen::set_cross_texture_shader_material);
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "cross_texture_shader_material", godot::PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_cross_texture_shader_material", "get_cross_texture_shader_material");
     }
 }; // TitleScreen
 

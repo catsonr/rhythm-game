@@ -1,0 +1,7 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://buyoqqlk0eg7v"]
+
+[ext_resource type="Shader" uid="uid://7irepk3poxe8" path="res://shaders/cross_texture.gdshader" id="1_evsxc"]
+
+[resource]
+shader = ExtResource("1_evsxc")
+shader_parameter/size = Vector2(800, 600)
