@@ -1,157 +1,34 @@
 #pragma once
 
-#include <vector>
-#include <random>
+/*
+    Observatory is BEATBOXX's idea of a song selector
+    currently, it renders a single rhythm::Constellation (which can be though of as a playlist)
+    
+    Observatory uses BXCTX::G as the basis for a 2D lattice
+*/
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/color_rect.hpp>
 #include <godot_cpp/classes/shader_material.hpp>
-#include <godot_cpp/classes/image_texture.hpp>
 #include <godot_cpp/classes/rich_text_label.hpp>
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
-#include <godot_cpp/classes/input_event_mouse.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/tween.hpp>
 
-#include "BXCTX.h"
 #include "nodes/sm/SceneMachine.h"
 
+#include "resources/Constellation.h"
+
 #include "nodes/AudioEngine2.h"
-#include "resources/Track.h"
-#include "resources/Album.h"
 
-namespace rhythm
+namespace rhythm::sm
 {
 
-struct Constellation : public godot::Resource
+struct Observatory : public sm::BXScene
 {
-    GDCLASS(Constellation, Resource)
-
-public:
-    /*
-      0  1  2
-      TL TC TR
-    7 ML xx MR 3
-      BL BC BR 
-      6  5  4
-
-      thus for any direction, opposite = (forwards+4) % 8 aka (^ 0x4)
-      where forwards is { 0, 1, 2, 3 } and backwards is { 4, 5, 6, 7 }
-    */
-    enum Adjacency : uint8_t
-    {
-        // forwards
-        TL = 1 << 0,
-        TC = 1 << 1,
-        TR = 1 << 2,
-        MR = 1 << 3,
-        // backwards (opposite of forwards)
-        BR = 1 << 4,
-        BC = 1 << 5,
-        BL = 1 << 6,
-        ML = 1 << 7
-    };
-
-    godot::TypedArray<Track> tracks;
-    std::vector<godot::Ref<godot::Texture2D>> covers;
-    std::vector<godot::Vector2i> ids; // can also be thought of as position
-    std::vector<uint8_t> adjacencies;
-    /*
-        this texture, along with the adjacencies shader is currently unused
-        for now, adjacencies are simply rendered with draw_line, in _draw()
-
-        adjacency shader is still running however, and draws a rainbow circle at (0, 0), just to
-        show that it is in fact running
-    */
-    godot::Ref<godot::ImageTexture> observatory_adjacency_shader_texture;
-    
-    int seed { 0 };
-
-protected:
-    static void _bind_methods()
-    {
-        godot::ClassDB::bind_method(godot::D_METHOD("get_tracks"), &rhythm::Constellation::get_tracks);
-        godot::ClassDB::bind_method(godot::D_METHOD("set_tracks", "p_track"), &rhythm::Constellation::set_tracks);
-        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::ARRAY, "tracks", godot::PROPERTY_HINT_TYPE_STRING, godot::String::num(godot::Variant::OBJECT) + "/" + godot::String::num(godot::PROPERTY_HINT_RESOURCE_TYPE) + ":Track"), "set_tracks", "get_tracks");
-
-        godot::ClassDB::bind_method(godot::D_METHOD("get_seed"), &rhythm::Constellation::get_seed);
-        godot::ClassDB::bind_method(godot::D_METHOD("set_seed", "p_seed"), &rhythm::Constellation::set_seed);
-        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::INT, "seed"), "set_seed", "get_seed");
-    }
-
-public:
-    // caches the cover, and generates the adjacencies (and thus positions) of each Track in tracks (since we assume first track is at (0, 0))
-    void cache()
-    {
-        int tracks_size = tracks.size();
-
-        covers.clear();
-        covers.reserve(tracks_size);
-        ids.clear();
-        ids.reserve(tracks_size);
-        adjacencies.clear();
-        adjacencies.reserve(tracks_size);
-
-        std::random_device random_device;
-        std::mt19937 device( (seed == 0) ? random_device() : seed );
-        // for now, only choose from directions 3, 4, and 5 which are the directions defined to only
-        // move in the positive directions (see Constellation::Adjacency)
-        std::uniform_int_distribution rng(3, 5); 
-        
-        // the bytes we will be saving to obervatory_adjacency_shader_texture
-        godot::PackedByteArray adjacencies_texture_data;
-        adjacencies_texture_data.resize(tracks_size * tracks_size);
-        adjacencies_texture_data.fill(0);
-        uint8_t* ptr = adjacencies_texture_data.ptrw();
-
-        godot::Vector2i current_id { 0, 0 };
-        for(int i = 0; i < tracks_size; i++)
-        {
-            godot::Ref<Track> track = tracks[i];
-
-            covers.emplace_back(track->get_album()->get_cover());
-            ids.emplace_back(current_id);
-            
-            // each Track goes to one other, in a random forward direction
-            int random_number = rng(device);
-
-            if( i < tracks_size-1 ) // if not last track
-            {
-                adjacencies.emplace_back( 1 << random_number ); // set the direction to the bit the rng chose
-                ptr[ current_id.x*tracks_size + current_id.y ] = adjacencies[i]; // and save that direction at current position
-
-                // finally, move the next track from the random direction chosen
-                if     (random_number == 3) { current_id.x += 1; }
-                else if(random_number == 4) { current_id.x += 1; current_id.y += 1; }
-                else if(random_number == 5) {                    current_id.y += 1; }
-                //else if(random_number == 6) { current_id.x -= 1; current_id.y += 1; }
-                //else if(random_number == 7) { current_id.x -= 1; }
-            }
-            else adjacencies.emplace_back( 0 );
-        }
-        
-        // save adjacencies_texture_data as an image
-        return; // jk skip it
-        godot::Ref<godot::Image> texture_image = godot::Image::create_from_data(tracks_size, tracks_size, false, godot::Image::FORMAT_R8, adjacencies_texture_data);
-        // save image to adjacency texture, this is what finally is passed to the adjacency shader
-        if(observatory_adjacency_shader_texture.is_valid()) observatory_adjacency_shader_texture->set_image(texture_image);
-        else observatory_adjacency_shader_texture = godot::ImageTexture::create_from_image(texture_image);
-        //texture_image->save_png("res://adjacencies.png"); // save to disk for debug
-    }
-    
-    bool is_initialized() const { return !ids.empty() && !covers.empty() && ids.size() == tracks.size() && covers.size() == tracks.size(); }
-
-    godot::TypedArray<Track> get_tracks() const { return tracks; }
-    void set_tracks(const godot::TypedArray<Track>& p_tracks) { tracks = p_tracks; }
-    
-    int get_seed() const { return seed; }
-    void set_seed(int p_seed) { seed = p_seed; cache(); }
-}; // Constellation
-
-struct Observatory : public godot::Control
-{
-    GDCLASS(Observatory, Control)
+    GDCLASS(Observatory, sm::BXScene)
 
     rhythm::AudioEngine2* audio_engine_2 { nullptr };
     
@@ -173,31 +50,41 @@ struct Observatory : public godot::Control
     godot::RichTextLabel* selected_track_label;
 
 public:
-    static void _bind_methods()
+
+    void transition_in(const Transition& trans) override
     {
-        godot::ClassDB::bind_method(godot::D_METHOD("get_background_shader_material"), &rhythm::Observatory::get_background_shader_material);
-        godot::ClassDB::bind_method(godot::D_METHOD("set_background_shader_material", "p_background_shader_material"), &rhythm::Observatory::set_background_shader_material);
-        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "background_shader_material", godot::PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_background_shader_material", "get_background_shader_material");
+        double t = trans.t > 1.0 ? 1.0 : trans.t;
 
-        godot::ClassDB::bind_method(godot::D_METHOD("get_adjacency_shader_material"), &rhythm::Observatory::get_adjacency_shader_material);
-        godot::ClassDB::bind_method(godot::D_METHOD("set_adjacency_shader_material", "p_adjacency_shader_material"), &rhythm::Observatory::set_adjacency_shader_material);
-        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "adjacency_shader_material", godot::PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_adjacency_shader_material", "get_adjacency_shader_material");
-
-        godot::ClassDB::bind_method(godot::D_METHOD("get_scale"), &rhythm::Observatory::get_scale);
-        godot::ClassDB::bind_method(godot::D_METHOD("set_scale", "p_scale"), &rhythm::Observatory::set_scale);
-        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::FLOAT, "scale"), "set_scale", "get_scale");
-
-        godot::ClassDB::bind_method(godot::D_METHOD("get_current_constellation"), &rhythm::Observatory::get_current_constellation);
-        godot::ClassDB::bind_method(godot::D_METHOD("set_current_constellation", "p_track"), &rhythm::Observatory::set_current_constellation);
-        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "current_constellation", godot::PROPERTY_HINT_RESOURCE_TYPE, "Constellation"), "set_current_constellation", "get_current_constellation");
+        // interpolate G
+        const godot::Vector4 G_start { 0, 1, 0, -1 };
+        const godot::Vector4 G_end   { 3, 3, -3, 3 };
+        const godot::Vector4 dG = G_end - G_start;
         
-        godot::ClassDB::bind_method(godot::D_METHOD("get_G"), &rhythm::Observatory::get_G);
-        godot::ClassDB::bind_method(godot::D_METHOD("set_G", "p_G"), &rhythm::Observatory::set_G);
-        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::VECTOR4, "G"), "set_G", "get_G");
-
-        godot::ClassDB::bind_method(godot::D_METHOD("get_pitch"), &rhythm::Observatory::get_pitch);
-        godot::ClassDB::bind_method(godot::D_METHOD("set_pitch", "p_pitch"), &rhythm::Observatory::set_pitch);
-        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::FLOAT, "pitch"), "set_pitch", "get_pitch");
+        godot::Vector4 G_interpolated = godot::Tween::interpolate_value(
+            G_start,
+            dG,
+            t,
+            1.0,
+            godot::Tween::TRANS_CUBIC,
+            godot::Tween::EASE_IN_OUT
+        );
+        
+        BXCTX::get().G = G_interpolated;
+        
+        // interpolate pitch
+        audio_engine_2->set_current_track_pitch(t);
+        
+        // interpolate scale
+        const float scale_initial_inital = 50;
+        const float dscale = scale_initial - scale_initial_inital;
+        scale = godot::Tween::interpolate_value(
+            50,
+            dscale,
+            t,
+            1.0,
+            godot::Tween::TRANS_CUBIC,
+            godot::Tween::EASE_OUT
+        );
     }
 
     void _ready() override
@@ -205,6 +92,7 @@ public:
         audio_engine_2 = BXCTX::get().audio_engine_2;
         G = &BXCTX::get().G;
         
+        if( !background_shader_material.is_valid() ) godot::print_error("[Observatory::_ready] no background shader set! please set one in the inspector");
         background_shader = memnew(godot::ColorRect);
         background_shader->set_name("background_shader");
         background_shader->set_anchors_and_offsets_preset(godot::Control::PRESET_FULL_RECT);
@@ -212,6 +100,7 @@ public:
         if( background_shader_material.is_valid() ) background_shader->set_material(background_shader_material);
         add_child(background_shader);
 
+        if( !adjacency_shader_material.is_valid() ) godot::print_error("[Observatory::_ready] no adjacency shader set! please set one in the inspector");
         adjacency_shader = memnew(godot::ColorRect);
         adjacency_shader->set_name("adjacency_shader");
         adjacency_shader->set_anchors_and_offsets_preset(godot::Control::PRESET_FULL_RECT);
@@ -334,14 +223,14 @@ public:
                 case godot::MOUSE_BUTTON_WHEEL_DOWN:
                 {
                     //godot::print_line("scroll down");
-                    set_scale(scale + zoom_amount);
+                    scale += zoom_amount;
                     break;
                 }
                 case godot::MOUSE_BUTTON_WHEEL_UP:
                 {
                     //godot::print_line("scroll up");
                     float min_zoom_amount = 3; // the minimum value, which is the maximum zoom
-                    set_scale( (scale-zoom_amount > min_zoom_amount) ? (scale - zoom_amount) : min_zoom_amount );
+                    scale = (scale-zoom_amount > min_zoom_amount) ? (scale - zoom_amount) : min_zoom_amount;
                     break;
                 }
 
@@ -388,6 +277,7 @@ public:
 
         queue_redraw();
     }
+    
     
     /*
         focuses the Observatory to the given point, in std basis
@@ -558,30 +448,25 @@ public:
     godot::Ref<godot::ShaderMaterial> get_adjacency_shader_material() const { return adjacency_shader_material; }
     void set_adjacency_shader_material(const godot::Ref<godot::ShaderMaterial>& p_adjacency_shader_material) { adjacency_shader_material = p_adjacency_shader_material; }
     
-    float get_scale() const { return scale; }
-    void set_scale(float p_scale) { scale = p_scale; }
-    
     godot::Ref<rhythm::Constellation> get_current_constellation() const { return current_constellation; }
     void set_current_constellation(const godot::Ref<rhythm::Constellation>& p_current_constellation) { current_constellation = p_current_constellation; current_constellation->cache(); }
-    
-    /* CTX GETTERS & SETTERS (these are used to expose audio_engine_2 pitch and ctx G through Observatory so that they can be animated with AnimationPlayers) */
-    
-    godot::Vector4 get_G() const { return BXCTX::get().G; }
-    void set_G(const godot::Vector4& p_G) { BXCTX::get().G = p_G; }
-    
-    // WARN: need default value even if audio engine is null
-    // this is fine.... since get_pitch and set_pitch only exist to animte with AnimationPlayer anways
-    float get_pitch() const
+
+protected:
+    static void _bind_methods()
     {
-        if( !BXCTX::get().audio_engine_2 ) return 1.0;
-        return BXCTX::get().audio_engine_2->get_current_track_pitch();
-    }
-    void set_pitch(const float p_pitch)
-    {
-        if( !BXCTX::get().audio_engine_2 ) return;
-        BXCTX::get().audio_engine_2->set_current_track_pitch(p_pitch);
+        godot::ClassDB::bind_method(godot::D_METHOD("get_background_shader_material"), &rhythm::sm::Observatory::get_background_shader_material);
+        godot::ClassDB::bind_method(godot::D_METHOD("set_background_shader_material", "p_background_shader_material"), &rhythm::sm::Observatory::set_background_shader_material);
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "background_shader_material", godot::PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_background_shader_material", "get_background_shader_material");
+
+        godot::ClassDB::bind_method(godot::D_METHOD("get_adjacency_shader_material"), &rhythm::sm::Observatory::get_adjacency_shader_material);
+        godot::ClassDB::bind_method(godot::D_METHOD("set_adjacency_shader_material", "p_adjacency_shader_material"), &rhythm::sm::Observatory::set_adjacency_shader_material);
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "adjacency_shader_material", godot::PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial"), "set_adjacency_shader_material", "get_adjacency_shader_material");
+
+        godot::ClassDB::bind_method(godot::D_METHOD("get_current_constellation"), &rhythm::sm::Observatory::get_current_constellation);
+        godot::ClassDB::bind_method(godot::D_METHOD("set_current_constellation", "p_track"), &rhythm::sm::Observatory::set_current_constellation);
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "current_constellation", godot::PROPERTY_HINT_RESOURCE_TYPE, "Constellation"), "set_current_constellation", "get_current_constellation");
     }
 
 }; // Observatory
 
-} // rhythm
+} // rhythm::sm

@@ -1,5 +1,5 @@
 shader_type canvas_item;
-//render_mode blend_mul;
+render_mode blend_mul;
 
 uniform vec2 size  = vec2(800, 600);
 uniform vec2 mouse = vec2(0);

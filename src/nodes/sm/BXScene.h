@@ -25,6 +25,8 @@
    that machine passes itself
    get_machine is a static method that takes a godot::Node* and returns a SceneMachine*. it is a helper
    function that finds the owner of the Node (which should be a BXScene), and returns that BXScene's machine
+   
+   TODO: rethink--or at least reimplement--enter and exit. they manage godot node visibility and input, but poorly
 */
 
 #include <godot_cpp/classes/control.hpp>

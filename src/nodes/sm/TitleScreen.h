@@ -21,6 +21,8 @@ private:
     godot::ColorRect* cross_texture_shader { nullptr };
     godot::Ref<godot::ShaderMaterial> cross_texture_shader_material;
 
+    godot::ColorRect* bg_shader_bg { nullptr };
+
 public:
     void _ready() override
     {
@@ -34,6 +36,7 @@ public:
         else godot::print_error("[TitleScreen::_ready] invalid bg shader material. please set one in the inspector!");
         add_child(bg_shader);
 
+        /*
         cross_texture_shader = memnew(godot::ColorRect);
         cross_texture_shader->set_name("cross_texture_shader");
         cross_texture_shader->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
@@ -41,6 +44,13 @@ public:
         if( cross_texture_shader_material.is_valid() ) cross_texture_shader->set_material(cross_texture_shader_material);
         else godot::print_error("[TitleScreen::_ready] invalid cross_texture shader material. please set one in the inspector!");
         add_child(cross_texture_shader);
+        */
+        
+        bg_shader_bg = memnew(godot::ColorRect);
+        bg_shader_bg->set_name("bg_shader_bg");
+        bg_shader_bg->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
+        bg_shader_bg->set_draw_behind_parent(true);
+        add_child(bg_shader_bg);
     }
     
     void _input(const godot::Ref<godot::InputEvent>& event) override
@@ -56,7 +66,7 @@ public:
                     if( observatory_scene.is_valid() )
                     {
                         sm::SceneMachine* sm = sm::BXScene::get_machine(this);
-                        if( sm ) sm->enter_scene(observatory_scene);
+                        if( sm ) sm->transition_scene(observatory_scene, true);
                     }
                     
                     break;
@@ -67,7 +77,7 @@ public:
                     if( dsp_scene.is_valid() )
                     {
                         sm::SceneMachine* sm = sm::BXScene::get_machine(this);
-                        if( sm ) sm->transition_scene(dsp_scene);
+                        if( sm ) sm->enter_scene(dsp_scene);
                     }
                     
                     break;
@@ -92,6 +102,12 @@ public:
         if( !cross_texture_shader_material.is_valid() ) return; 
 
         cross_texture_shader_material->set_shader_parameter("size", size);
+    }
+    
+    void transition_out(const sm::Transition& trans) override
+    {
+        //bg_shader_bg->set_color({ 1, 1, 1, static_cast<float>(1-trans.t) });
+        bg_shader_bg->set_visible(false);
     }
 
     godot::Ref<godot::ShaderMaterial> get_bg_shader_material() const { return bg_shader_material; }

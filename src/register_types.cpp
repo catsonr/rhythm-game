@@ -3,6 +3,7 @@
 /* godot::Resource !*/
 #include "Album.h"
 #include "Audio.h"
+#include "Constellation.h"
 #include "Track.h"
 #include "UserSession.h"
 
@@ -13,7 +14,6 @@
 #include "BXApi.h"
 #include "LoginWindow.h"
 #include "NoteEditor.h"
-#include "Observatory.h"
 #include "Taiko2.h"
 
 /* DSP ( digital signal processing! ) */
@@ -25,6 +25,7 @@
 
 /* SM ( scene machine! ) */
 #include "nodes/sm/BXScene.h"
+#include "nodes/sm/Observatory.h"
 #include "nodes/sm/SceneMachine.h"
 #include "nodes/sm/TitleScreen.h"
 
@@ -47,6 +48,7 @@ void inline register_nodes()
     
     /* SM */
     GDREGISTER_RUNTIME_CLASS(rhythm::sm::BXScene);
+    GDREGISTER_RUNTIME_CLASS(rhythm::sm::Observatory);
     GDREGISTER_RUNTIME_CLASS(rhythm::sm::SceneMachine);
     GDREGISTER_RUNTIME_CLASS(rhythm::sm::TitleScreen);
     
@@ -57,7 +59,6 @@ void inline register_nodes()
     GDREGISTER_RUNTIME_CLASS(rhythm::BXApi);
     GDREGISTER_RUNTIME_CLASS(rhythm::LoginWindow);
     GDREGISTER_RUNTIME_CLASS(rhythm::NoteEditor);
-    GDREGISTER_RUNTIME_CLASS(rhythm::Observatory);
     GDREGISTER_RUNTIME_CLASS(rhythm::Taiko2);
 }
 
