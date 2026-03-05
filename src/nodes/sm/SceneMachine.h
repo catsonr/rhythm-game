@@ -9,7 +9,7 @@
    SceneMachine, on top of its BXScene current_scene, has a stack<BXScene> stack, making this a pushdown automata.
    all that to say:
    SceneMachine can assume a single state. on top of that state, you may push and pop additional states as you wish
-   this is useful for options menus, HUDs, etc
+   this is useful for options menus, HUDs, shaders for Transitions, etc
    
    stack is controlled with push_scene() and pop_scene()
 */
@@ -18,6 +18,7 @@
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 #include "BXScene.h"
 
@@ -26,14 +27,36 @@ namespace rhythm::sm
 
 /*
     Transition represents shared state between current_scene and next_scene
+    there may be more later, but for now this shared state is simply an interpolation amount t
     
     scenes will be considered "transitioning" so long as t < 1.0
     once t >= 1.0, SceneMachine will exit current_scene and replace it with next_scene
+    
+    this allows you to, for instance:
+        start at some instantiated and entered BXScene scene,
+        BXScene::get_machine(scene)->transition_scene( some godot::PackedScene ); // this starts the transition!
+
+        // do whatever
+
+        BXScene::get_machine(scene)->trans.t = 1.0; // this ends the transition!
+
+        // alternatively, you can end prematurely
+        BXScene::get_machine(scene)->transition_finish();
 */
 struct Transition
 {
     Transition() = delete;
     Transition(BXScene* next_scene) : next_scene(next_scene) {}
+    
+    // to keep current_scene alive after the Transition, set push_current_scene to false
+    // once the Transition finishes, this will set next_scene to current_scene like normal, as well
+    // pushing the current scene to the stack
+    bool push_current_scene = false;
+    // if push_current_scene is true, then we push with these settings
+    // there is probably a better way of doing this, but this works for now
+    bool push_current_scene_visible = true;
+    bool push_current_scene_processing = true;
+    bool push_current_scene_input = false;
 
     BXScene* next_scene { nullptr };
     double t { 0.0 };
@@ -48,8 +71,9 @@ private:
     godot::Ref<godot::PackedScene> initial_scene { nullptr };
     BXScene* current_scene { nullptr };
 
+    public: Transition trans { nullptr }; private:
+
     std::stack<BXScene*> stack;
-    Transition trans { nullptr };
 
     /*
         lemma
@@ -75,7 +99,6 @@ private:
         }
         
         godot::Node* scene = p_scene->instantiate();
-        
         sm::BXScene* bxscene = godot::Node::cast_to<sm::BXScene>(scene);
         if( !bxscene )
         {
@@ -105,7 +128,6 @@ public:
 
         // NOTE: for now, SceneMachine will drive the transition
         // this means that all transitions are 1 second long, with linear interpolation!
-        // TODO: use godot::Tween (?)
         trans.t += delta;
 
         current_scene->transition_out(trans);
@@ -116,7 +138,8 @@ public:
     
     /*
         sets p_scene as the current scene
-        enter_scene will call exit_scene for you
+
+        will call exit_scene for you
     */
     void enter_scene(godot::Ref<godot::PackedScene> p_scene)
     {
@@ -132,8 +155,6 @@ public:
         add_child(bxscene);
         bxscene->enter();
         current_scene = bxscene;
-        
-        //godot::print_line("[SceneMachine::enter_scene] bxscene '" + bxscene->name + "' is now the current scene!");
     }
     
     /*
@@ -149,11 +170,9 @@ public:
             stack.pop();
         }
         
-        godot::StringName& name = current_scene->name;
+        godot::StringName name = current_scene->bxname();
         current_scene->exit();
         current_scene = nullptr;
-        
-        //godot::print_line("[SceneMachine::exit_scene] bxscene '" + name + "' exited!");
     }
     
     /*
@@ -165,39 +184,51 @@ public:
     void transition_scene(godot::Ref<godot::PackedScene> p_scene, bool behind=false)
     {
         if( !current_scene ) return;
+        if( transitioning() ) { godot::print_line("[SceneMachine::transition_scene] was already transitioning '" + trans.next_scene->bxname() + "'!"); }
 
         BXScene* next_scene = instantiate_scene(p_scene);
         if( !next_scene ) { godot::print_error("[SceneMachine::transition_scene] failed to instantiate p_scene! ignoring ..."); return; }
         
+        
+        
+        // (re)start transition
         trans = Transition(next_scene);
         
         next_scene->set_machine(this);
         add_child(next_scene);
-        next_scene->enter();
+        next_scene->enter(true, true, false); // visible, processing, but NO input!
         if( behind ) move_child(next_scene, current_scene->get_index());
         
-        godot::print_line("[SceneMachine::transition_scene] beginnning transition ...");
+        godot::print_line("[SceneMachine::transition_scene] transitioning from '" + current_scene->bxname() + "' to '" + next_scene->bxname() + "'!");
     }
     
     /*
-        exists current_scene and replaces it with next_scene, completing the transition
+        exits current_scene and replaces it with next_scene, completing the transition!
+        
+        this can be used to prematurely finish a transition
     */
     void transition_finish()
     {
         if( !transitioning() ) return;
         
-        exit_scene();
-        
-        current_scene = trans.next_scene;
-        current_scene->enter();
+        if( trans.push_current_scene )
+        {
+            stack.push(current_scene);
+            current_scene->enter(trans.push_current_scene_visible, trans.push_current_scene_processing, trans.push_current_scene_input);
+        }
+        else exit_scene();
 
+        current_scene = trans.next_scene;
+        current_scene->enter(); // enter fully (now with input)
         trans = Transition(nullptr);
         
-        godot::print_line("[SceneMachine::transition_finish] finished transition!");
+        godot::print_line("[SceneMachine::transition_finish] transitioned to '" + current_scene->bxname() + "'");
     }
     
+    void transition_restart() { trans = Transition( get_previous_scene() ); }
+    
     /*
-        pushes p_scene to the top of stack
+        pushes a new p_scene to the top of stack
         
         by default push_scene will keep the previous stack scene visible but paused
         to hide the previous stack scene, set visible=false

@@ -4,10 +4,12 @@ render_mode blend_mul;
 uniform vec2 size  = vec2(800, 600);
 uniform vec2 mouse = vec2(0);
 
+//#define uv here!
 #define t (TIME/4.)
 
 // the function to be graphed
-float f(float x) { return sin(x); }
+// NOTE: tan looks like quarter notes!
+float f(float x) { return sin(x + t); }
 
 // draws the function f
 float graph(vec2 uv) {

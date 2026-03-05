@@ -4,7 +4,7 @@
     Observatory is BEATBOXX's idea of a song selector
     currently, it renders a single rhythm::Constellation (which can be though of as a playlist)
     
-    Observatory uses BXCTX::G as the basis for a 2D lattice
+    Observatory uses BXCTX::G as the basis for its 2D lattice
 */
 
 #include <godot_cpp/classes/control.hpp>
@@ -87,8 +87,12 @@ public:
         );
     }
 
+    godot::StringName bxname() const override { return "observatory"; }
+
     void _ready() override
     {
+        godot::print_line("[Observatory::_ready] creating observatory");
+        
         audio_engine_2 = BXCTX::get().audio_engine_2;
         G = &BXCTX::get().G;
         

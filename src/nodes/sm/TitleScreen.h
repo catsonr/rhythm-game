@@ -24,6 +24,8 @@ private:
     godot::ColorRect* bg_shader_bg { nullptr };
 
 public:
+    godot::StringName bxname() const override { return "title screen"; }
+
     void _ready() override
     {
         set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
@@ -31,20 +33,16 @@ public:
         bg_shader = memnew(godot::ColorRect);
         bg_shader->set_name("bg_shader");
         bg_shader->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
-        //bg_shader->set_draw_behind_parent(true);
         if( bg_shader_material.is_valid() ) bg_shader->set_material(bg_shader_material);
         else godot::print_error("[TitleScreen::_ready] invalid bg shader material. please set one in the inspector!");
         add_child(bg_shader);
 
-        /*
         cross_texture_shader = memnew(godot::ColorRect);
         cross_texture_shader->set_name("cross_texture_shader");
         cross_texture_shader->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
-        //cross_texture_shader->set_draw_behind_parent(true);
         if( cross_texture_shader_material.is_valid() ) cross_texture_shader->set_material(cross_texture_shader_material);
         else godot::print_error("[TitleScreen::_ready] invalid cross_texture shader material. please set one in the inspector!");
         add_child(cross_texture_shader);
-        */
         
         bg_shader_bg = memnew(godot::ColorRect);
         bg_shader_bg->set_name("bg_shader_bg");
@@ -66,7 +64,12 @@ public:
                     if( observatory_scene.is_valid() )
                     {
                         sm::SceneMachine* sm = sm::BXScene::get_machine(this);
-                        if( sm ) sm->transition_scene(observatory_scene, true);
+                        if( sm )
+                        {
+                            sm->transition_scene(observatory_scene, true);
+                            sm->trans.push_current_scene = true;
+                            sm->trans.push_current_scene_input = false;
+                        }
                     }
                     
                     break;
@@ -77,7 +80,7 @@ public:
                     if( dsp_scene.is_valid() )
                     {
                         sm::SceneMachine* sm = sm::BXScene::get_machine(this);
-                        if( sm ) sm->enter_scene(dsp_scene);
+                        if( sm ) sm->push_scene(dsp_scene);
                     }
                     
                     break;
@@ -106,7 +109,7 @@ public:
     
     void transition_out(const sm::Transition& trans) override
     {
-        //bg_shader_bg->set_color({ 1, 1, 1, static_cast<float>(1-trans.t) });
+        cross_texture_shader->set_visible(false);
         bg_shader_bg->set_visible(false);
     }
 
