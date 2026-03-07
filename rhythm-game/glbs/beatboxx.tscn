@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://3fklkwx0vqwn"]
+
+[ext_resource type="PackedScene" uid="uid://br6qu31woml6q" path="res://glbs/beatboxx-logos.glb" id="1_fbix8"]
+
+[node name="beatboxx-logos" unique_id=644502742 instance=ExtResource("1_fbix8")]
+
+[node name="beatboxx text" parent="." index="0" unique_id=1232287862]
+visible = false
+
+[node name="beatboxx_org text" parent="." index="1" unique_id=2062420960]
+visible = false
+
+[node name="beatboxx_org mesh" parent="." index="3" unique_id=1764050703]
+visible = false
