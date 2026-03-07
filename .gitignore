@@ -2,6 +2,8 @@
 
 Godot.app
 
+*.blend1
+
 # gdextension-test
 *.os
 *.dblite

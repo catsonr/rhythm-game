@@ -1,15 +1,11 @@
 [gd_scene format=3 uid="uid://tq7dju4488yu"]
 
 [ext_resource type="Audio" uid="uid://dnq6uads5qy54" path="res://resources/Audio/click.tres" id="1_tbgi4"]
+[ext_resource type="Theme" uid="uid://btiigy1owx1kr" path="res://themes/title_screen_theme.tres" id="2_tefeu"]
 [ext_resource type="PackedScene" uid="uid://cu5rlxojgswqw" path="res://scenes/title_screen.tscn" id="3_o6xl0"]
-[ext_resource type="FontFile" uid="uid://bad72xp20qcxh" path="res://fonts/Husky Stash.otf" id="3_tefeu"]
 [ext_resource type="Material" uid="uid://cfjls20sgqg8g" path="res://shaders/materials/audio_engine_2_pause_shader.tres" id="4_1bvp3"]
 [ext_resource type="Material" uid="uid://cct8sav1iprll" path="res://shaders/materials/CRT.tres" id="5_lquwl"]
 [ext_resource type="Script" uid="uid://0yvhwm24n06y" path="res://fps_label.gd" id="6_7mycd"]
-
-[sub_resource type="Theme" id="Theme_o6xl0"]
-default_font = ExtResource("3_tefeu")
-default_font_size = 61
 
 [node name="Node" type="Node" unique_id=1431783181]
 
@@ -24,13 +20,13 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -262.0
-offset_top = -209.5
-offset_right = 262.0
-offset_bottom = 209.5
+offset_left = -286.0
+offset_top = -204.0
+offset_right = 300.0
+offset_bottom = 215.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = SubResource("Theme_o6xl0")
+theme = ExtResource("2_tefeu")
 bbcode_enabled = true
 text = "[pulse][wave]main scene![/wave][/pulse]"
 horizontal_alignment = 1

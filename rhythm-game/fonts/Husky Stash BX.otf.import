@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://bad72xp20qcxh"
-path="res://.godot/imported/Husky Stash.otf-30bac1565adc0910b179c7231628a14e.fontdata"
+uid="uid://b0mku3fr28ejf"
+path="res://.godot/imported/Husky Stash BX.otf-052060117fc101cbdadcbb86cfdda5de.fontdata"
 
 [deps]
 
-source_file="res://fonts/Husky Stash.otf"
-dest_files=["res://.godot/imported/Husky Stash.otf-30bac1565adc0910b179c7231628a14e.fontdata"]
+source_file="res://fonts/Husky Stash BX.otf"
+dest_files=["res://.godot/imported/Husky Stash BX.otf-052060117fc101cbdadcbb86cfdda5de.fontdata"]
 
 [params]
 

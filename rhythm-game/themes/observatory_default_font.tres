@@ -1,6 +1,6 @@
-[gd_resource type="Theme" load_steps=2 format=3 uid="uid://cdhi8rtxnqesl"]
+[gd_resource type="Theme" format=3 uid="uid://cdhi8rtxnqesl"]
 
-[ext_resource type="FontFile" uid="uid://bad72xp20qcxh" path="res://fonts/Husky Stash.otf" id="1_0vjar"]
+[ext_resource type="FontFile" uid="uid://b0mku3fr28ejf" path="res://fonts/Husky Stash BX.otf" id="1_0vjar"]
 
 [resource]
 default_font = ExtResource("1_0vjar")

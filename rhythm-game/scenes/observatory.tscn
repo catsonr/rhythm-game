@@ -3,6 +3,7 @@
 [ext_resource type="Material" uid="uid://b3gu5go2grkwp" path="res://shaders/materials/constellation_background.tres" id="1_duydk"]
 [ext_resource type="Material" uid="uid://dkou015de6sj1" path="res://shaders/materials/constellation_adjacency.tres" id="2_nq624"]
 [ext_resource type="Constellation" uid="uid://od053yvm1luo" path="res://resources/Constellations/constellation1.tres" id="3_2gdk4"]
+[ext_resource type="Theme" uid="uid://cdhi8rtxnqesl" path="res://themes/observatory_default_font.tres" id="4_2gdk4"]
 
 [node name="Observatory" type="Observatory" unique_id=407486989]
 background_shader_material = ExtResource("1_duydk")
@@ -10,3 +11,4 @@ adjacency_shader_material = ExtResource("2_nq624")
 current_constellation = ExtResource("3_2gdk4")
 offset_right = 800.0
 offset_bottom = 600.0
+theme = ExtResource("4_2gdk4")

@@ -27,30 +27,23 @@ namespace rhythm::sm
 
 /*
     Transition represents shared state between current_scene and next_scene
-    there may be more later, but for now this shared state is simply an interpolation amount t
-    
-    scenes will be considered "transitioning" so long as t < 1.0
-    once t >= 1.0, SceneMachine will exit current_scene and replace it with next_scene
-    
-    this allows you to, for instance:
-        start at some instantiated and entered BXScene scene,
-        BXScene::get_machine(scene)->transition_scene( some godot::PackedScene ); // this starts the transition!
-
-        // do whatever
-
-        BXScene::get_machine(scene)->trans.t = 1.0; // this ends the transition!
-
-        // alternatively, you can end prematurely
-        BXScene::get_machine(scene)->transition_finish();
 */
 struct Transition
 {
     Transition() = delete;
     Transition(BXScene* next_scene) : next_scene(next_scene) {}
-    
+
+    BXScene* next_scene { nullptr };
+
+    double t { 0.0 };
+    static constexpr double t_start { 0.0 };
+    static constexpr double t_end   { 1.0 };
+
+    /* flags !*/
+
     // to keep current_scene alive after the Transition, set push_current_scene to false
     // once the Transition finishes, this will set next_scene to current_scene like normal, as well
-    // pushing the current scene to the stack
+    // as pushing the current scene to the stack
     bool push_current_scene = false;
     // if push_current_scene is true, then we push with these settings
     // there is probably a better way of doing this, but this works for now
@@ -58,20 +51,31 @@ struct Transition
     bool push_current_scene_processing = true;
     bool push_current_scene_input = false;
 
-    BXScene* next_scene { nullptr };
-    double t { 0.0 };
+    // returns true if the transition is finished
+    bool finished() const { return t >= t_end; }
+    // restarts the Transition
+    void restart() { t = t_start; }
+    // interpolate by delta, where delta is in seconds
+    // called every frame by SceneMachine
+    void process(double delta)
+    {
+        if(finished()) return;
+
+        t += delta;
+        if( t > t_end ) t = t_end;
+    }
 }; // Transition
 
 struct SceneMachine : public godot::Control 
 {
     GDCLASS(SceneMachine, godot::Control)
 
-private:
+public:
+    Transition trans { nullptr };
 
+private:
     godot::Ref<godot::PackedScene> initial_scene { nullptr };
     BXScene* current_scene { nullptr };
-
-    public: Transition trans { nullptr }; private:
 
     std::stack<BXScene*> stack;
 
@@ -126,14 +130,14 @@ public:
     {
         if( !transitioning() ) return;
 
-        // NOTE: for now, SceneMachine will drive the transition
-        // this means that all transitions are 1 second long, with linear interpolation!
-        trans.t += delta;
+        // process the transition
+        trans.process(delta);
 
+        // run the scenes
         current_scene->transition_out(trans);
         trans.next_scene->transition_in(trans);
 
-        if( trans.t >= 1.0 ) transition_finish();
+        if( trans.finished() ) transition_finish();
     }
     
     /*
@@ -184,22 +188,31 @@ public:
     void transition_scene(godot::Ref<godot::PackedScene> p_scene, bool behind=false)
     {
         if( !current_scene ) return;
-        if( transitioning() ) { godot::print_line("[SceneMachine::transition_scene] was already transitioning '" + trans.next_scene->bxname() + "'!"); }
 
-        BXScene* next_scene = instantiate_scene(p_scene);
-        if( !next_scene ) { godot::print_error("[SceneMachine::transition_scene] failed to instantiate p_scene! ignoring ..."); return; }
-        
-        
-        
-        // (re)start transition
-        trans = Transition(next_scene);
+        BXScene* next_scene = nullptr;
+
+        if( transitioning() )
+        {
+            next_scene = trans.next_scene;
+            godot::print_line("[SceneMachine::transition_scene] already transitioning to '" + next_scene->bxname() + "'! restarting current transition ...");
+            
+            trans.restart();
+            return;
+        }
+        else
+        {
+            next_scene = instantiate_scene(p_scene);
+            if( !next_scene ) { godot::print_error("[SceneMachine::transition_scene] failed to instantiate p_scene!"); return; }
+            
+            trans = Transition( next_scene );
+        }
         
         next_scene->set_machine(this);
         add_child(next_scene);
-        next_scene->enter(true, true, false); // visible, processing, but NO input!
+        next_scene->enter(true, true, false); // when a scene is transitioning it's visible, processing, but NO input!
         if( behind ) move_child(next_scene, current_scene->get_index());
         
-        godot::print_line("[SceneMachine::transition_scene] transitioning from '" + current_scene->bxname() + "' to '" + next_scene->bxname() + "'!");
+        godot::print_line("[SceneMachine::transition_scene] transitioning from '" + current_scene->bxname() + "' to '" + next_scene->bxname() + "' ...");
     }
     
     /*
@@ -222,10 +235,8 @@ public:
         current_scene->enter(); // enter fully (now with input)
         trans = Transition(nullptr);
         
-        godot::print_line("[SceneMachine::transition_finish] transitioned to '" + current_scene->bxname() + "'");
+        godot::print_line("[SceneMachine::transition_finish] transitioned to '" + current_scene->bxname() + "'!");
     }
-    
-    void transition_restart() { trans = Transition( get_previous_scene() ); }
     
     /*
         pushes a new p_scene to the top of stack

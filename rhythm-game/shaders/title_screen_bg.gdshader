@@ -3,13 +3,14 @@ render_mode blend_mul;
 
 uniform vec2 size  = vec2(800, 600);
 uniform vec2 mouse = vec2(0);
+uniform float trans_t = 0.0;
 
 //#define uv here!
 #define t (TIME/4.)
 
 // the function to be graphed
 // NOTE: tan looks like quarter notes!
-float f(float x) { return sin(x + t); }
+float f(float x) { return mix(sin(x + t), tan(x + t), trans_t); }
 
 // draws the function f
 float graph(vec2 uv) {
@@ -30,7 +31,7 @@ void fragment()
 	
 	uv *= mat2(
 		vec2(1, 0),
-		vec2(0.5, 1)
+		vec2(0.5 - 0.5*trans_t, 1)
 	);
 
 	float l = cos(t)*cos(t)*sin(t)*.5;
@@ -40,4 +41,6 @@ void fragment()
 		graph(uv + l + mouse.x*.2),
 		graph(uv - l + mouse.y*.2),
 	1);
+	
+	//COLOR.r += trans_t;
 }

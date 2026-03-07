@@ -22,6 +22,8 @@ private:
     godot::Ref<godot::ShaderMaterial> cross_texture_shader_material;
 
     godot::ColorRect* bg_shader_bg { nullptr };
+    
+    double trans_t { 0.0 };
 
 public:
     godot::StringName bxname() const override { return "title screen"; }
@@ -101,16 +103,27 @@ public:
 
         bg_shader_material->set_shader_parameter("size", size);
         bg_shader_material->set_shader_parameter("mouse", mouse);
+        bg_shader_material->set_shader_parameter("trans_t", trans_t);
         
         if( !cross_texture_shader_material.is_valid() ) return; 
 
         cross_texture_shader_material->set_shader_parameter("size", size);
+        
+        //godot::print_line("[TitleScreen::_process] trans_t=" + godot::String::num_real(trans_t));
+    }
+    
+    void transition_in(const sm::Transition& trans) override
+    {
+        trans_t = trans.t_end - trans.t; // reverse for transitioning back in
     }
     
     void transition_out(const sm::Transition& trans) override
     {
+        trans_t = trans.t; // forwards for transitioning out
+
         cross_texture_shader->set_visible(false);
         bg_shader_bg->set_visible(false);
+        
     }
 
     godot::Ref<godot::ShaderMaterial> get_bg_shader_material() const { return bg_shader_material; }

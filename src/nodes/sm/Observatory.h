@@ -53,7 +53,7 @@ public:
 
     void transition_in(const Transition& trans) override
     {
-        double t = trans.t > 1.0 ? 1.0 : trans.t;
+        double t = trans.t;
 
         // interpolate G
         const godot::Vector4 G_start { 0, 1, 0, -1 };
@@ -86,13 +86,18 @@ public:
             godot::Tween::EASE_OUT
         );
     }
+    
+    /*
+    void transition_out(const Transition& trans) override
+    {
+
+    }
+    */
 
     godot::StringName bxname() const override { return "observatory"; }
 
     void _ready() override
     {
-        godot::print_line("[Observatory::_ready] creating observatory");
-        
         audio_engine_2 = BXCTX::get().audio_engine_2;
         G = &BXCTX::get().G;
         
@@ -206,7 +211,7 @@ public:
                         if( sm )
                         {
                             audio_engine_2->pause_current_track();
-                            sm->enter_scene(title_screen_scene);
+                            sm->transition_scene(title_screen_scene);
                         }
                     }
 

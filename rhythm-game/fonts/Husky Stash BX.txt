@@ -1,0 +1,2 @@
+Husky Stash BX is a slighly modified Husky Stash, where the period (.) was moved
+up to sit on the baseline
