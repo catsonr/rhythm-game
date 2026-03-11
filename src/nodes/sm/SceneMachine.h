@@ -20,9 +20,44 @@
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
 
 #include "BXScene.h"
+
+/* MACROS !*/
+
+#define SM_PUSH(bxname) \
+{ \
+godot::Ref<godot::PackedScene> scene = godot::ResourceLoader::get_singleton()->load("res://scenes/" #bxname ".tscn"); \
+sm::SceneMachine* sm = sm::BXScene::get_machine(this); \
+if( !sm ) godot::print_error("[SM_PUSH] failed sm::BXScene::get_machine(this)!"); \
+else if( scene.is_valid() ) sm->push_scene(scene); \
+else godot::print_error("[SM_PUSH] failed to load '" #bxname "'!"); \
+}
+
+#define SM_ENTER(bxname) \
+{ \
+godot::Ref<godot::PackedScene> scene = godot::ResourceLoader::get_singleton()->load("res://scenes/" #bxname ".tscn"); \
+sm::SceneMachine* sm = sm::BXScene::get_machine(this); \
+if( !sm ) godot::print_error("[SM_ENTER] failed sm::BXScene::get_machine(this)!"); \
+else if( scene.is_valid() ) \
+{ \
+    if( sm->transitioning() ) godot::print_line("[SM_ENTER] tried to enter '" #bxname "', but was already transitioning ..."); \
+    else sm->enter_scene(scene); \
+} \
+else godot::print_error("[SM_ENTER] failed to load '" #bxname "'!"); \
+}
+
+#define SM_TRANSITION(bxname) { \
+godot::Ref<godot::PackedScene> scene = godot::ResourceLoader::get_singleton()->load("res://scenes/" #bxname ".tscn"); \
+sm::SceneMachine* sm = sm::BXScene::get_machine(this); \
+if( !sm ) godot::print_error("[SM_TRANSITION] failed sm::BXScene::get_machine(this)!"); \
+else if( scene.is_valid() ) \
+{ \
+    if( sm->transitioning() ) godot::print_line("[SM_TRANSITION] tried to transition to '" #bxname "', but was already transitioning ..."); \
+    else sm->transition_scene(scene); \
+} \
+else godot::print_error("[SM_TRANSITION] failed to load '" #bxname "'!"); \
+}
 
 namespace rhythm::sm
 {
@@ -86,19 +121,19 @@ struct SceneMachine : public godot::Control
 
 public:
     Transition trans { nullptr };
-
-private:
-    godot::Ref<godot::PackedScene> initial_scene { nullptr };
-    BXScene* current_scene { nullptr };
-
-    std::stack<BXScene*> stack;
-
     /*
         lemma
 
         SceneMachine is transitioning if its Transition member has next_scene set
     */
     bool transitioning() const { return trans.next_scene != nullptr; }
+
+private:
+    godot::Ref<godot::PackedScene> initial_scene { nullptr };
+    bool transition_initial_scene { false };
+    BXScene* current_scene { nullptr };
+
+    std::stack<BXScene*> stack;
     
     /* 
         lemma
@@ -136,7 +171,11 @@ public:
         set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
 
         // mount the initial scene
-        if( initial_scene.is_valid() ) enter_scene(initial_scene);
+        if( initial_scene.is_valid() )
+        {
+            if( transition_initial_scene ) transition_scene(initial_scene);
+            else enter_scene(initial_scene);
+        }
         else godot::print_line("[SceneMachine::_ready] no initial scene. nothing to do!");
     }
 
@@ -148,7 +187,9 @@ public:
         trans.process(delta);
 
         // run the scenes
-        current_scene->transition_out(trans);
+        // if we are transitioning we by definition have a next scene, but we are not guaranteed a current_scene!
+        // this occurs when you set transition_initial_scene=true
+        if( current_scene) current_scene->transition_out(trans);
         trans.next_scene->transition_in(trans);
 
         if( trans.finished() ) transition_finish();
@@ -201,34 +242,23 @@ public:
     */
     void transition_scene(godot::Ref<godot::PackedScene> p_scene, bool behind=false)
     {
-        if( !current_scene ) return;
+        if( transitioning() ) return;
 
-        BXScene* next_scene = nullptr;
-
-        if( transitioning() )
-        {
-            return; // actually, instead of restarting, we will just ignore
-
-            next_scene = trans.next_scene;
-            godot::print_line("[SceneMachine::transition_scene] already transitioning to '" + next_scene->bxname() + "'! restarting current transition ...");
-            
-            trans.restart();
-            return;
-        }
-        else
-        {
-            next_scene = instantiate_scene(p_scene);
-            if( !next_scene ) { godot::print_error("[SceneMachine::transition_scene] failed to instantiate p_scene!"); return; }
-            
-            trans = Transition( next_scene );
-        }
+        BXScene* next_scene = instantiate_scene(p_scene);
+        if( !next_scene ) { godot::print_error("[SceneMachine::transition_scene] failed to instantiate p_scene!"); return; }
+        
+        trans = Transition( next_scene );
         
         next_scene->set_machine(this);
         add_child(next_scene);
         next_scene->enter(true, true, false); // when a scene is transitioning it's visible, processing, but NO input!
-        if( behind ) move_child(next_scene, current_scene->get_index());
-        
-        godot::print_line("[SceneMachine::transition_scene] transitioning from '" + current_scene->bxname() + "' to '" + next_scene->bxname() + "' ...");
+
+        if( current_scene )
+        {
+            move_child(next_scene, current_scene->get_index());
+            godot::print_line("[SceneMachine::transition_scene] transitioning from '" + current_scene->bxname() + "' to '" + next_scene->bxname() + "' ...");
+        }
+        else godot::print_line("[SceneMachine::transition_scene] transitioning from nothing to '" + next_scene->bxname() + "' ...");
     }
     
     /*
@@ -240,7 +270,7 @@ public:
     {
         if( !transitioning() ) return;
         
-        if( trans.push_current_scene )
+        if( current_scene && trans.push_current_scene )
         {
             stack.push(current_scene);
             current_scene->enter(trans.push_current_scene_visible, trans.push_current_scene_processing, trans.push_current_scene_input);
@@ -300,6 +330,9 @@ public:
 
     godot::Ref<godot::PackedScene> get_initial_scene() const { return initial_scene; }
     void set_initial_scene(const godot::Ref<godot::PackedScene>& p_initial_scene) { initial_scene = p_initial_scene; }
+    
+    bool get_transition_initial_scene() const { return transition_initial_scene; }
+    void set_transition_initial_scene(const bool p_transition_initial_scene) { transition_initial_scene = p_transition_initial_scene; }
 
 protected:
     static void _bind_methods()
@@ -307,6 +340,10 @@ protected:
         godot::ClassDB::bind_method(godot::D_METHOD("get_initial_scene"), &rhythm::sm::SceneMachine::get_initial_scene);
         godot::ClassDB::bind_method(godot::D_METHOD("set_initial_scene", "p_initial_scene"), &rhythm::sm::SceneMachine::set_initial_scene);
         ADD_PROPERTY(godot::PropertyInfo(godot::Variant::OBJECT, "initial_scene", godot::PROPERTY_HINT_RESOURCE_TYPE, "PackedScene"), "set_initial_scene", "get_initial_scene");
+
+        godot::ClassDB::bind_method(godot::D_METHOD("get_transition_initial_scene"), &rhythm::sm::SceneMachine::get_transition_initial_scene);
+        godot::ClassDB::bind_method(godot::D_METHOD("set_transition_initial_scene", "p_transition_initial_scene"), &rhythm::sm::SceneMachine::set_transition_initial_scene);
+        ADD_PROPERTY(godot::PropertyInfo(godot::Variant::BOOL, "transition_initial_scene"), "set_transition_initial_scene", "get_transition_initial_scene");
     }
 }; // SceneMachine
 

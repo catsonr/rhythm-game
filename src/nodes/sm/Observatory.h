@@ -103,6 +103,8 @@ public:
 
     void _ready() override
     {
+        set_anchors_and_offsets_preset(godot::Control::PRESET_FULL_RECT);
+
         audio_engine_2 = BXCTX::get().audio_engine_2;
         G = &BXCTX::get().G;
         
@@ -140,7 +142,7 @@ public:
         else godot::print_error("[Observatory::current_constellation] no constellation set! ignoring ...");
     }
     
-    void _input(const godot::Ref<godot::InputEvent>& event) override
+    void _unhandled_input(const godot::Ref<godot::InputEvent>& event) override
     {
         godot::Ref<godot::InputEventKey> key_event = event;
         if(key_event.is_valid() && key_event->is_pressed() && !key_event->is_echo())
@@ -183,46 +185,14 @@ public:
                 
                 case godot::KEY_ENTER:
                 {
-                    /*
-                    if(key_event->is_shift_pressed())
-                    {
-                        godot::Ref<godot::PackedScene> chart_editor_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/chart_editor.tscn");
-                        if( chart_editor_scene.is_valid() )
-                        {
-                            sm::SceneMachine* sm = sm::BXScene::get_machine(this);
-                            if( sm ) sm->push_scene(chart_editor_scene);
-                        }
-                        else godot::print_line("[Observatory::_input] failed to load chart editor ...");
-
-                        break;
-                    }
-                    */
-                    
-                    godot::Ref<godot::PackedScene> diva_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/diva.tscn");
-                    
-                    if( diva_scene.is_valid() )
-                    {
-                        sm::SceneMachine* sm = sm::BXScene::get_machine(this);
-                        if( sm ) sm->transition_scene(diva_scene);
-                    }
-                    else godot::print_line("[Observatory::_input] failed to load diva ...");
-                    
+                    if(key_event->is_shift_pressed()) { SM_TRANSITION(chart_editor) break; }
+                    SM_ENTER(diva)
                     
                     break;
                 }
                 case godot::KEY_ESCAPE:
                 {
-                    godot::Ref<godot::PackedScene> title_screen_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/title_screen.tscn");
-                    if( title_screen_scene.is_valid() )
-                    {
-                        sm::SceneMachine* sm = sm::BXScene::get_machine(this);
-                        if( sm )
-                        {
-                            audio_engine_2->pause_current_track();
-                            sm->enter_scene(title_screen_scene);
-                        }
-                    }
-
+                    SM_ENTER(title_screen)
                     break;
                 }
                 

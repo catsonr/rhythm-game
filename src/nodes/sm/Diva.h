@@ -1,5 +1,12 @@
 #pragma once
 
+#include <godot_cpp/classes/color_rect.hpp>
+#include <godot_cpp/classes/shader_material.hpp>
+
+#include <godot_cpp/classes/input_event_key.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
+
+#include "nodes/sm/SceneMachine.h"
 #include "nodes/sm/BXScene.h"
 
 namespace rhythm::sm
@@ -27,6 +34,24 @@ public:
         background_shader->set_draw_behind_parent(true);
         if( background_shader_material.is_valid() ) background_shader->set_material(background_shader_material);
         add_child(background_shader);
+    }
+    
+    void _unhandled_input(const godot::Ref<godot::InputEvent>& event) override
+    {
+        godot::Ref<godot::InputEventKey> key_event = event;
+        if(key_event.is_valid() && key_event->is_pressed() && !key_event->is_echo())
+        {
+            switch(key_event->get_physical_keycode())
+            {
+                // track selection
+                case godot::KEY_ESCAPE:
+                {
+                    SM_TRANSITION(observatory)
+                    break;
+                }
+                default: break;
+            }
+        }
     }
 
     /* GETTERS & SETTERS */

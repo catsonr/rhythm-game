@@ -1,7 +1,10 @@
 #pragma once
 
 /*
-    TODO: of course, should be renamed--at some point--to AudioEngine
+   AudioEngine2 is a custom audio engine, but it is really just a wrapper around miniaudio
+   it's used to keep time, as accurately as possible, to an audio file (or stream in the case of rhythm::dsp)
+
+   TOOD: of course, rename to AudioEngine
 */
 
 #include <list>
@@ -229,7 +232,7 @@ public:
         
         if( current_track->decoded )
         {
-            godot::print_line("[AudioEngine2::decode_current_track] '", current_track->get_title(), "' is already decoded. nothing to do!");
+            //godot::print_line("[AudioEngine2::decode_current_track] '", current_track->get_title(), "' is already decoded. nothing to do!");
             return;
         }
         
@@ -266,7 +269,7 @@ public:
             playing_track = false;
 
             conductor.pause(ma_engine_get_time_in_pcm_frames(&engine));
-        } else godot::print_line("[AudioEngine2::pause_current_track] nothing to do ...");
+        }
     }
 
     /* GETTERS & SETTERS */

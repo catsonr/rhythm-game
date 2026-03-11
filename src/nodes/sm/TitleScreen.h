@@ -29,11 +29,10 @@ public:
     
     void transition_out(const sm::Transition& trans) override
     {
-        trans_t = trans.t_normalized(); // forwards for transitioning out
+        trans_t = trans.t_normalized();
 
         cross_texture_shader->set_visible(false);
         bg_shader_bg->set_visible(false);
-        
     }
 
     godot::StringName bxname() const override { return "title screen"; }
@@ -63,7 +62,7 @@ public:
         add_child(bg_shader_bg);
     }
     
-    void _input(const godot::Ref<godot::InputEvent>& event) override
+    void _unhandled_input(const godot::Ref<godot::InputEvent>& event) override
     {
         godot::Ref<godot::InputEventKey> key_event = event;
         if( key_event.is_valid() && key_event->is_pressed() && !key_event->is_echo() )

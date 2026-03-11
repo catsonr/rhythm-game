@@ -40,10 +40,11 @@ _data = {
 &"rotate": SubResource("Animation_redmh")
 }
 
-[node name="Node3D" type="Node3D" unique_id=1499175153]
+[node name="Node3D" type="BXScene" unique_id=1535883285]
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=471913439]
 transform = Transform3D(1, 0, 0, 0, 0.9801399, -0.19830744, 0, 0.19830744, 0.9801399, 0, -0.36000627, 2.2110844)
+current = true
 fov = 21.5
 
 [node name="beatboxx-logos" parent="." unique_id=644502742 instance=ExtResource("1_nc5ub")]
