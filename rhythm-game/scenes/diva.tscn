@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://8njhjd8w8cka"]
+
+[ext_resource type="Material" uid="uid://c4idy5c62mden" path="res://shaders/materials/diva_bg.tres" id="1_7c6c6"]
+
+[node name="Diva" type="Diva" unique_id=431155542]
+background_shader_material = ExtResource("1_7c6c6")

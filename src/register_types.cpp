@@ -14,7 +14,6 @@
 #include "BXApi.h"
 #include "LoginWindow.h"
 #include "NoteEditor.h"
-#include "Taiko2.h"
 
 /* DSP ( digital signal processing! ) */
 #include "nodes/dsp/DSPGraphEdit.h"
@@ -25,6 +24,7 @@
 
 /* SM ( scene machine! ) */
 #include "nodes/sm/BXScene.h"
+#include "nodes/sm/Diva.h"
 #include "nodes/sm/Observatory.h"
 #include "nodes/sm/SceneMachine.h"
 #include "nodes/sm/TitleScreen.h"
@@ -48,6 +48,7 @@ void inline register_nodes()
     
     /* SM */
     GDREGISTER_RUNTIME_CLASS(rhythm::sm::BXScene);
+    GDREGISTER_RUNTIME_CLASS(rhythm::sm::Diva);
     GDREGISTER_RUNTIME_CLASS(rhythm::sm::Observatory);
     GDREGISTER_RUNTIME_CLASS(rhythm::sm::SceneMachine);
     GDREGISTER_RUNTIME_CLASS(rhythm::sm::TitleScreen);
@@ -59,7 +60,6 @@ void inline register_nodes()
     GDREGISTER_RUNTIME_CLASS(rhythm::BXApi);
     GDREGISTER_RUNTIME_CLASS(rhythm::LoginWindow);
     GDREGISTER_RUNTIME_CLASS(rhythm::NoteEditor);
-    GDREGISTER_RUNTIME_CLASS(rhythm::Taiko2);
 }
 
 void inline register_resources()

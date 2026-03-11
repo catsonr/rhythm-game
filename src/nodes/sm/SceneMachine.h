@@ -12,6 +12,8 @@
    this is useful for options menus, HUDs, shaders for Transitions, etc
    
    stack is controlled with push_scene() and pop_scene()
+   
+   TODO: make BXScenes fullscreen by default, or have something simliar to godot::Control::PRESET_X
 */
 
 #include <stack>
@@ -35,9 +37,11 @@ struct Transition
 
     BXScene* next_scene { nullptr };
 
+    // total time elapsed, in seconds
+    // for a normalized value, use t_normalized()
     double t { 0.0 };
-    static constexpr double t_start { 0.0 };
-    static constexpr double t_end   { 1.0 };
+    // the length of the Transition, in seconds
+    double t_end { 1.0 };
 
     /* flags !*/
 
@@ -50,11 +54,21 @@ struct Transition
     bool push_current_scene_visible = true;
     bool push_current_scene_processing = true;
     bool push_current_scene_input = false;
+    
+    /* lemmas !*/
 
     // returns true if the transition is finished
     bool finished() const { return t >= t_end; }
+    
+    // returns the interpolation amount 't' from [0, 1]
+    // use this if you want to change the duration of a Transition without changing interpolation
+    double t_normalized() const { return t / t_end; }
+    
+    /* operations !*/
+
     // restarts the Transition
-    void restart() { t = t_start; }
+    void restart() { t = 0.0; }
+
     // interpolate by delta, where delta is in seconds
     // called every frame by SceneMachine
     void process(double delta)
@@ -193,6 +207,8 @@ public:
 
         if( transitioning() )
         {
+            return; // actually, instead of restarting, we will just ignore
+
             next_scene = trans.next_scene;
             godot::print_line("[SceneMachine::transition_scene] already transitioning to '" + next_scene->bxname() + "'! restarting current transition ...");
             

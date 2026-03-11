@@ -26,6 +26,16 @@ private:
     double trans_t { 0.0 };
 
 public:
+    
+    void transition_out(const sm::Transition& trans) override
+    {
+        trans_t = trans.t_normalized(); // forwards for transitioning out
+
+        cross_texture_shader->set_visible(false);
+        bg_shader_bg->set_visible(false);
+        
+    }
+
     godot::StringName bxname() const override { return "title screen"; }
 
     void _ready() override
@@ -69,8 +79,9 @@ public:
                         if( sm )
                         {
                             sm->transition_scene(observatory_scene, true);
-                            sm->trans.push_current_scene = true;
-                            sm->trans.push_current_scene_input = false;
+                            sm->trans.t_end = 5.0;
+                            //sm->trans.push_current_scene = true;
+                            //sm->trans.push_current_scene_input = false;
                         }
                     }
                     
@@ -110,20 +121,6 @@ public:
         cross_texture_shader_material->set_shader_parameter("size", size);
         
         //godot::print_line("[TitleScreen::_process] trans_t=" + godot::String::num_real(trans_t));
-    }
-    
-    void transition_in(const sm::Transition& trans) override
-    {
-        trans_t = trans.t_end - trans.t; // reverse for transitioning back in
-    }
-    
-    void transition_out(const sm::Transition& trans) override
-    {
-        trans_t = trans.t; // forwards for transitioning out
-
-        cross_texture_shader->set_visible(false);
-        bg_shader_bg->set_visible(false);
-        
     }
 
     godot::Ref<godot::ShaderMaterial> get_bg_shader_material() const { return bg_shader_material; }

@@ -44,6 +44,8 @@ struct Observatory : public sm::BXScene
     float t { 0 };
     float x_offset { 0 };
     float y_offset { 0 };
+
+    double trans_t { 0 };
     
     godot::Ref<rhythm::Constellation> current_constellation;
     int selected_track_index { 0 };
@@ -53,7 +55,8 @@ public:
 
     void transition_in(const Transition& trans) override
     {
-        double t = trans.t;
+        trans_t = trans.t_normalized();
+        //double t_end = trans.t_end;
 
         // interpolate G
         const godot::Vector4 G_start { 0, 1, 0, -1 };
@@ -63,7 +66,7 @@ public:
         godot::Vector4 G_interpolated = godot::Tween::interpolate_value(
             G_start,
             dG,
-            t,
+            trans_t,
             1.0,
             godot::Tween::TRANS_CUBIC,
             godot::Tween::EASE_IN_OUT
@@ -72,7 +75,16 @@ public:
         BXCTX::get().G = G_interpolated;
         
         // interpolate pitch
-        audio_engine_2->set_current_track_pitch(t);
+        audio_engine_2->set_current_track_pitch( 
+            godot::Tween::interpolate_value(
+                0.5,
+                0.5,
+                trans_t,
+                1.0,
+                godot::Tween::TRANS_CUBIC,
+                godot::Tween::EASE_IN_OUT
+            )
+        );
         
         // interpolate scale
         const float scale_initial_inital = 50;
@@ -80,19 +92,12 @@ public:
         scale = godot::Tween::interpolate_value(
             50,
             dscale,
-            t,
+            trans_t,
             1.0,
             godot::Tween::TRANS_CUBIC,
             godot::Tween::EASE_OUT
         );
     }
-    
-    /*
-    void transition_out(const Transition& trans) override
-    {
-
-    }
-    */
 
     godot::StringName bxname() const override { return "observatory"; }
 
@@ -178,6 +183,7 @@ public:
                 
                 case godot::KEY_ENTER:
                 {
+                    /*
                     if(key_event->is_shift_pressed())
                     {
                         godot::Ref<godot::PackedScene> chart_editor_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/chart_editor.tscn");
@@ -190,15 +196,17 @@ public:
 
                         break;
                     }
+                    */
                     
-                    godot::Ref<godot::PackedScene> taiko_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/taiko2.tscn");
+                    godot::Ref<godot::PackedScene> diva_scene = godot::ResourceLoader::get_singleton()->load("res://scenes/diva.tscn");
                     
-                    if( taiko_scene.is_valid() )
+                    if( diva_scene.is_valid() )
                     {
                         sm::SceneMachine* sm = sm::BXScene::get_machine(this);
-                        if( sm ) sm->push_scene(taiko_scene);
+                        if( sm ) sm->transition_scene(diva_scene);
                     }
-                    else godot::print_line("[Observatory::_input] failed to load taiko ...");
+                    else godot::print_line("[Observatory::_input] failed to load diva ...");
+                    
                     
                     break;
                 }
@@ -211,7 +219,7 @@ public:
                         if( sm )
                         {
                             audio_engine_2->pause_current_track();
-                            sm->transition_scene(title_screen_scene);
+                            sm->enter_scene(title_screen_scene);
                         }
                     }
 
@@ -344,6 +352,9 @@ public:
             float track_rect_width = size_scale*unit;
             // track rect pos in pixels, from lattice coordinate id_std
             godot::Vector2 track_rect_pos = std_to_pixel(id_std, x_offset, y_offset, w, h, scale);
+            // track rect pos sin wave animate in based on trans_t
+            track_rect_pos.x += (1-trans_t)*w/2;
+            track_rect_pos.y += (1-trans_t)*sin(t)*h/2;
             // center track cover on lattice points
             track_rect_pos.x -= track_rect_width / 2;
             track_rect_pos.y -= track_rect_width / 2;

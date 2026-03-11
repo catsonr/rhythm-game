@@ -10,7 +10,7 @@ uniform float trans_t = 0.0;
 
 // the function to be graphed
 // NOTE: tan looks like quarter notes!
-float f(float x) { return mix(sin(x + t), tan(x + t), trans_t); }
+float f(float x) { return sin(x + t); }
 
 // draws the function f
 float graph(vec2 uv) {
@@ -26,6 +26,7 @@ void fragment()
 
 	uv.y *= 3.;
 	uv.x *= 2.;
+	uv /= 1.0 + trans_t;
 
 	uv += mouse * 0.5;
 	
