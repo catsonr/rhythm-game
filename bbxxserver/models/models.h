@@ -1,12 +1,12 @@
 #pragma once
 
 /*
-    bbxxserver/models/models.h is the single source of truth for what a beatboxx resource, be it a
+    models.h is the single source of truth for what a BEATBOXX resource, be it a
     Artist, Chart, User, etc., can possibly be
     
-    from these structs, they can be rehydrated into actual runtime objects. see:
+    from these structs they can be rehydrated into actual runtime objects. see:
     bbxxserver/models/storage.h for hydration into sqlite_orm, and
-    src/ for godot specific resources (e.g., Track.h)
+    src/resources/ for hydration into godot::Resources (e.g., Track.h)
 */
 
 #include <vector>
@@ -57,9 +57,14 @@ struct Track
 
     /* member variables */
     std::string title;
+    std::optional<std::vector<uint32_t>> raw_fingerprint; // see chromaprint.h!
     
     /* foreign key */
     uint64_t ALBUM_ID = NULL_ID;
+    
+    /* lemmas */
+    // a track is fingerprinted if it has a non-zero number of raw fingerprint hashes 
+    bool fingerprinted() const { return raw_fingerprint->size() != 0; }
     
     /* HAS CHILDREN Chart */
 }; // Track

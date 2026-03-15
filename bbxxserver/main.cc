@@ -28,6 +28,7 @@ int main()
         storage.insert(album); // album 2
         
         // tracks
+        /*
         server::Track track;
         track.title = "Just";
         track.ALBUM_ID = 1;
@@ -41,6 +42,7 @@ int main()
         track.title = "Pulsewidth";
         track.ALBUM_ID = 2;
         storage.insert(track); // track 4
+        */
     }
 
     // increase max body size for big audio file uploads

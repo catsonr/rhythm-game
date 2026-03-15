@@ -77,6 +77,7 @@ inline auto init_storage()
 
             /* member variables */
             make_column("title", &Track::title),
+            make_column("raw_fingerprint", &Track::raw_fingerprint),
 
             /* foreign key */
             make_column("album_id", &Track::ALBUM_ID),
@@ -127,8 +128,72 @@ using Storage = decltype( init_storage() );
 
 } // server
 
+// TODO: move these (?)
 namespace sqlite_orm
 {
+    /* tells sqlite_orm how to handle std::vector<uint32_t> */
+
+    template<>
+    struct type_printer<std::vector<uint32_t>>
+    {
+        const std::string& print() const
+        {
+            static const std::string type { "BLOB" };
+            return type;
+        }
+    }; // type_printer
+
+    template<>
+    struct statement_binder<std::vector<uint32_t>>
+    {
+        int bind(sqlite3_stmt* stmt, int index, const std::vector<uint32_t>& value) const
+        {
+            return sqlite3_bind_blob(
+                stmt,
+                index,
+                value.data(),
+                value.size() * sizeof(uint32_t),
+                SQLITE_TRANSIENT
+            );
+        }
+    }; // statement_binder
+    
+    template<>
+    struct row_extractor<std::vector<uint32_t>>
+    {
+        std::vector<uint32_t> extract(sqlite3_stmt* stmt, int index) const
+        {
+            const void* column_ptr = sqlite3_column_blob(stmt, index);
+            int column_bytes = sqlite3_column_bytes(stmt, index);
+            
+            if( !column_ptr )
+            {
+                LOG_ERROR << "[sqlite_orm::row_extractor<uint32_t>::extract] could not find column at index " + std::to_string(index) + "! ignoring ..."; 
+                return {};
+            }
+            if( column_bytes == 0 )
+            {
+                printf("[sqlite_orm::row_extractor<uint32_t>::extract] attempted to extract 0 bytes at index %i! ignoring ...", index);
+                return {};
+            }
+
+            size_t size = column_bytes / sizeof(uint32_t);
+            std::vector<uint32_t> result(size);
+            std::memcpy(result.data(), column_ptr, column_bytes);
+            
+            return result;
+        }
+    }; // row_extractor
+    
+    template<>
+    struct field_printer<std::vector<uint32_t>>
+    {
+        std::string operator()(const std::vector<uint32_t>& buffer) const
+        {
+            return "compiler wants this but im just going to hope it's unneeded. if you're reading this, it's needed!";
+        }
+    }; // field_printer
+
     /* tells sqlite_orm how to handle std::vector<uint64_t> */
 
     template<>
