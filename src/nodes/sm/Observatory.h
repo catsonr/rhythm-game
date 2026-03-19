@@ -196,6 +196,12 @@ public:
                     break;
                 }
                 
+                case godot::KEY_F:
+                {
+                    SM_ENTER(fingerprinter)
+                    break;
+                }
+                
                 default: break;
             }
         }

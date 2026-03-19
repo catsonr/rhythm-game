@@ -25,6 +25,7 @@
 /* SM ( scene machine! ) */
 #include "nodes/sm/BXScene.h"
 #include "nodes/sm/Diva.h"
+#include "nodes/sm/Fingerprinter.h"
 #include "nodes/sm/Observatory.h"
 #include "nodes/sm/SceneMachine.h"
 #include "nodes/sm/TitleScreen.h"
@@ -49,6 +50,7 @@ void inline register_nodes()
     /* SM */
     GDREGISTER_RUNTIME_CLASS(rhythm::sm::BXScene);
     GDREGISTER_RUNTIME_CLASS(rhythm::sm::Diva);
+    GDREGISTER_RUNTIME_CLASS(rhythm::sm::Fingerprinter);
     GDREGISTER_RUNTIME_CLASS(rhythm::sm::Observatory);
     GDREGISTER_RUNTIME_CLASS(rhythm::sm::SceneMachine);
     GDREGISTER_RUNTIME_CLASS(rhythm::sm::TitleScreen);

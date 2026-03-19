@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bv7htx5k338mm"]
+
+[ext_resource type="Theme" uid="uid://4fxwudk864xg" path="res://themes/fingerprinter_theme.tres" id="1_kva88"]
+
+[node name="Fingerprinter" type="Fingerprinter" unique_id=473326284]
+theme = ExtResource("1_kva88")
