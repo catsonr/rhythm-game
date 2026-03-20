@@ -109,6 +109,17 @@ private:
     godot::FileDialog* file_dialog { nullptr };
     
     float scroll { 0 };
+    
+    godot::Color base_color { 0, 1, 1, 1 };
+    godot::Color alt_color { 1, 0, 1, 0.5 };
+    godot::Color highlight_color { 1, 1, 1, 1 };
+    godot::Color shadow_color { 0.1, 0.1, 0.1, 1 };
+
+    /* lemmas */
+
+    double row_index_to_y(int i, float padding, float row_height) const { return padding + row_height*i - scroll; }
+    // row_index_to_y, solved for i
+    int row_hovered_index(double y, float padding, float row_height) { return (y + scroll - padding) / row_height; }
 
 public:
     godot::StringName bxname() const override { return "Fingerprinter"; }
@@ -182,25 +193,39 @@ public:
     void _draw() override
     {
         godot::Vector2 size = get_size();
-        
+        godot::Vector2 mouse = get_local_mouse_position();
+        float w = size.x;
+        float h = size.y;
         godot::Ref<godot::Font> font = get_theme_default_font();
         int font_size = get_theme_default_font_size();
+        font_size = 50;
+        
+        draw_rect({ 0, 0, w, h }, shadow_color);
 
-        const float padding = 4;
+        // draw tree text
+        const float padding = 10;
         const float tab = 8;
         float row_height = font_size;
-        
+        int hovered_index = row_hovered_index(mouse.y, padding, row_height);
         for( int i = 0; i < (int)rows.size(); i++ )
         {
             const Row& row = rows[i];
             
-            float y = padding + row_height*(i+1) - scroll;
+            float y = row_index_to_y(i, padding, row_height);
             float x = padding + row.depth*tab;
             
-            if( y < 0 || y >= size.y+row_height ) continue;
+            if( y+row_height < 0 || y >= size.y+row_height ) continue; // simple culling 
             
-            draw_string(font, { x, y }, row.text, godot::HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, {1,1,1,1});
+            if( i == hovered_index )
+            {
+                draw_rect({ 0, y, w, row_height }, base_color);
+                draw_string(font, { x, y+row_height }, row.text, godot::HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, shadow_color);
+            }
+            else draw_string(font, { x, y+row_height }, row.text, godot::HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, highlight_color);
         }
+        
+        // crosshair vertical bar
+        draw_rect({ mouse.x - row_height/2, 0, row_height, h }, alt_color);
     }
     
     void on_pressed()
