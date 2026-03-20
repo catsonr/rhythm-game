@@ -6,6 +6,7 @@
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/file_dialog.hpp>
 #include <godot_cpp/classes/font.hpp>
+#include <godot_cpp/classes/input_event_pan_gesture.hpp>
 
 #include "nodes/sm/BXScene.h"
 
@@ -106,6 +107,8 @@ private:
     
     godot::Button* button { nullptr };
     godot::FileDialog* file_dialog { nullptr };
+    
+    float scroll { 0 };
 
 public:
     godot::StringName bxname() const override { return "Fingerprinter"; }
@@ -142,6 +145,33 @@ public:
                 default: break;
             }
         }
+
+        godot::Ref<godot::InputEventMouseButton> mouse_event = event;
+        if( mouse_event.is_valid() && mouse_event->is_pressed() )
+        {
+            switch(mouse_event->get_button_index())
+            {
+                case godot::MOUSE_BUTTON_WHEEL_DOWN:
+                {
+                    scroll += 0.5;
+                    break;
+                }
+                case godot::MOUSE_BUTTON_WHEEL_UP:
+                {
+                    scroll -= 0.5;
+                    break;
+                }
+
+                default: break;
+            }
+        }
+        
+        godot::Ref<godot::InputEventPanGesture> pan_gesture = event;
+        const float pan_mult = 3;
+        if( pan_gesture.is_valid() )
+        {
+            scroll += pan_gesture->get_delta().y * pan_mult;
+        }
     }
     
     void _process(double delta) override
@@ -151,7 +181,8 @@ public:
     
     void _draw() override
     {
-
+        godot::Vector2 size = get_size();
+        
         godot::Ref<godot::Font> font = get_theme_default_font();
         int font_size = get_theme_default_font_size();
 
@@ -163,8 +194,10 @@ public:
         {
             const Row& row = rows[i];
             
-            float y = padding + row_height*(i+1);
+            float y = padding + row_height*(i+1) - scroll;
             float x = padding + row.depth*tab;
+            
+            if( y < 0 || y >= size.y+row_height ) continue;
             
             draw_string(font, { x, y }, row.text, godot::HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, {1,1,1,1});
         }

@@ -14,6 +14,8 @@
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
+#include <godot_cpp/classes/input_event_pan_gesture.hpp>
+#include <godot_cpp/classes/input_event_magnify_gesture.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/tween.hpp>
 
@@ -212,7 +214,7 @@ public:
             float zoom_amount = 1;
             switch(mouse_event->get_button_index())
             {
-                    // zoom out when scrolling down
+                // zoom out when scrolling down
                 case godot::MOUSE_BUTTON_WHEEL_DOWN:
                 {
                     //godot::print_line("scroll down");
@@ -229,7 +231,21 @@ public:
 
                 default: break;
             }
-            
+        }
+        
+        godot::Ref<godot::InputEventPanGesture> pan_gesture = event;
+        const float pan_mult = 0.1;
+        if( pan_gesture.is_valid() )
+        {
+            godot::Vector2 delta = pan_gesture->get_delta() * pan_mult;
+            x_offset += delta.x;
+            y_offset += delta.y;
+        }
+        
+        godot::Ref<godot::InputEventMagnifyGesture> magnify_gesture = event;
+        if( magnify_gesture.is_valid() )
+        {
+            scale /= magnify_gesture->get_factor();
         }
     }
     
